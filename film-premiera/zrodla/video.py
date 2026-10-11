@@ -448,8 +448,8 @@ def server_entry():
     im.alpha_composite(ic, (22, 22))
     im.alpha_composite(text_img("Dziob.6mc.PL", 52, (255, 255, 255), "px"), (226, 26))
     im.alpha_composite(text_img("WIELKA PREMIERA", 40, (255, 170, 0), "px"), (226, 102))
-    im.alpha_composite(text_img("Wbijaj już teraz!", 40, (85, 255, 255), "px"), (226, 152))
-    im.alpha_composite(text_img("ONLINE", 36, (85, 255, 85), "px"), (w - 270, 32))
+    im.alpha_composite(text_img("Start: 24 grudnia!", 40, (85, 255, 255), "px"), (226, 152))
+    im.alpha_composite(text_img("24.12", 36, (255, 255, 85), "px"), (w - 230, 32))
     for k in range(5):
         hh = 12 + k * 8; d.rectangle([w - 90 + k * 14, 70 - hh, w - 90 + k * 14 + 9, 70], fill=(85, 255, 85, 255))
     return im
@@ -537,7 +537,7 @@ def scene_logo(t):
         full = text_img(s, 46, (255, 255, 255), "ps", outline=3, ocol=(20,10,50))
         paste(img, text_img(s[:n], 46, (255, 255, 255), "ps", outline=3, ocol=(20,10,50)), W / 2 - full.width / 2, 790, 1, anchor="l")
     a3 = lin(t, 11.6, 12.2)
-    if a3: paste(img, text_img("Survival  •  Przygoda  •  Społeczność", 52, (255, 220, 120), "px", outline=3, ocol=(40,20,0)), W / 2, 880 + (1 - eo_cubic(a3)) * 30, a3)
+    if a3: paste(img, text_img("START: 24 GRUDNIA", 56, (255, 210, 80), "ps", outline=4, ocol=(60,20,0)), W / 2, 890 + (1 - eo_cubic(a3)) * 30, a3)
     arr = np.asarray(img.convert("RGB")).astype(np.float32); addl = np.zeros_like(arr)
     # landing dust
     for i, lt in enumerate(LETTER_T):
@@ -598,7 +598,7 @@ def scene_count(t):
         if flash:
             a = np.asarray(TNT).astype(np.float32); a[..., :3] = a[..., :3] * 0.3 + 255 * 0.7; tn = Image.fromarray(a.astype(np.uint8), "RGBA")
         paste(img, tn, W / 2, H / 2 + 60, 1, scale=sc * eo_back(lin(t, 25.4, 26.0)))
-        paste(img, text_img("ODLICZANIE DO STARTU", 40, (255, 120, 80), "ps"), W / 2, 150, lin(t, 25.6, 26.0))
+        paste(img, text_img("ODLICZANIE DO PREMIERY", 40, (255, 120, 80), "ps"), W / 2, 150, lin(t, 25.6, 26.0))
         for i, ct in enumerate(COUNT_T):
             p = lin(t, ct, ct + 1.3)
             if 0 < p < 1:
@@ -632,10 +632,10 @@ def scene_count(t):
     # START text
     p = lin(t, BOOM_T + 0.15, BOOM_T + 0.7)
     if p > 0:
-        st = glow(pad_img(text_img("START!", 150, (255, 255, 85), "ps", outline=8, ocol=(80, 30, 0)), 40), 24, 1.8)
+        st = glow(pad_img(text_img("24 GRUDNIA!", 120, (255, 255, 85), "ps", outline=8, ocol=(80, 30, 0)), 40), 24, 1.8)
         paste(img, st, W / 2, 420, 1, scale=eo_back(p, 2.2) * (1 + 0.03 * math.sin(t * 8)))
     p2 = lin(t, 31.2, 31.8)
-    if p2 > 0: paste(img, text_img("SERWER JUŻ DZIAŁA!", 60, (255, 255, 255), "ps", outline=4), W / 2, 640 + (1 - eo_cubic(p2)) * 40, p2)
+    if p2 > 0: paste(img, text_img("WTEDY RUSZAMY!", 64, (255, 255, 255), "ps", outline=4), W / 2, 640 + (1 - eo_cubic(p2)) * 40, p2)
     arr = np.asarray(img.convert("RGB")).astype(np.float32); addl = np.zeros_like(arr)
     draw_fireworks(addl, t)
     fl = clamp(1 - dt / 0.5)
@@ -659,14 +659,14 @@ def scene_final(t):
         paste(img, ip, W / 2, 560, p2, scale=eo_back(p2) * pulse)
     p3 = lin(t, 36.0, 36.5)
     if p3 > 0:
-        paste(img, text_img("DOŁĄCZ JUŻ DZIŚ!", 64, (85, 255, 85), "ps", outline=4), W / 2, 720 + (1 - eo_cubic(p3)) * 40, p3)
+        paste(img, text_img("PREMIERA 24 GRUDNIA", 60, (85, 255, 85), "ps", outline=4), W / 2, 720 + (1 - eo_cubic(p3)) * 40, p3)
     p4 = lin(t, 37.0, 37.4)
     if p4 > 0:  # yellow splash
-        sp = text_img("Premiera!", 52, (255, 255, 0), "px")
+        sp = text_img("Wesołych Świąt!", 48, (255, 255, 0), "px")
         paste(img, sp, W / 2 + 690, 395, 1, scale=eo_back(p4) * (1 + 0.08 * abs(math.sin(t * 6))), rot=18, resample=Image.BICUBIC)
     p5 = lin(t, 38.6, 39.1)
     if p5 > 0:
-        paste(img, text_img("Do zobaczenia w grze!", 60, (255, 225, 170), "px", outline=3, ocol=(40,10,40)), W / 2, 850, p5)
+        paste(img, text_img("Do zobaczenia w Wigilię!", 60, (255, 225, 170), "px", outline=3, ocol=(40,10,40)), W / 2, 850, p5)
     arr = np.asarray(img.convert("RGB")).astype(np.float32); addl = np.zeros_like(arr)
     visualizer(addl, t, 0.7)
     img = Image.fromarray(np.clip(arr + addl, 0, 255).astype(np.uint8)).convert("RGBA")
@@ -677,9 +677,19 @@ def scene_final(t):
         lg = draw_logo(t, 0, 0, settle_all=True)
         paste(img, lg, W / 2, 470, e, scale=0.7)
         paste(img, text_img("dziob.6mc.pl", 48, (90, 230, 255), "ps"), W / 2, 680, e)
+        paste(img, text_img("PREMIERA 24.12", 56, (255, 210, 80), "ps"), W / 2, 790, e)
     return img
 
 SCENE_FUNCS = [scene_intro, scene_logo, scene_features, scene_count, scene_final]
+
+SNOW_RNG = np.random.default_rng(77); SN = 260
+SNOW = (SNOW_RNG.uniform(0, W, SN), SNOW_RNG.uniform(0, H, SN), SNOW_RNG.uniform(40, 130, SN), SNOW_RNG.integers(4, 11, SN), SNOW_RNG.uniform(0, 6.28, SN))
+def snow(arr, t, a=1.0):
+    xs, ys, sp, sz, ph = SNOW
+    for i in range(SN):
+        y = (ys[i] + t * sp[i]) % (H + 40) - 20
+        x = (xs[i] + 40 * math.sin(t * 0.8 + ph[i]) + t * 25) % W
+        s = int(sz[i]); arr[max(0, int(y)):max(0, int(y) + s), int(x):int(x) + s] = arr[max(0, int(y)):max(0, int(y) + s), int(x):int(x) + s] * (1 - 0.85 * a) + 255 * 0.85 * a
 
 def render(fi):
     t = fi / FPS
@@ -702,6 +712,8 @@ def render(fi):
         dx, dy = rr.uniform(-s, s, 2)
         img = img.transform((W, H), Image.AFFINE, (1/1.07, 0, -dx + W * 0.0327, 0, 1/1.07, -dy + H * 0.0327), Image.BILINEAR)
     a = np.asarray(img).astype(np.float32)
+    if not (25.4 <= t < BOOM_T):
+        snow(a, t, (1 - lin(t, 44.6, 45.6)) * (lin(t, BOOM_T, BOOM_T + 1.0) if BOOM_T <= t < BOOM_T + 1 else 1))
     a = a * VIGN + GRAIN[fi % 6]
     fade = clamp((DUR - t) / 0.6)
     a *= fade

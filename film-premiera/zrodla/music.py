@@ -106,6 +106,24 @@ for (t0,x,y,c,n) in FIREWORKS:
     add(sfx,t0,pop*0.5+cr*0.6,0.16)
     whistle=np.sin(2*np.pi*np.cumsum(np.linspace(900,1800,int(0.6*sr)))/sr)*np.linspace(0,1,int(0.6*sr))*0.15
     add(sfx,t0-0.6,whistle,0.05)
+# sleigh bells + Jingle Bells (public domain) melody
+def bell(f, d=1.2):
+    tt=np.arange(int(d*sr))/sr; x=0
+    for k,(m,g) in enumerate([(1,1),(2.76,0.5),(5.4,0.3),(8.93,0.15)]):
+        x=x+g*np.sin(2*np.pi*f*m*tt)*np.exp(-tt*(3+3*k))
+    return x
+def sleigh():
+    d=0.12; n=rng.standard_normal(int(d*sr)); n=np.diff(np.diff(n,prepend=0),prepend=0)
+    tt=np.arange(len(n))/sr
+    return (n*0.3+sum(np.sin(2*np.pi*f*tt) for f in (5200,6800,8100))*0.4)*np.exp(-tt*35)
+SL=sleigh()
+for k in range(int(DUR/0.25)):
+    tt=k*0.25
+    if 0.5<=tt<6.6 or 33.0<=tt<44.5: add(sfx,tt,SL,0.05 if k%2 else 0.08)
+mel=[(76,0,.5),(76,.5,.5),(76,1,1),(76,2,.5),(76,2.5,.5),(76,3,1),(76,4,.5),(79,4.5,.5),(72,5,.75),(74,5.75,.25),(76,6,2)]
+for (m,o,d) in mel:
+    add(music,36.0+o,bell(hz(m),d+0.8),0.10)
+    add(music,36.0+o,bell(hz(m+12),d+0.5),0.03)
 # final chord ring
 for m in [57,64,69,72,76]:
     add(music,44.5,tone(hz(m),2.5,harm=5,decay=1.6,det=0.003)*np.exp(-np.arange(int(2.5*sr))/sr*1.3),0.06)
