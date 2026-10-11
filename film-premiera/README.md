@@ -78,3 +78,16 @@ Skrypt (obraz + dźwięk): `zrodla/video4.py`.
 Dopisek na ekranie (5–22,5 s): „*kwota wg ekipy Dziob.6mc.PL (10.2026)” – kwota dot. anarchia.gg pochodzi od ekipy serwera, nie była weryfikowana.
 
 Skrypt (obraz + dźwięk): `zrodla/video5.py`.
+
+---
+
+# Wersja 6 – „Czat ekipy” (pionowy, z dźwiękiem)
+
+`Dziob-6mc-PL-czat-ekipy-pionowy.mp4` – 34 s, **1080×1920 (9:16)**, 30 fps, AAC. Format „POV” + fałszywy czat grupowy + tier list. Syntezowany bit w stylu jersey club, dźwięki powiadomień i pisania.
+
+1. **0–2,2 s** – „POV: twoja ekipa szuka serwera na święta” (pisane na żywo)
+2. **2,2–20,5 s** – telefon z czatem „EKIPA NA ŚWIĘTA”: Kuba, Ola, Mati i Ty ustalają, gdzie grać w Wigilię → dziob.6mc.pl, premiera 24.12, start od zera, „ile kosztuje?” – „0 zł” – „CO” – „nawet twoja babcia” – „WBIJAMY!!!”, naklejka z ptakiem, „kto nie wbije ten stawia karpia”; wskaźnik pisania, serduszka-reakcje
+3. **20,5–28 s** – TIER LIST „plany na Wigilię”: D kłótnia przy stole, C Kevin sam w domu po raz 30., B 12 potraw, A prezenty, **S PREMIERA DZIOB.6MC.PL** + konfetti
+4. **28–34 s** – logo, „24.12”, „IP: dziob.6mc.pl”, „oznacz ekipę, z którą wbijasz”, „Minecraft • 0 zł • start od zera”
+
+Skrypt (obraz + dźwięk): `zrodla/video6.py`.
