@@ -58,3 +58,23 @@ Przejścia: pikselowa „tęczówka” (koło) ze świecącą obwódką. Skrypt:
 6. **34–43,5 s** – „Każdy wielki serwer zaczynał od zera. Teraz nasza kolej.” – rosnący wykres graczy 1→2→5→20→100→???, logo, IP, „Premiera 24.12”, „Bądź jednym z pierwszych!”
 
 Skrypt (obraz + dźwięk): `zrodla/video4.py`.
+
+---
+
+# Wersja 5 – „0 zł vs 20 zł” (pionowy, TikTok/Shorts/Reels, z dźwiękiem)
+
+`Dziob-6mc-PL-0zl-vs-20zl-pionowy.mp4` – 32 s, **1080×1920 (9:16)**, 30 fps, AAC. Młodzieżowy, szybki montaż: napisy wyskakujące słowo po słowie, „uderzenia” zoomem na bit, białe błyski na cięciach, pasek postępu u góry, syntezowany bit trap (808, klaskanie, hi-haty) + efekty (kasa fiskalna, zatrzymanie płyty, boing, syrena).
+
+1. **0–1,5 s** – hak: „CZEKAJ.” + oczy + „TO CIĘ ZASKOCZY”
+2. **1,5–5 s** – „Żeby mieć chociaż 1000$ na anarchia.gg…” (saldo $0)
+3. **5–8,5 s** – „…musisz wydać 20 zł*” – banknot wylatuje z portfela, saldo $1000, „-20 zł”
+4. **8,5–12,5 s** – „A na Dziob.6mc.PL?” → „0 ZŁ. ZERO. NIC.” + deszcz monet, „nawet grosza”
+5. **12,5–15,5 s** – beat staje: „no dobra… musisz opłacić PRĄD” + migająca żarówka, rachunek „płatne: rodzice :)”
+6. **15,5–18,5 s** – „ALE NA ANARCHIA.GG TEŻ MUSISZ.” – żarówka = żarówka, „PRĄD: 1 : 1”
+7. **18,5–22,5 s** – „Czyli: 20 zł + prąd vs 0 zł + prąd” → puchar, „DZIOB WYGRYWA O 20 ZŁ”, „20 zł = 1 kebab ;)”, konfetti
+8. **22,5–27 s** – „Wszystko co musisz wiedzieć”: serwer, IP dziob.6mc.pl, premiera 24 grudnia (Wigilia), cena 0 zł, start od zera, Minecraft
+9. **27–32 s** – logo, „WBIJAJ 24.12”, IP, „Wyślij to ziomkowi, który wydaje kasę na serwery”
+
+Dopisek na ekranie (5–22,5 s): „*kwota wg ekipy Dziob.6mc.PL (10.2026)” – kwota dot. anarchia.gg pochodzi od ekipy serwera, nie była weryfikowana.
+
+Skrypt (obraz + dźwięk): `zrodla/video5.py`.
