@@ -31,3 +31,16 @@ Teksty kart funkcji są w `CARDS` w `video.py`.
 5. **26–34 s** – zorza polarna, lampki choinkowe, logo DZIOB ze śnieżnych bloków złota, „PREMIERA 24.12”, czat Minecrafta „<Mikołaj> Ho ho ho! Widzimy się 24 grudnia! / IP: dziob.6mc.pl”, „Wesołych Świąt!”
 
 Przejścia między scenami: „blokowe” zasłanianie ekranu rosnącymi kwadratami. Skrypt: `zrodla/video2.py` (korzysta z funkcji z `video.py`).
+
+---
+
+# Wersja 3 – bez dźwięku
+
+`Dziob-6mc-PL-premiera-24-grudnia-v3-bez-dzwieku.mp4` – 36 s, 1920×1080, 30 fps, bez ścieżki audio. Nowe animacje:
+1. **0–6,5 s** – sanie Mikołaja z reniferami lecą nad zaśnieżonym miasteczkiem i zostawiają złoty ślad, który „pisze” na niebie DZIOB.6MC.PL
+2. **6,5–12,5 s** – świąteczny portal: rama z obsydianu buduje się blok po bloku, zapala się lodowo-fioletowy wir, kamera wlatuje do środka (efekt warp)
+3. **12,5–19,5 s** – kula śnieżna z logo DZIOB spada na stół, trzęsie się, w środku wiruje śnieg; podstawka z tabliczką „24.12”
+4. **19,5–27 s** – złota maszyna losująca: bębny kręcą się i zatrzymują na 2‑4 . 1‑2, deszcz złota i „JACKPOT! PREMIERA 24 GRUDNIA”
+5. **27–36 s** – rosnąca choinka z bloków, bombki, migające lampki, spadająca gwiazda; obok logo, „PREMIERA 24 GRUDNIA • WIGILIA 2026”, „Wesołych Świąt!”
+
+Przejścia: pikselowa „tęczówka” (koło) ze świecącą obwódką. Skrypt: `zrodla/video3.py`.
