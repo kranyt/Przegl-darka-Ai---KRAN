@@ -44,3 +44,17 @@ Przejścia między scenami: „blokowe” zasłanianie ekranu rosnącymi kwadrat
 5. **27–36 s** – rosnąca choinka z bloków, bombki, migające lampki, spadająca gwiazda; obok logo, „PREMIERA 24 GRUDNIA • WIGILIA 2026”, „Wesołych Świąt!”
 
 Przejścia: pikselowa „tęczówka” (koło) ze świecącą obwódką. Skrypt: `zrodla/video3.py`.
+
+---
+
+# Wersja 4 – „Dlaczego anarchia.gg ma tyle graczy…?” (z dźwiękiem)
+
+`Dziob-6mc-PL-dlaczego-anarchia.mp4` – 43,5 s, 1920×1080, 30 fps, AAC. Memowy, autoironiczny film; dźwięk w całości syntezowany (bez nagrania lektora):
+1. **0–5,5 s** – pytanie pisane na maszynie: „Dlaczego anarchia.gg ma tyle graczy… a my nawet filmu o premierze nie możemy zrobić?” + dramatyczne uderzenia i trzęsienie kamery
+2. **5,5–12 s** – podzielony ekran: tłum skaczących graczy i szybki czat vs. samotny gracz z głową ptaka na Dziob.6mc.PL, przetaczający się krzak, świerszcze, „halo? / jest ktoś?”, „HMMM…”
+3. **12–19,9 s** – montażownia: „Próba nr 1” – render staje na 99%, okno „BŁĄD: Komputer się poddał.” + smutna trąbka; „Próba nr 2” – tandetny slajd „PREMIERA!!!”
+4. **19,9–25,5 s** – zgrzyt płyty, „ALE CHWILA…”, miniatury trzech poprzednich filmów: „Zrobiliśmy już 3 filmy o premierze! (ten jest czwarty)”
+5. **25,5–34 s** – wchodzi chiptune: „Dlaczego warto wbić na Dziob.6mc.PL?” – lista z odhaczanymi punktami
+6. **34–43,5 s** – „Każdy wielki serwer zaczynał od zera. Teraz nasza kolej.” – rosnący wykres graczy 1→2→5→20→100→???, logo, IP, „Premiera 24.12”, „Bądź jednym z pierwszych!”
+
+Skrypt (obraz + dźwięk): `zrodla/video4.py`.
