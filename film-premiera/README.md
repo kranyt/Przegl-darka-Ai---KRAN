@@ -91,3 +91,19 @@ Skrypt (obraz + dźwięk): `zrodla/video5.py`.
 4. **28–34 s** – logo, „24.12”, „IP: dziob.6mc.pl”, „oznacz ekipę, z którą wbijasz”, „Minecraft • 0 zł • start od zera”
 
 Skrypt (obraz + dźwięk): `zrodla/video6.py`.
+
+---
+
+# Wersja 7 – „Tylko 1% graczy to znajdzie” (pionowy, viral, z dźwiękiem)
+
+`Dziob-6mc-PL-1-procent-znajdzie-pionowy.mp4` – 35 s, **1080×1920 (9:16)**, 30 fps, AAC. Format wyzwania – zachęca do ponownego obejrzenia i komentowania (wyniki w sekundach), koniec zapętla się z początkiem.
+
+1. **0–2 s** – „TYLKO 1% GRACZY TO ZNAJDZIE – masz 5 sekund na poziom”
+2. **2–8,8 s** – Poziom 1: wśród bloków trawy ukryty blok z oczami i dziobem → „TU!”
+3. **8,8–15,4 s** – Poziom 2: jeden kamień jest odrobinę jaśniejszy → „TU!”
+4. **15,4–22,2 s** – Poziom 3: wykreślanka liter – ukryte słowo DZIOB
+5. **22,2–25,4 s** – zwrot akcji (drop): logo DZIOB, „PREMIERA 24 GRUDNIA”, „w Wigilię wbijamy wszyscy”
+6. **25,4–31,4 s** – wszystkie informacje: serwer Dziob.6mc.PL, IP dziob.6mc.pl, premiera 24 grudnia 2026 (Wigilia), cena 0 zł, start od zera, Minecraft
+7. **31,4–35 s** – „W ilu sekundach znalazłeś? Napisz w komentarzu i wyślij ziomkowi”, IP, „premiera 24.12 • 0 zł”
+
+Dźwięk: tykający zegar (przyspiesza pod koniec odliczania), napięty pad, „ding” przy odpowiedzi, potem bit trap od zwrotu akcji. Skrypt: `zrodla/video7.py`.
