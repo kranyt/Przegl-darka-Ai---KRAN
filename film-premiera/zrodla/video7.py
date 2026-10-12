@@ -195,7 +195,7 @@ def s_level(t, i):
         rp = eo_back(lin(t, rv, rv + 0.3), 2.0)
         d = ImageDraw.Draw(img)
         if i < 2:
-            ox, oy = ODD[i]; cx = GX + ox * CS + CS / 2; cy = GY + oy * CS + CS / 2; r = 95 * max(rp, 0.05) + 6 * math.sin(t * 10)
+            ox, oy = ODD[i]; cx = GX + ox * CS + CS / 2; cy = GY + oy * CS + CS / 2; r = max(12.0, 95 * max(rp, 0.05) + 6 * math.sin(t * 10))
             d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(255, 50, 50, 255), width=12)
             outlined(img, "TU!", 90, (255, 60, 60), cx + (220 if ox < 5 else -220), cy - 120, min(1, rp * 2), stroke=8, scol=(255, 255, 255))
         else:
