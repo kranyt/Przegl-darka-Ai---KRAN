@@ -107,3 +107,18 @@ Skrypt (obraz + dźwięk): `zrodla/video6.py`.
 7. **31,4–35 s** – „W ilu sekundach znalazłeś? Napisz w komentarzu i wyślij ziomkowi”, IP, „premiera 24.12 • 0 zł”
 
 Dźwięk: tykający zegar (przyspiesza pod koniec odliczania), napięty pad, „ding” przy odpowiedzi, potem bit trap od zwrotu akcji. Skrypt: `zrodla/video7.py`.
+
+---
+
+# Wersja 8 – „Rzeczy, które w 2026 są jeszcze za darmo” (pionowy ranking, z dźwiękiem)
+
+`Dziob-6mc-PL-za-darmo-ranking-pionowy.mp4` – 32 s, **1080×1920 (9:16)**, 30 fps, AAC. Odliczanie #5→#1 z pieczątką „ZA DARMO” przy każdym punkcie; syntezowany bit house, uderzenia pieczątek, werbel przed #1, wiwaty i syrena.
+
+1. **0–2 s** – „RZECZY, KTÓRE W 2026 SĄ JESZCZE ZA DARMO (nr 1 cię zaskoczy)”
+2. **#5** Powietrze (na razie) · **#4** Wi-Fi u babci (hasło na lodówce: babcia123) · **#3** Rady od wujka przy wigilijnym stole („a za moich czasów…”) · **#2** Darmowa dostawa *od 299 zł → pieczątka „PRAWIE…”
+3. **16–17,8 s** – werbel „a numer 1…?”
+4. **17,8–22,6 s** – **#1 DZIOB.6MC.PL** – serwer Minecraft, premiera 24.12, fajerwerki, pieczątka „ZA DARMO”
+5. **22,6–28,6 s** – wszystkie informacje: serwer, IP dziob.6mc.pl, premiera 24 grudnia 2026 (Wigilia), 0 zł, start od zera, Minecraft
+6. **28,6–32 s** – „Co jeszcze jest za darmo? Pisz w komentarzu”, IP, „premiera 24.12 • 0 zł”
+
+Skrypt: `zrodla/video8.py`.
