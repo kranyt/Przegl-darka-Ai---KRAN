@@ -222,7 +222,7 @@ def build():
     dek = ["kill @e[tag=dz.map]"]
     dek.append(text_display(0, 157.2, 0, [t("DziobMc", "gold", bold=True)], "dz.holo.tytul", 4.0))
     dek.append(text_display(0, 156.3, 0, t("Dziob.fun", "yellow", bold=True), "dz.holo", 2.0))
-    dek.append(text_display(0, 155.7, 0, [t("★ ", "gold"), t("Minecraft 1.21 • Survival • Eventy", "white"), t(" ★", "gold")], "dz.holo", 1.0))
+    dek.append(text_display(0, 155.7, 0, [t("★ ", "gold"), t("Wersje 1.16.4+ • Survival • Eventy", "white"), t(" ★", "gold")], "dz.holo", 1.0))
     npc = [
         ("sklep", 10, -10, "librarian", [t("⛃ SKLEP", "gold", bold=True), t("\nKliknij PPM", "gray")]),
         ("kit", 10, 10, "armorer", [t("⚔ KITY", "yellow", bold=True), t("\nKliknij PPM", "gray")]),

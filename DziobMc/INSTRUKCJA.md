@@ -1,28 +1,70 @@
 # ✦ DziobMc ✦ – paczka serwera Minecraft Java 1.21
 
-**IP:** `Dziob.fun` • **Wersje:** 1.21 – 1.21.4 (Vanilla, Paper, Purpur, Spigot)
+**IP:** `Dziob.fun` • **Gracze mogą wchodzić z wersji 1.16.4 → najnowsza**
 
 Gotowy serwer survival z własną mapą lobby, custom mobami, bossem, eventami, scoreboardem,
-TAB-em, rangami, sklepem, kitami i komendami. Wszystko działa jako **datapack**, więc pluginy nie są potrzebne.
-Opcjonalne konfiguracje pluginów TAB i LuckPerms są w paczce.
+rangami, sklepem, kitami i komendami.
 
 ![Podgląd mapy z góry](podglad-mapy.png)
 
 ---
 
-## 📦 Instalacja (5 minut)
+## 📁 Co gdzie jest (w tym repo)
 
-1. Pobierz **`DziobMc-Serwer.zip`** i rozpakuj go.
-2. Wrzuć do folderu `DziobMc-Serwer` plik **`server.jar`** w wersji 1.21–1.21.4
-   (np. Paper z https://papermc.io lub Vanilla z minecraft.net).
-3. Otwórz `eula.txt` i zmień `eula=false` na `eula=true`. Tym samym akceptujesz EULA Minecrafta.
-4. Uruchom serwer: `start.bat` (Windows) albo `./start.sh` (Linux/Mac).
-5. Mapa lobby **buduje się sama** przy pierwszym starcie (ok. 10 s po uruchomieniu).
-6. Daj sobie OP-a w konsoli: `op TwójNick`, a potem rangę:
+```
+DziobMc/
+├── INSTRUKCJA.md          ← ten plik
+├── POBIERZ/
+│   ├── DziobMc-Serwer.zip   ← 👉 TO POBIERZ: cały gotowy serwer
+│   └── DziobMc-Datapack.zip ← tylko paczka (jeśli masz już swój świat)
+├── serwer/                ← to samo co w DziobMc-Serwer.zip (rozpakowane)
+├── narzedzia/             ← generator w Pythonie (tylko gdy chcesz coś zmienić)
+└── podglad-mapy.png       ← podgląd mapy z góry
+```
+
+## 📦 Gdzie co dać – instalacja krok po kroku
+
+Po rozpakowaniu `DziobMc-Serwer.zip`:
+
+```
+DziobMc-Serwer/
+├── server.jar         ← [1] WRZUCASZ: Paper 1.21.4 (zmień nazwę na server.jar)
+├── plugins/           ← [2] WRZUCASZ: ViaVersion.jar + ViaBackwards.jar
+├── eula.txt           ← [3] ZMIENIASZ: eula=false → eula=true
+├── start.bat          ← [4] Windows: kliknij 2x
+├── start.sh           ←     Linux/Mac: ./start.sh
+├── DziobMc/datapacks/ ← paczka DziobMc (już jest, nie ruszaj)
+├── server.properties  ← gotowe (MOTD, port 25565)
+├── server-icon.png    ← gotowe
+├── dodatki-pluginy/   ← opcjonalnie: TAB i LuckPerms
+└── GDZIE-CO-DAC.txt   ← ta sama instrukcja w pliku
+```
+
+1. Zainstaluj **Java 21**: https://adoptium.net
+2. **[1]** Pobierz **Paper 1.21.4** z https://papermc.io/downloads/paper, zmień nazwę pliku na `server.jar` i wrzuć do folderu.
+3. **[2]** Do folderu `plugins/` wrzuć:
+   * **ViaVersion**: https://modrinth.com/plugin/viaversion (wpuszcza wersje NOWSZE niż 1.21.4)
+   * **ViaBackwards**: https://modrinth.com/plugin/viabackwards (wpuszcza wersje STARSZE, aż do 1.16.4)
+4. **[3]** W `eula.txt` zmień `eula=false` na `eula=true`. Tym samym akceptujesz EULA Minecrafta.
+5. **[4]** Uruchom `start.bat`. Mapa lobby zbuduje się sama (ok. 10 s).
+6. W konsoli serwera wpisz: `op TwójNick`, a potem
    `execute as TwójNick run function dziobmc:rangi/ustaw/wlasciciel`
+7. Domena: w panelu domeny ustaw rekord **A** `Dziob.fun` → IP serwera.
 
-> Masz już świat? Wrzuć `DziobMc-Datapack.zip` do `world/datapacks/`, wpisz `/reload`,
-> a potem `/function dziobmc:mapa/zbuduj`. Lobby powstanie w niebie nad 0 150 0.
+### Dlaczego tak, a nie „paczka na każdą wersję”?
+
+Komendy Minecrafta zmieniały się bardzo mocno między 1.16 a 1.21. W 1.16.4 nie ma w ogóle
+hologramów, klikalnych NPC, komendy `random`, `return` ani `damage`. Jedna paczka nie może więc działać na serwerze
+w każdej wersji. Tak robią duże serwery: **serwer stoi na jednej wersji (Paper 1.21.4)**,
+a **ViaVersion + ViaBackwards** tłumaczą grę dla każdego gracza. Efekt:
+
+* ✅ gracz z **1.16.4, 1.17, 1.18, 1.19, 1.20, 1.21, 1.21.10…** wchodzi bez problemu,
+* ✅ gdy wyjdzie nowa wersja Minecrafta, wystarczy zaktualizować ViaVersion,
+* ⚠️ gracze na starych wersjach (np. 1.16) mogą widzieć drobne różnice: numerki w scoreboardzie,
+  inaczej wyglądające hologramy, a zamiast klikania NPC muszą użyć `/trigger sklep` itp.
+
+> Masz już świat? Wrzuć zawartość `DziobMc-Datapack.zip` do `world/datapacks/DziobMc-Pack/`,
+> wpisz `/reload`, a potem `/function dziobmc:mapa/zbuduj`.
 
 ---
 
@@ -82,7 +124,7 @@ Każdy mob ma własny drop (loot table).
 * **Bossbar:** odliczanie do następnego eventu i pasek życia bossa
 
 Nagłówka i stopki w TAB-ie nie da się ustawić samym datapackiem. Jeśli chcesz je mieć,
-zainstaluj plugin **TAB** i wklej `plugins-konfiguracja/TAB-config-fragment.yml`.
+zainstaluj plugin **TAB** i wklej `dodatki-pluginy/TAB-config-fragment.yml`.
 
 ---
 
@@ -141,15 +183,15 @@ Monety: `/scoreboard players add NICK dz.coins 500`
 Paczkę generuje skrypt w Pythonie, więc łatwo ją przerobić:
 
 ```bash
-python3 narzedzia/generuj.py
+python3 DziobMc/narzedzia/generuj.py
 ```
 
-* `narzedzia/komendy.py`: sklep (ceny, przedmioty), kity, **link do Discorda** (`DISCORD = ...`)
-* `narzedzia/moby.py`: custom moby, HP, dropy, monety
-* `narzedzia/eventy.py`: eventy i ich czasy
-* `narzedzia/mapa.py`: mapa lobby
-* `narzedzia/rdzen.py`: rangi, scoreboard, lobby
-* `narzedzia/serwer.py`: MOTD, server.properties, TAB, LuckPerms
+* `DziobMc/narzedzia/komendy.py`: sklep (ceny, przedmioty), kity, **link do Discorda** (`DISCORD = ...`)
+* `DziobMc/narzedzia/moby.py`: custom moby, HP, dropy, monety
+* `DziobMc/narzedzia/eventy.py`: eventy i ich czasy
+* `DziobMc/narzedzia/mapa.py`: mapa lobby
+* `DziobMc/narzedzia/rdzen.py`: rangi, scoreboard, lobby
+* `DziobMc/narzedzia/serwer.py`: MOTD, server.properties, TAB, LuckPerms
 
 Skrypt sprawdza poprawność (brakujące funkcje, JSON, nazwy scoreboardów) i tworzy oba ZIP-y od nowa.
 
@@ -157,6 +199,6 @@ Skrypt sprawdza poprawność (brakujące funkcje, JSON, nazwy scoreboardów) i t
 
 ## ⚠️ Ważne
 
-* Obsługiwane wersje to **1.21 – 1.21.4**. Od 1.21.5 Mojang zmienił format NBT i tekstów, więc na nowszych wersjach paczka nie zadziała bez przeróbek.
+* Sam **serwer** musi stać na **Paper 1.21.4** (paczka działa na serwerach 1.21–1.21.4). Gracze wchodzą z dowolnej wersji od 1.16.4 dzięki ViaVersion/ViaBackwards.
 * Link do Discorda to placeholder (`discord.gg/TWOJ-LINK`). Podmień go w `komendy.py` i `serwer.py`.
 * Strona `https://dziob.fun` jest podpięta w menu, ale sama strona i sklep z rangami są po twojej stronie.

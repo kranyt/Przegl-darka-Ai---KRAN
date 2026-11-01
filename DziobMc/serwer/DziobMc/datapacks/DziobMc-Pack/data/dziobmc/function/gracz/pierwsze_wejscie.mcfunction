@@ -17,7 +17,7 @@ scoreboard players set @s dz.cd_park -100000000
 function dziobmc:rangi/domyslna
 execute if score #mapa dz.data matches 1 in minecraft:overworld run tp @s 0 151 18 180 0
 title @s times 10 80 20
-title @s subtitle [{"text":"Dziob.fun","color":"yellow"},{"text":" • ","color":"dark_gray"},{"text":"Minecraft 1.21","color":"white"}]
+title @s subtitle [{"text":"Dziob.fun","color":"yellow"},{"text":" • ","color":"dark_gray"},{"text":"Minecraft 1.16.4+","color":"white"}]
 title @s title [{"text":"Witaj na ","color":"white"},{"text":"DziobMc","color":"gold","bold":true}]
 tellraw @a [{"text":"✦ ","color":"gold"},{"selector":"@s","color":"yellow"},{"text":" dołączył pierwszy raz! ","color":"white"},{"text":"(gracz #","color":"gray"},{"score":{"name":"#gracze","objective":"dz.data"},"color":"gray"},{"text":")","color":"gray"}]
 tellraw @s [{"text":"➤ Dostajesz ","color":"green"},{"text":"100 monet","color":"gold","bold":true},{"text":" i zestaw startowy na dobry początek!","color":"green"}]

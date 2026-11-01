@@ -1,0 +1,24 @@
+==========================================================
+  WRZUĆ TUTAJ PLUGINY (pliki .jar)
+==========================================================
+
+OBOWIĄZKOWE – dzięki nim wejdą gracze od 1.16.4 do najnowszej wersji:
+
+  1. ViaVersion    -> https://modrinth.com/plugin/viaversion
+                      (wpuszcza NOWSZE wersje niż serwer, np. 1.21.5, 1.21.10...)
+  2. ViaBackwards  -> https://modrinth.com/plugin/viabackwards
+                      (wpuszcza STARSZE wersje: 1.16.4 ... 1.21.3)
+
+  Pobierz najnowszą wersję każdego (plik .jar, wersja dla Paper)
+  i wrzuć oba pliki .jar DO TEGO FOLDERU.
+
+OPCJONALNE (ładniejszy TAB i rangi z uprawnieniami):
+
+  3. TAB           -> https://modrinth.com/plugin/tab-was-taken
+  4. LuckPerms     -> https://luckperms.net/download
+
+  Konfiguracja do nich jest w folderze: dodatki-pluginy/
+
+Po wrzuceniu pluginów zrestartuj serwer.
+Aktualizuj ViaVersion/ViaBackwards, gdy wyjdzie nowa wersja Minecrafta –
+wtedy gracze z tą wersją też wejdą.

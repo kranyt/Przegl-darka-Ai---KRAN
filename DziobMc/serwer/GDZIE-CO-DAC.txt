@@ -1,0 +1,49 @@
+==========================================================
+   DziobMc – GDZIE CO DAĆ  (IP: Dziob.fun)
+==========================================================
+
+Folder serwera po rozpakowaniu DziobMc-Serwer.zip:
+
+DziobMc-Serwer/
+|
+|-- server.jar            <-- [1] TY WRZUCASZ: Paper 1.21.4
+|                              https://papermc.io/downloads/paper
+|                              (wybierz 1.21.4, zmień nazwę pliku na server.jar)
+|
+|-- plugins/              <-- [2] TY WRZUCASZ: ViaVersion.jar + ViaBackwards.jar
+|   `-- WRZUC-TUTAJ-PLUGINY.txt     (linki w środku)
+|
+|-- eula.txt              <-- [3] TY ZMIENIASZ: eula=false  ->  eula=true
+|
+|-- start.bat             <-- [4] Windows: kliknij 2x, żeby włączyć serwer
+|-- start.sh              <--     Linux/Mac:  ./start.sh
+|
+|-- DziobMc/              <-- świat (mapa). NIE RUSZAJ.
+|   `-- datapacks/
+|       `-- DziobMc-Pack/      <-- cała paczka: moby, eventy, rangi, sklep...
+|
+|-- server.properties     <-- ustawienia (MOTD, sloty, port 25565) – gotowe
+|-- server-icon.png       <-- ikonka serwera na liście – gotowa
+`-- dodatki-pluginy/      <-- opcjonalnie: konfiguracja TAB i LuckPerms
+
+----------------------------------------------------------
+KROKI:
+  1. Zainstaluj Java 21  -> https://adoptium.net
+  2. Wrzuć server.jar (Paper 1.21.4)            [1]
+  3. Wrzuć ViaVersion i ViaBackwards do plugins/ [2]
+  4. eula=true                                   [3]
+  5. Uruchom start.bat / start.sh                [4]
+  6. Poczekaj ~10 s – mapa lobby zbuduje się sama.
+  7. W konsoli serwera wpisz:
+        op TwojNick
+        execute as TwojNick run function dziobmc:rangi/ustaw/wlasciciel
+  8. W grze: /function dziobmc:admin/panel   (panel admina)
+
+DOMENA Dziob.fun:
+  W panelu domeny dodaj rekord A:  Dziob.fun -> IP twojego serwera
+  (jeśli port inny niż 25565, dodaj rekord SRV _minecraft._tcp).
+
+WERSJE GRACZY: 1.16.4 -> najnowsza (dzięki ViaVersion + ViaBackwards).
+Gracze na starszych wersjach (np. 1.16) mogą widzieć drobne różnice:
+numerki w scoreboardzie, napisy-hologramy wyglądają trochę inaczej,
+NPC trzeba zastąpić komendą /trigger (np. /trigger sklep).

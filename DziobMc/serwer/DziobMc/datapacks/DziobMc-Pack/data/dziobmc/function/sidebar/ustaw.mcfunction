@@ -6,7 +6,7 @@ scoreboard players set dz.l2 dz.sidebar 1005
 scoreboard players display name dz.l2 dz.sidebar [{"text":" ✦ ","color":"gold"},{"text":"Serwer: ","color":"gray"},{"text":"DziobMc","color":"yellow","bold":true}]
 scoreboard players display numberformat dz.l2 dz.sidebar blank
 scoreboard players set dz.l3 dz.sidebar 1004
-scoreboard players display name dz.l3 dz.sidebar [{"text":" ✦ ","color":"gold"},{"text":"Wersja: ","color":"gray"},{"text":"1.21","color":"white"}]
+scoreboard players display name dz.l3 dz.sidebar [{"text":" ✦ ","color":"gold"},{"text":"Wersje: ","color":"gray"},{"text":"1.16.4+","color":"white"}]
 scoreboard players display numberformat dz.l3 dz.sidebar blank
 scoreboard players set dz.l4 dz.sidebar 1003
 scoreboard players display name dz.l4 dz.sidebar {"text":" "}

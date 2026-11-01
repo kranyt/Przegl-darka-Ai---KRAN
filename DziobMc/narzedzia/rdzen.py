@@ -169,7 +169,7 @@ def build():
         function {NS}:rangi/domyslna
         execute if score #mapa dz.data matches 1 in minecraft:overworld run tp @s {SPAWN}
         title @s times 10 80 20
-        title @s subtitle {J([t("Dziob.fun", "yellow"), t(" • ", "dark_gray"), t("Minecraft 1.21", "white")])}
+        title @s subtitle {J([t("Dziob.fun", "yellow"), t(" • ", "dark_gray"), t("Minecraft 1.16.4+", "white")])}
         title @s title {J([t("Witaj na ", "white"), t("DziobMc", "gold", bold=True)])}
         {tellraw("@a", t("✦ ", "gold"), sel("@s", "yellow"), t(" dołączył pierwszy raz! ", "white"), t("(gracz #", "gray"), sc("#gracze", "dz.data", "gray"), t(")", "gray"))}
         {tellraw("@s", t("➤ Dostajesz ", "green"), t("100 monet", "gold", bold=True), t(" i zestaw startowy na dobry początek!", "green"))}
@@ -235,7 +235,7 @@ def build():
     linie = [
         ("dz.l1", 1006, t("")),
         ("dz.l2", 1005, [t(" ✦ ", "gold"), t("Serwer: ", "gray"), t("DziobMc", "yellow", bold=True)]),
-        ("dz.l3", 1004, [t(" ✦ ", "gold"), t("Wersja: ", "gray"), t("1.21", "white")]),
+        ("dz.l3", 1004, [t(" ✦ ", "gold"), t("Wersje: ", "gray"), t("1.16.4+", "white")]),
         ("dz.l4", 1003, t(" ")),
         ("dz.total", None, [t(" ● ", "green"), t("Graczy łącznie", "white")]),
         ("dz.online", None, [t(" ● ", "green"), t("Online", "white")]),

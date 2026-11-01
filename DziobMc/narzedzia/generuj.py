@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generator paczki serwera DziobMc (Minecraft Java 1.21 – 1.21.4).
+"""Generator paczki serwera DziobMc (serwer Paper 1.21.4, gracze 1.16.4+ przez ViaVersion).
 
 Użycie:  python3 narzedzia/generuj.py
-Wynik:   serwer/  (gotowy folder serwera) + DziobMc-Serwer.zip + DziobMc-Datapack.zip
+Wynik:   DziobMc/serwer/ (gotowy folder serwera) + DziobMc/POBIERZ/*.zip
 """
 import json
 import re
@@ -142,11 +142,11 @@ def main():
     serwer.build(SERWER)
 
     # ZIP-y
-    with zipfile.ZipFile(ROOT / "DziobMc-Serwer.zip", "w", zipfile.ZIP_DEFLATED) as z:
+    with zipfile.ZipFile(ROOT / "POBIERZ" / "DziobMc-Serwer.zip", "w", zipfile.ZIP_DEFLATED) as z:
         for f in sorted(SERWER.rglob("*")):
             if f.is_file():
                 z.write(f, "DziobMc-Serwer/" + str(f.relative_to(SERWER)))
-    with zipfile.ZipFile(ROOT / "DziobMc-Datapack.zip", "w", zipfile.ZIP_DEFLATED) as z:
+    with zipfile.ZipFile(ROOT / "POBIERZ" / "DziobMc-Datapack.zip", "w", zipfile.ZIP_DEFLATED) as z:
         for f in sorted(DP.rglob("*")):
             if f.is_file():
                 z.write(f, str(f.relative_to(DP)))
