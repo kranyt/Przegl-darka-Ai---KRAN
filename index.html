@@ -1,4 +1,9 @@
-<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<!doctype html><html lang="pl"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-njcXZ6ZG4rmTqpodpjGn016cstlcTjUaIxNOi7F9y5w=' 'sha256-SYmCYY6daw6FXQffHjk/ERpP6I2mPcK5jdv+Rc1HavU=' 'sha256-lru4TtbBqy7HUsKRV61L7ItM+Vh/mWznfEy1QRbP2Mw=' 'strict-dynamic' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src https:; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="google-adsense-account" content="ca-pub-3538330634448004">
+<meta name="format-detection" content="telephone=no">
+<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>DziobHost.PL</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -274,8 +279,12 @@ footer{border-top:1px solid var(--line);padding-block:var(--s7) var(--s5);color:
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--stone);border:2px solid var(--moss);padding:.7rem 1.1rem;border-radius:var(--r);z-index:80;transition:transform .25s;font-size:.92rem;max-width:calc(100% - 32px)}
 .toast.show{transform:translate(-50%,0)}
 </style>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3538330634448004"
-     crossorigin="anonymous"></script>
+<script>
+/* Ochrona przed clickjackingiem: strona nie działa wewnątrz cudzej ramki */
+if(window.top!==window.self){document.documentElement.style.display='none';try{window.top.location.replace(window.self.location.href)}catch(e){}}
+/* Google AdSense (ca-pub-3538330634448004) - ładowany stąd, żeby przeszedł przez politykę CSP */
+(function(){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3538330634448004';document.head.appendChild(s)})();
+</script>
 <style>
 /* ===== Reklamy ===== */
 .ad-label{display:block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
@@ -411,7 +420,7 @@ body.ad-open{overflow:hidden}
           <legend><span>4</span>Adres serwera</legend>
           <div class="field">
             <label for="subdomain">Subdomena (3–24 znaki: litery, cyfry, myślnik)</label>
-            <div class="sub"><input type="text" id="subdomain" value="kraina-kaczek" autocomplete="off" spellcheck="false"><span>.dziobhost.pl</span></div>
+            <div class="sub"><input type="text" id="subdomain" maxlength="24" pattern="[a-z0-9-]{3,24}" value="kraina-kaczek" autocomplete="off" spellcheck="false"><span>.dziobhost.pl</span></div>
             <p class="hint ok" id="subHint">Adres wolny</p>
           </div>
         </fieldset>
@@ -530,7 +539,7 @@ body.ad-open{overflow:hidden}
         <div data-pane="con">
           <div class="con">
             <pre id="pCon" aria-live="polite"></pre>
-            <form id="pForm"><span>&gt;</span><input id="pIn" placeholder="Wpisz komendę, np. help" autocomplete="off" aria-label="Komenda konsoli"></form>
+            <form id="pForm"><span>&gt;</span><input id="pIn" maxlength="200" placeholder="Wpisz komendę, np. help" autocomplete="off" aria-label="Komenda konsoli"></form>
           </div>
         </div>
         <div data-pane="files" hidden>
@@ -559,7 +568,7 @@ body.ad-open{overflow:hidden}
       <p class="lead">Ponad 120 000 pozycji z Modrinth, CurseForge i Hangar. Poniżej najpopularniejsze na naszych serwerach.</p>
     </div>
     <div class="cat-bar">
-      <input type="search" id="catQ" placeholder="Szukaj, np. ochrona, ekonomia, mapa…" aria-label="Szukaj pluginów">
+      <input type="search" id="catQ" maxlength="60" placeholder="Szukaj, np. ochrona, ekonomia, mapa…" aria-label="Szukaj pluginów">
       <div class="chips" id="catChips"></div>
     </div>
     <div class="cat" id="catGrid"></div>
@@ -731,9 +740,11 @@ function upd(){
  $('#createBtn').disabled=!valid||taken;$('#createBtn').style.opacity=(!valid||taken)?.5:1;
  $('#doneBox').hidden=true;
 }
+$('#builder').addEventListener('submit',e=>e.preventDefault());
 $('#engines').addEventListener('change',()=>{fillVer();upd()});
 ['#ver','#loc','#ram','#slots','#subdomain'].forEach(s=>$(s).addEventListener('input',upd));
-const doCreate=()=>{const b=$('#createBtn');b.textContent='Tworzenie…';b.disabled=true;
+const SUB_RE=/^[a-z0-9](?:[a-z0-9-]{1,22})[a-z0-9]$/;
+const doCreate=()=>{const s0=$('#subdomain').value.trim().toLowerCase();if(!SUB_RE.test(s0)||TAKEN.includes(s0)){upd();toast('Niepoprawny adres serwera');return}const b=$('#createBtn');b.textContent='Tworzenie…';b.disabled=true;
  setTimeout(()=>{b.textContent='Utwórz serwer';b.disabled=false;const sub=$('#subdomain').value.trim().toLowerCase();
   $('#ipCode').textContent=$('input[name=eng]:checked').value==='Bedrock'?sub+'.dziobhost.pl:19132':sub+'.dziobhost.pl';$('#doneBox').hidden=false;toast('Serwer skonfigurowany (podgląd)')},1100)};
 $('#createBtn').onclick=()=>window.showAds?showAds({count:3,title:'Tworzymy Twój serwer',done:'Utwórz serwer',onDone:doCreate}):doCreate();
@@ -770,7 +781,7 @@ $('#pForm').onsubmit=e=>{e.preventDefault();const v=$('#pIn').value.trim();if(!v
   'save-all':()=>['Saving the game (this may take a moment!)','Saved the game'],
   seed:()=>['Seed: [-4172144997902289642]'],
   stop:()=>{stopSrv();return[]}};
- (R[cmd]?R[cmd]():[`Unknown command "${cmd}". Wpisz help.`]).forEach(l=>log(l));
+ (Object.prototype.hasOwnProperty.call(R,cmd)?R[cmd]():[`Unknown command "${cmd}". Wpisz help.`]).forEach(l=>log(l));
 };
 function setPill(state){['#pPill','#heroPill'].forEach(s=>{const p=$(s);p.className='pill '+({on:'on',mid:'mid',off:'off'}[state]);p.textContent={on:'online',mid:'uruchamianie',off:'offline'}[state]})}
 function stopSrv(){if(!running)return;log('Stopping server');log('Saving worlds');running=false;online=[];setPill('off');updPl()}
@@ -840,7 +851,10 @@ $('#nodes').innerHTML=NODES.map(n=>`<div class="node"><span>${n[0]}</span><div c
 </aside>
 
 <!-- Okno reklamy -->
-<div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adTitle" hidden>
+<!-- KONFIGURACJA REKLAM: data-slot = ID jednostki AdSense (same cyfry), data-seconds = czas jednej reklamy,
+     data-welcome-once = "1" reklama startowa raz na wizytę, "0" przy każdym wejściu.
+     Zmiana tych atrybutów NIE wymaga przeliczania CSP. -->
+<div class="ad-modal" id="adModal" data-slot="MODAL_SLOT" data-seconds="5" data-welcome-once="1" role="dialog" aria-modal="true" aria-labelledby="adTitle" hidden>
   <div class="ad-card">
     <div class="ad-head"><b id="adTitle">Reklama</b><span class="ad-step" id="adStep"></span></div>
     <div class="ad-dots" id="adDots"></div>
@@ -851,13 +865,15 @@ $('#nodes').innerHTML=NODES.map(n=>`<div class="node"><span>${n[0]}</span><div c
 </div>
 
 <script>
-/* ===== Konfiguracja reklam AdSense =====
-   Wpisz ID jednostek reklamowych z panelu AdSense (Reklamy → Według jednostki reklamowej). */
-const AD_CLIENT='ca-pub-3538330634448004';
-const AD_SLOT_MODAL='MODAL_SLOT';   // jednostka w oknie (start strony + 3 reklamy w kreatorze)
-const AD_SECONDS=5;                 // ile sekund trwa jedna reklama
-const AD_WELCOME_ONCE_PER_SESSION=true;
+/* ===== Reklamy AdSense =====
+   Konfiguracja jest w atrybutach data-* elementu #adModal (HTML powyżej), nie tutaj:
+   każda zmiana w tym skrypcie wymaga uruchomienia tools/update-csp.py. */
+const AD_CFG=$('#adModal').dataset;
+const AD_SLOT_MODAL=AD_CFG.slot||'';
+const AD_SECONDS=Math.min(30,Math.max(1,parseInt(AD_CFG.seconds,10)||5));
+const AD_WELCOME_ONCE_PER_SESSION=AD_CFG.welcomeOnce!=='0';
 
+const safeSlot=s=>/^\d{6,20}$/.test(s)?s:'';
 const pushAd=()=>{try{(window.adsbygoogle=window.adsbygoogle||[]).push({})}catch(e){}};
 
 /* okno z sekwencją reklam: po ostatniej wywołuje onDone */
@@ -870,7 +886,7 @@ function showAds({count=1,title='Reklama',done='Zamknij',onDone=()=>{}}={}){
   const show=()=>{
     $('#adStep').textContent=count>1?`Reklama ${n+1} z ${count}`:'';
     $$('#adDots i').forEach((d,k)=>d.classList.toggle('on',k<=n));
-    $('#adSlot').innerHTML=`<ins class="adsbygoogle" data-ad-client="${AD_CLIENT}" data-ad-slot="${AD_SLOT_MODAL}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+    $('#adSlot').innerHTML=`<ins class="adsbygoogle" data-ad-client="ca-pub-3538330634448004" data-ad-slot="${safeSlot(AD_SLOT_MODAL)}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
     pushAd();
     let left=AD_SECONDS;const bar=$('#adBar');
     bar.style.transition='none';bar.style.width='0';bar.offsetWidth;
