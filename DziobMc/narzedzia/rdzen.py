@@ -8,7 +8,7 @@ TRIGGERY = ["pomoc", "spawn", "kit", "sklep", "nagroda", "staty", "discord",
 COOLDOWNY = ["dz.cd_kit1", "dz.cd_kit2", "dz.cd_kit3", "dz.cd_kit4",
              "dz.cd_nagr", "dz.cd_spawn", "dz.cd_rtp", "dz.cd_park", "dz.cd_kit5"]
 
-STALE = [2, 3, 4, 5, 8, 10, 11, 15, 20, 60, 100, 1200]
+STALE = [2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 15, 20, 60, 100, 1200]
 
 # id, drużyna (sortowanie w TAB), poziom, prefix (lista komponentów), kolor nicku, staff?
 RANGI = [
@@ -108,6 +108,7 @@ def build():
         f"execute as @a[scores={{dz.leave=1..}}] at @s run function {NS}:gracz/powrot",
         f"execute as @a[team=] run function {NS}:rangi/domyslna",
         f"function {NS}:ziemia/tick",
+        f"function {NS}:kaiju/tick",
         "# Komendy /trigger",
     ]
     tick += [f"execute as @a[scores={{{tr}=1..}}] at @s run function {NS}:komendy/{tr}" for tr in TRIGGERY]
@@ -128,6 +129,7 @@ def build():
         function {NS}:moby/sekunda
         function {NS}:mapa/animacja
         function {NS}:ziemia/sekunda
+        function {NS}:kaiju/sekunda
         execute as @a at @s run function {NS}:gracz/sekunda
     """)
 

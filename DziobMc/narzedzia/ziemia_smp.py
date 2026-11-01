@@ -69,7 +69,7 @@ KONTYNENTY = ["Europa", "Azja", "Afryka", "Ameryka Płn.", "Ameryka Płd.", "Oce
 
 TRIGGERY_ZIEMIA = ["panstwo", "stolica", "skarbiec", "wojna", "przyjmij", "ziemia", "gdzie"]
 OBIEKTY = ["dz.kraj", "dz.id", "dz.prosba", "dz.rid", "dz.mojwrog", "dz.k_czl", "dz.k_skarb", "dz.k_wl",
-           "dz.k_zamk", "dz.k_wrog", "dz.k_pkt", "dz.k_wczas", "dz.k_wygr", "dz.k_pokoj", "dz.cd_stol"]
+           "dz.k_zamk", "dz.k_wrog", "dz.k_pkt", "dz.k_wczas", "dz.k_wygr", "dz.k_pokoj", "dz.cd_stol", "dz.kc"]
 
 
 def nazwa(k, bold=True):

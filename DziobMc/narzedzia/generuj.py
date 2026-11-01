@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import wspolne  # noqa: E402
-import rdzen, komendy, moby, eventy, mapa, serwer, pvp, ziemia_smp  # noqa: E401,E402
+import rdzen, komendy, moby, eventy, mapa, serwer, pvp, ziemia_smp, kaiju  # noqa: E401,E402
 
 ROOT = Path(__file__).resolve().parent.parent
 SERWER = ROOT / "WLASNY-SERWER-na-komputerze"
@@ -144,6 +144,7 @@ def main():
     pvp.build()
     ziemia_smp.build()
     ziemia_smp.build_tick()
+    kaiju.build()
 
     bledy = lint(wspolne.FILES)
     if bledy:

@@ -14,6 +14,7 @@ scoreboard objectives add dz.k_wczas dummy
 scoreboard objectives add dz.k_wygr dummy
 scoreboard objectives add dz.k_pokoj dummy
 scoreboard objectives add dz.cd_stol dummy
+scoreboard objectives add dz.kc dummy
 scoreboard objectives add panstwo trigger
 scoreboard objectives add stolica trigger
 scoreboard objectives add skarbiec trigger

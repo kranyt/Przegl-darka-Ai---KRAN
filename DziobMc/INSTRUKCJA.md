@@ -188,6 +188,31 @@ Jeśli zmienisz skalę, wpisz w grze tę samą skalę: `/function dziobmc:ziemia
 
 ![Polska – Warszawa](screeny/8-ziemia-polska.png)
 
+## ☠ Kaiju – gigantyczne bossy na mapie Ziemi
+
+Event **„Atak Kaiju”** (losowany razem z innymi eventami): potwór atakuje stolicę na mapie Ziemi.
+Wszyscy dostają ogłoszenie z przyciskiem **[LEĆ DO WALKI]**. Każdy kaiju ma model z kilkudziesięciu bloków
+(block display), animację, własny pasek życia i ataki specjalne:
+
+| Kaiju | Gdzie atakuje | HP | Ataki |
+|---|---|---|---|
+| 🦖 **Dziobzilla** (~20 bloków) | Tokio, Seul, Manila, Londyn, Lizbona, Waszyngton | 2500 | płetwy zaczynają świecić, potem **atomowy oddech** (promień 60 bloków), tupnięcie wyrzucające graczy w górę, ogon za plecami |
+| ❄ **Lodowy Tytan** | Moskwa, Oslo, Helsinki, Reykjavik, Ottawa, Sztokholm | 2000 | mroźna aura (spowolnienie), **lodowy deszcz** z nieba, uderzenie pięściami |
+| 🦂 **Pustynny Kolos** | Kair, Rijad, Algier, Teheran, Canberra, Rabat | 1800 | jadowite żądło, **burza piaskowa** (ślepota), przywołuje skorpionki |
+
+* Przy 50% HP każdy wpada w **szał** (silniejszy i szybszy, przywołuje sługi).
+* **Nagrody:**
+  * ostatni cios: **3000 monet**, a do skarbca państwa zabójcy +2000,
+  * każdy gracz walczący w pobliżu: +500 monet,
+  * drop: netheryt, bloki diamentów, złote jabłka, totem i trofeum („Łuska Dziobzilli”, „Serce Tytana” albo „Żądło Kolosa”).
+* Admin: `/function dziobmc:admin/panel` ma przyciski **[Kaiju]** (event) i przywołanie każdego kaiju przy sobie.
+* Gracze ze starszych wersji (przed 1.19.4, wchodzący przez ViaBackwards) nie zobaczą modelu potwora, tylko jego atak i pasek życia.
+
+![Dziobzilla – atomowy oddech](screeny/14-kaiju-dziobzilla.png)
+![Dziobzilla z boku](screeny/17-kaiju-dziobzilla-bok.png)
+![Lodowy Tytan](screeny/15-kaiju-tytan.png)
+![Pustynny Kolos](screeny/16-kaiju-kolos.png)
+
 ## 🗺️ Mapa lobby (latająca wyspa w niebie, Y=150)
 
 | Miejsce | Opis |
@@ -247,6 +272,7 @@ Każdy mob ma własny drop (loot table).
 | ⚔ Polowanie | 5 min | pierwszy, kto zabije 10 custom mobów, wygrywa 500 monet |
 | ⚔ Bitwa PvP | 5 min | kill na graczu = 100 monet, najlepszy wojownik dostaje +500 |
 | 💰 Deszcz Monet | chwila | każdy online dostaje 100 monet |
+| ☠ Atak Kaiju | 15 min | gigantyczny potwór atakuje stolicę na mapie Ziemi |
 
 ---
 

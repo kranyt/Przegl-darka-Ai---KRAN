@@ -30,6 +30,8 @@
     spruce_log: [58, 37, 16], spruce_leaves: [60, 95, 60], birch_log: [216, 215, 210], birch_leaves: [110, 150, 70],
     jungle_log: [85, 67, 25], jungle_leaves: [48, 140, 20], acacia_log: [103, 96, 86], acacia_leaves: [110, 140, 30],
     dark_oak_log: [60, 46, 26], dark_oak_leaves: [40, 95, 25], mangrove_log: [84, 66, 36], mangrove_leaves: [80, 130, 40],
+    green_terracotta: [76, 83, 42], green_concrete: [73, 91, 36], lime_terracotta: [103, 117, 53], quartz_block: [236, 230, 223],
+    white_concrete: [207, 213, 214], redstone_block: [175, 24, 5],
     lantern: [255, 205, 110], soul_lantern: [110, 235, 240], chain: [60, 62, 70], soul_campfire: [80, 70, 60],
   };
   const ROSLINY = { short_grass: [100, 165, 55], poppy: [210, 30, 30], dandelion: [250, 225, 40], cornflower: [70, 100, 230],
@@ -341,6 +343,19 @@
     for (const e of window.SCENA.encje) {
       if (e.typ === 'villager') scene.add(wiesniak(e));
       if (e.typ === 'text_display') { const n = napis(e.tekst, { wys: 0.25 * e.skala }); n.position.set(e.x, e.y, e.z); scene.add(n); }
+    }
+    // modele z block display (kaiju)
+    for (const d of K.displaye || []) {
+      const g = new T.Group(); g.position.set(d.x, d.y, d.z); g.rotation.y = -d.yaw * Math.PI / 180;
+      for (const c of d.model) {
+        const geo = new T.BoxGeometry(1, 1, 1); geo.translate(.5, .5, .5);
+        const mt = c.swieci ? new T.MeshBasicMaterial({ map: tex(c.blok, 'side') }) : new T.MeshLambertMaterial({ map: tex(c.blok, 'side') });
+        const me = new T.Mesh(geo, mt);
+        me.applyMatrix4(new T.Matrix4().compose(new T.Vector3(...c.t), new T.Quaternion(...c.q), new T.Vector3(...c.s)));
+        g.add(me);
+      }
+      scene.add(g);
+      if (d.nick) { const n = napis(d.nick, { tlo: 'rgba(0,0,0,0.3)', wys: .6 }); n.position.set(d.x, d.y + d.wysNicka, d.z); scene.add(n); }
     }
     // postacie scenki
     for (const p of K.postacie || []) { const g = postac(p); scene.add(g); if (g.userData.nick) scene.add(g.userData.nick); }

@@ -1,0 +1,9 @@
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.og1,tag=!dz.pletwa,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:20,transformation:{translation:[-1.562f,6.271f,-7.159f]}}
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.og2,tag=!dz.pletwa,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:20,transformation:{translation:[-0.688f,4.453f,-10.842f]}}
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.og3,tag=!dz.pletwa,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:20,transformation:{translation:[0.188f,2.976f,-14.378f]}}
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.og4,tag=!dz.pletwa,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:20,transformation:{translation:[1.000f,1.916f,-17.683f]}}
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.og5,tag=!dz.pletwa,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:20,transformation:{translation:[1.750f,1.398f,-20.646f]}}
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.og1,tag=dz.pletwa,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:20,transformation:{translation:[0.281f,8.572f,-4.938f]}}
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.og2,tag=dz.pletwa,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:20,transformation:{translation:[0.719f,6.476f,-8.796f]}}
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.og3,tag=dz.pletwa,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:20,transformation:{translation:[1.156f,4.630f,-12.653f]}}
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.og4,tag=dz.pletwa,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:20,transformation:{translation:[1.594f,3.158f,-16.261f]}}

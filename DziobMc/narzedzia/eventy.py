@@ -10,6 +10,7 @@ EVENTY = [
     (5, "polowanie", "Polowanie", "red", 300, "pink", "pierwszy, kto zabije 10 custom mobów, wygrywa 500 monet"),
     (6, "deszcz", "Deszcz Monet", "green", 15, "green", "każdy gracz online dostaje 100 monet"),
     (7, "bitwa", "Bitwa PvP", "dark_red", 300, "red", "kill na graczu = 100 monet, najlepszy wojownik +500"),
+    (8, "kaiju", "Atak Kaiju", "dark_green", 900, "green", "gigantyczny potwór atakuje stolicę na mapie Ziemi!"),
 ]
 
 

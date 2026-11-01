@@ -1,0 +1,1 @@
+data merge entity @e[type=block_display,tag=dz.kp1,tag=dz.szczeka,distance=..64,limit=1] {start_interpolation:0,interpolation_duration:8,transformation:{translation:[-1.188f,17.150f,3.505f],left_rotation:[0.216f,0.000f,0.000f,0.976f]}}

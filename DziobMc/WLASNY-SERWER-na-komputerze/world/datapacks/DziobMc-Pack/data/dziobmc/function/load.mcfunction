@@ -42,9 +42,12 @@ scoreboard players set #2 dz.data 2
 scoreboard players set #3 dz.data 3
 scoreboard players set #4 dz.data 4
 scoreboard players set #5 dz.data 5
+scoreboard players set #6 dz.data 6
+scoreboard players set #7 dz.data 7
 scoreboard players set #8 dz.data 8
 scoreboard players set #10 dz.data 10
 scoreboard players set #11 dz.data 11
+scoreboard players set #12 dz.data 12
 scoreboard players set #15 dz.data 15
 scoreboard players set #20 dz.data 20
 scoreboard players set #60 dz.data 60

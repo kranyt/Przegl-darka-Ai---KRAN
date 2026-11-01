@@ -269,7 +269,12 @@ def build():
                 t("[x2]", "gold", run=f"/function {NS}:event/start/podwojne"), t(" "),
                 t("[Polowanie]", "yellow", run=f"/function {NS}:event/start/polowanie"), t(" "),
                 t("[Deszcz]", "green", run=f"/function {NS}:event/start/deszcz"), t(" "),
-                t("[Bitwa PvP]", "dark_red", run=f"/function {NS}:event/start/bitwa")),
+                t("[Bitwa PvP]", "dark_red", run=f"/function {NS}:event/start/bitwa"), t(" "),
+                t("[Kaiju]", "dark_green", run=f"/function {NS}:event/start/kaiju")),
+        tellraw("@s", t(" Kaiju przy tobie: ", "gray"),
+                t("[Dziobzilla]", "dark_green", run=f"/function {NS}:kaiju/przywolaj/1"), t(" "),
+                t("[Lodowy Tytan]", "aqua", run=f"/function {NS}:kaiju/przywolaj/2"), t(" "),
+                t("[Pustynny Kolos]", "gold", run=f"/function {NS}:kaiju/przywolaj/3")),
         przycisk("ZAKOŃCZ EVENT", f"/function {NS}:event/koniec", "red", "przerywa aktualny event", "Stop"),
         przycisk("TRYB BUDOWANIA", f"/function {NS}:admin/budowanie", "yellow", "wł/wył – lobby nie wymusza trybu przygody", "Przełącz"),
         tellraw("@s", t(" Przywołaj moba: ", "gray"), *[

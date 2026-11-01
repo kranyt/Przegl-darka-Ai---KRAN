@@ -5,6 +5,7 @@ execute if score #event dz.data matches 4 run function dziobmc:event/podwojne/ko
 execute if score #event dz.data matches 5 run function dziobmc:event/polowanie/koniec
 execute if score #event dz.data matches 6 run function dziobmc:event/deszcz/koniec
 execute if score #event dz.data matches 7 run function dziobmc:event/bitwa/koniec
+execute if score #event dz.data matches 8 run function dziobmc:event/kaiju/koniec
 scoreboard players set #event dz.data 0
 scoreboard players set #left dz.data 0
 scoreboard players set #next dz.data 1200

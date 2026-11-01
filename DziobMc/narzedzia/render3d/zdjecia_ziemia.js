@@ -65,7 +65,44 @@ const SCENY = {
   '12-ziemia-japonia': { dane: 'japonia', morze: 61.9, mglaDo: 230, kamera: [70, 35, 95], cel: [-10, 15, 0], fov: 72, postacie: [],
     hud: `<div id="boss" class="s">${EVENT}</div>${RANKING}<div id="chat" class="s">${GDZIE('35.36', 'N', '138.73', 'E', 'Tokio', 'Japonia', 'white', '2160')}
       ${linia(tag('MVP', 'gold'), tag('JPN', 'white'), sp('Sakura_san', 'gold'), sp(': wiśnie pod Fuji, zapraszam!'))}</div>${ACT}${HOT(0)}` },
+  '14-kaiju-dziobzilla': { dane: 'polska', mglaDo: 220, kamera: [4, 9, -40], cel: [0, 13, 0], fov: 72,
+    kaiju: [{ id: 1, x: 0, z: 0, yaw: 175, nazwa: [{ text: 'Dziobzilla', color: 'dark_green', bold: true }] }], promien: { od: [0, 21, -7], do: [-6, 1, -26] },
+    gracze: [['Kuba_PL', 'MVP', 'gold', 'POL', 'red', -6, -26, 10, DIA], ['Ola_W', 'VIP', 'yellow', 'POL', 'red', 5, -24, -15, ZEL], ['Marek', 'ADMIN', 'red', 'POL', 'red', -12, -18, 30, DIA]],
+    hud: `<div id="boss" class="s">${bossbar(sp('★ EVENT: ', 'white') + sp('Atak Kaiju', 'dgreen') + sp('  •  zostało ', 'gray') + sp('11m 20s'), 'linear-gradient(#70ff70,#00a000)', 75)}
+      ${bossbar(sp('☠ Dziobzilla ☠', 'dgreen'), 'linear-gradient(#70ff70,#00a000)', 62)}</div>${RANKING}<div id="chat" class="s">
+      ${linia(sp('⚠ ', 'dred'), sp('DZIOBZILLA', 'dgreen'), sp(' atakuje stolicę ', 'red'), sp('Warszawa', 'red'), sp(' (Polska)! ', 'gray'), sp('[LEĆ DO WALKI]', 'green'))}
+      ${linia(tag('MVP', 'gold'), tag('POL', 'red'), sp('Kuba_PL', 'gold'), sp(': UWAGA ODDECH!!!'))}
+      ${linia(sp('Ola_W', 'yellow'), sp(' został spalony atomowym oddechem Dziobzilli', 'white'))}</div>${ACT}${HOT(0)}` },
+  '17-kaiju-dziobzilla-bok': { dane: 'polska', mglaDo: 220, kamera: [-30, 10, -14], cel: [0, 11, -4], fov: 72, swiecace: true,
+    kaiju: [{ id: 1, x: 0, z: 0, yaw: 15, nazwa: [{ text: 'Dziobzilla', color: 'dark_green', bold: true }] }],
+    gracze: [['Kuba_PL', 'MVP', 'gold', 'POL', 'red', -16, -6, 260, DIA], ['Marek', 'ADMIN', 'red', 'POL', 'red', -14, -12, 250, DIA]],
+    hud: `<div id="boss" class="s">${bossbar(sp('☠ Dziobzilla ☠', 'dgreen'), 'linear-gradient(#70ff70,#00a000)', 47)}</div>${RANKING}<div id="chat" class="s">
+      ${linia(sp('☠ ', 'dred'), sp('POTWÓR WPADA W SZAŁ!', 'dred'))}${linia(tag('MVP', 'gold'), tag('POL', 'red'), sp('Kuba_PL', 'gold'), sp(': płetwy świecą = zaraz oddech, chować się!'))}</div>${ACT}${HOT(0)}` },
+  '15-kaiju-tytan': { dane: 'tundra', mglaDo: 200, kamera: [-6, 8, -34], cel: [0, 11, 0], fov: 72, sniegi: true,
+    kaiju: [{ id: 2, x: 0, z: 0, yaw: 190, nazwa: [{ text: 'Lodowy Tytan', color: 'aqua', bold: true }] }],
+    gracze: [['Ola_Gamer', 'LEGENDA', 'light_purple', 'NOR', 'dark_red', -5, -14, 10, DIA], ['Bjorn', 'VIP', 'yellow', 'NOR', 'dark_red', 6, -16, -20, ZEL], ['Ivan', 'GRACZ', 'gray', 'RUS', 'white', 1, -22, 0, ZEL]],
+    hud: `<div id="boss" class="s">${bossbar(sp('★ EVENT: ', 'white') + sp('Atak Kaiju', 'dgreen') + sp('  •  zostało ', 'gray') + sp('6m 02s'), 'linear-gradient(#70ff70,#00a000)', 40)}
+      ${bossbar(sp('☠ Lodowy Tytan ☠', 'aqua'), 'linear-gradient(#70c0ff,#2060d0)', 81)}</div>${RANKING}<div id="chat" class="s">
+      ${linia(sp('⚠ ', 'dred'), sp('LODOWY TYTAN', 'aqua'), sp(' atakuje stolicę ', 'red'), sp('Oslo', 'dred'), sp(' (Norwegia)! ', 'gray'), sp('[LEĆ DO WALKI]', 'green'))}
+      ${linia(tag('LEGENDA', 'lp'), tag('NOR', 'dred'), sp('Ola_Gamer', 'lp'), sp(': nie stójcie pod nim, lód spada z nieba!'))}</div>${ACT}${HOT(0)}` },
+  '16-kaiju-kolos': { dane: 'nil', mglaDo: 220, kamera: [-22, 9, 18], cel: [5, 5, -5], fov: 72,
+    kaiju: [{ id: 3, x: 6, z: -6, yaw: 120, nazwa: [{ text: 'Pustynny Kolos', color: 'gold', bold: true }] }],
+    gracze: [['Ahmed_EG', 'VIP', 'yellow', 'EGY', 'gold', -8, 6, 120, ZEL], ['KrafciakTV', 'YT', 'white', 'POL', 'red', -4, 11, 140, DIA]],
+    hud: `<div id="boss" class="s">${bossbar(sp('★ EVENT: ', 'white') + sp('Atak Kaiju', 'dgreen') + sp('  •  zostało ', 'gray') + sp('9m 44s'), 'linear-gradient(#70ff70,#00a000)', 65)}
+      ${bossbar(sp('☠ Pustynny Kolos ☠', 'gold'), 'linear-gradient(#ffff70,#d8c000)', 38)}</div>${SIDE}<div id="chat" class="s">
+      ${linia(sp('⚠ ', 'dred'), sp('PUSTYNNY KOLOS', 'gold'), sp(' atakuje stolicę ', 'red'), sp('Kair', 'gold'), sp(' (Egipt)! ', 'gray'), sp('[LEĆ DO WALKI]', 'green'))}
+      ${linia(sp('☠ ', 'dred'), sp('POTWÓR WPADA W SZAŁ!', 'dred'))}
+      ${linia(tag('YT', 'white'), tag('POL', 'red'), sp('KrafciakTV', 'white'), sp(': uważajcie na żądło, truje!'))}</div>${ACT}${HOT(0)}` },
 };
+const MODELE = JSON.parse(fs.readFileSync(path.join(TU, 'kaiju_modele.json'), 'utf8'));
+
+function wysokosc(dane, x, z) {
+  let h = 63;
+  for (const [bx, by, bz, i] of dane.bloki) {
+    if (bx === x && bz === z) { const n = dane.typy[i]; if (!n.includes('leaves') && !n.includes('log') && by + 1 > h) h = by + 1; }
+  }
+  return h;
+}
 
 (async () => {
   const [threePath, outDir, tylko] = process.argv.slice(2);
@@ -75,14 +112,27 @@ const SCENY = {
     if (tylko && nazwa !== tylko) continue;
     const dane = JSON.parse(fs.readFileSync(path.join(TU, `ziemia_${K.dane}.json`), 'utf8'));
     const h0 = dane.srodek[1];
-    const kam = [K.kamera[0], h0 + K.kamera[1], K.kamera[2]], cel = [K.cel[0], h0 + K.cel[1], K.cel[2]];
+    const displaye0 = 0; const displaye = (K.kaiju || []).map(k => ({ model: K.swiecace ? MODELE[k.id].map(c => c.blok === 'quartz_block' ? Object.assign({}, c, { blok: 'sea_lantern', swieci: true }) : c) : MODELE[k.id], x: k.x, y: wysokosc(dane, k.x, k.z), z: k.z, yaw: k.yaw, nick: k.nazwa, wysNicka: { 1: 26, 2: 21, 3: 14 }[k.id] }));
+    const postacie = (K.postacie || []).concat((K.gracze || []).map(([nick, rN, rK, kN, kK, x, z, yaw, zb]) =>
+      gracz(nick, rN, rK, kN, kK, x + .5, wysokosc(dane, x, z), z + .5, yaw, Object.assign({ bron: 0x5ee8e0, rekaP: -1.4 }, zb))));
+    const czast = [];
+    if (K.promien) {
+      const [a, b] = [K.promien.od, K.promien.do];
+      const ya = displaye[0].y, yb = wysokosc(dane, b[0], b[2]);
+      for (let i = 0; i <= 80; i++) { const u = i / 80; czast.push({ x: a[0] + (b[0] - a[0]) * u + (Math.random() - .5) * .6, y: ya + a[1] + (yb + b[1] - ya - a[1]) * u + (Math.random() - .5) * .6, z: a[2] + (b[2] - a[2]) * u + (Math.random() - .5) * .6, kolor: i % 3 ? 0x40e8ff : 0xb0ffff, r: 1.6 - u * .6, op: .95 }); }
+      for (const k of displaye) for (let i = 0; i < 30; i++) czast.push({ x: k.x + (Math.random() - .5) * 3, y: k.y + 10 + Math.random() * 12, z: k.z - 3 + (Math.random() - .5) * 4, kolor: 0x60f0ff, r: .5 });
+    }
+    if (K.sniegi) for (let i = 0; i < 400; i++) czast.push({ x: (Math.random() - .5) * 70 + 12, y: h0 + Math.random() * 50, z: (Math.random() - .5) * 70 + 12, kolor: 0xffffff, r: .25, op: .8 });
+    const gk = K.kaiju ? wysokosc(dane, Math.round(K.kamera[0]), Math.round(K.kamera[2])) : h0;
+    const gc = K.kaiju ? wysokosc(dane, K.kaiju[0].x, K.kaiju[0].z) : h0;
+    const kam = [K.kamera[0], gk + K.kamera[1], K.kamera[2]], cel = [K.cel[0], gc + K.cel[1], K.cel[2]];
     const p = await b.newPage({ viewport: { width: 1600, height: 900 } });
     p.on('pageerror', e => console.log('BŁĄD', e.message));
     await p.goto('file://' + path.join(TU, 'strona.html'));
     await p.addScriptTag({ path: threePath });
     await p.evaluate(s => { window.SCENA = s; }, dane);
     await p.addScriptTag({ path: path.join(TU, 'render3d.js') });
-    await p.evaluate(k => window.renderuj(k), { kamera: kam, cel, fov: K.fov, postacie: K.postacie, bezZiemi: true, bezBeacona: true,
+    await p.evaluate(k => window.renderuj(k), { kamera: kam, cel, fov: K.fov, postacie, displaye, czasteczki: czast, bezZiemi: true, bezBeacona: true,
       bezChmur: !!K.bezChmur, morze: K.morze, mglaOd: K.mglaOd || 70, mglaDo: K.mglaDo || 200 });
     await p.evaluate(h => { document.getElementById('hud').innerHTML = h; }, K.hud + ZNAK);
     await p.waitForTimeout(300);
