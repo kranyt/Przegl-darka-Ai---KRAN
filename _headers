@@ -1,0 +1,14 @@
+# Nagłówki bezpieczeństwa dla Netlify / Cloudflare Pages.
+# Linię CSP aktualizuje: python3 tools/update-csp.py
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'sha256-njcXZ6ZG4rmTqpodpjGn016cstlcTjUaIxNOi7F9y5w=' 'sha256-SYmCYY6daw6FXQffHjk/ERpP6I2mPcK5jdv+Rc1HavU=' 'sha256-lru4TtbBqy7HUsKRV61L7ItM+Vh/mWznfEy1QRbP2Mw=' 'strict-dynamic' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src https:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), hid=(), midi=(), magnetometer=(), gyroscope=(), accelerometer=(), display-capture=()
+  X-Permitted-Cross-Domain-Policies: none
+
+/tools/*
+  X-Robots-Tag: noindex

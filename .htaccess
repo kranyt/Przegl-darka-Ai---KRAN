@@ -1,0 +1,35 @@
+# Zabezpieczenia dla serwera Apache (np. hostingi współdzielone).
+# Linię CSP aktualizuje: python3 tools/update-csp.py
+
+Options -Indexes -MultiViews
+ServerSignature Off
+
+# Zawsze HTTPS
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # Blokada plików ukrytych (.git, .env, .htaccess) i katalogu tools/
+  RewriteRule (^|/)\.(?!well-known/) - [F,L]
+  RewriteRule ^tools/ - [F,L]
+  # Tylko GET / HEAD - strona jest statyczna
+  RewriteCond %{REQUEST_METHOD} !^(GET|HEAD)$
+  RewriteRule ^ - [R=405,L]
+</IfModule>
+
+<FilesMatch "\.(py|md|sh|bak|old|orig|log|sql|ini|env|json|lock|ya?ml)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'sha256-njcXZ6ZG4rmTqpodpjGn016cstlcTjUaIxNOi7F9y5w=' 'sha256-SYmCYY6daw6FXQffHjk/ERpP6I2mPcK5jdv+Rc1HavU=' 'sha256-lru4TtbBqy7HUsKRV61L7ItM+Vh/mWznfEy1QRbP2Mw=' 'strict-dynamic' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src https:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" env=HTTPS
+  Header always set X-Frame-Options "DENY"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), hid=(), midi=(), magnetometer=(), gyroscope=(), accelerometer=(), display-capture=()"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+  Header always unset X-Powered-By
+  Header unset Server
+</IfModule>

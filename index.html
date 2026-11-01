@@ -1,0 +1,918 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-njcXZ6ZG4rmTqpodpjGn016cstlcTjUaIxNOi7F9y5w=' 'sha256-SYmCYY6daw6FXQffHjk/ERpP6I2mPcK5jdv+Rc1HavU=' 'sha256-lru4TtbBqy7HUsKRV61L7ItM+Vh/mWznfEy1QRbP2Mw=' 'strict-dynamic' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src https:; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="google-adsense-account" content="ca-pub-3538330634448004">
+<meta name="format-detection" content="telephone=no">
+<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>DziobHost.PL</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: nocne niebo nad blokowym horyzontem, sekcje jak warstwy terenu; jeden pomarańczowy "dziób" jako akcent */
+:root{
+  --night:#0d1416;      /* tło */
+  --soil:#141f22;       /* powierzchnie */
+  --stone:#1c2a2e;      /* karty, pola */
+  --moss:#5fbf6a;       /* stan: online / ok */
+  --beak:#ff9d2e;       /* akcent marki */
+  --beak-ink:#1a0f02;
+  --text:#e6efe9;
+  --muted:#93a8a2;
+  --line:#2a3b3f;
+  --warn:#f2c94c;
+  --bad:#ef6b5b;
+  --f-display:"Pixelify Sans","Courier New",monospace;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --s1:.25rem;--s2:.5rem;--s3:.75rem;--s4:1rem;--s5:1.5rem;--s6:2rem;--s7:3rem;--s8:4.5rem;
+  --r:6px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{background:var(--night);color:var(--text);font-family:var(--f-body);font-size:16px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--night)}
+a{color:inherit}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.1;text-wrap:balance;margin:0;letter-spacing:.01em}
+h2{font-size:clamp(1.9rem,4vw,2.8rem)}
+h3{font-size:1.25rem}
+p{margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+section{padding-block:var(--s8)}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--beak)}
+.lead{color:var(--muted);max-width:62ch;font-size:1.08rem}
+.sec-head{display:grid;gap:var(--s3);margin-bottom:var(--s6)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--beak);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.8rem 1.25rem;border-radius:var(--r);border:2px solid var(--line);background:var(--stone);font-weight:600;cursor:pointer;text-decoration:none;transition:transform .12s,border-color .12s}
+.btn:hover{border-color:var(--muted);transform:translateY(-1px)}
+.btn-beak{background:var(--beak);color:var(--beak-ink);border-color:var(--beak);box-shadow:0 4px 0 #b4650f}
+.btn-beak:hover{border-color:var(--beak)}
+.btn-beak:active{transform:translateY(3px);box-shadow:0 1px 0 #b4650f}
+.mono{font-family:var(--f-mono)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* NAV */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--night) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:var(--s5);height:64px}
+.logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;font-family:var(--f-display);font-size:1.35rem;font-weight:700}
+.logo b{color:var(--beak)}
+.logo small{font-size:.8rem;color:var(--muted)}
+.nav ul{display:flex;gap:var(--s5);list-style:none;margin:0 0 0 auto;padding:0}
+.nav ul a{text-decoration:none;color:var(--muted);font-weight:500;font-size:.95rem}
+.nav ul a:hover{color:var(--text)}
+.nav .btn{padding:.55rem 1rem}
+.burger{display:none;margin-left:auto;background:none;border:2px solid var(--line);border-radius:var(--r);padding:.4rem .6rem;cursor:pointer}
+@media (max-width:900px){
+  .nav ul{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;gap:0;background:var(--soil);border-bottom:1px solid var(--line);padding:var(--s3) max(16px,env(safe-area-inset-right,0px)) var(--s3) max(16px,env(safe-area-inset-left,0px))}
+  .nav ul.open{display:flex}
+  .nav ul a{display:block;padding:.7rem 0}
+  .burger{display:block}
+  .nav>.btn{display:none}
+}
+
+/* HERO */
+.hero{position:relative;padding-block:var(--s7) 0;overflow:hidden}
+#sky{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr 1fr;gap:var(--s7);align-items:center}
+.hero h1{font-size:clamp(2.4rem,6vw,4.4rem)}
+.hero h1 em{font-style:normal;color:var(--beak)}
+.hero-copy{display:grid;gap:var(--s5);min-width:0}
+.hero-cta{display:flex;flex-wrap:wrap;gap:var(--s3)}
+.checks{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);color:var(--muted);font-size:.92rem;list-style:none;padding:0;margin:0}
+.checks li::before{content:"■ ";color:var(--moss)}
+.term{background:#070b0c;border:2px solid var(--line);border-radius:var(--r);box-shadow:0 20px 60px rgba(0,0,0,.5);min-width:0;overflow:hidden}
+.term-bar{display:flex;align-items:center;gap:.5rem;padding:.55rem .8rem;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.term-bar i{width:10px;height:10px;display:inline-block;background:var(--line)}
+.term-bar .pill{margin-left:auto}
+.term pre{margin:0;padding:var(--s4);height:300px;overflow:hidden;font-family:var(--f-mono);font-size:.8rem;line-height:1.55;color:#bcd0c9;white-space:pre-wrap;word-break:break-word}
+.term .ok{color:var(--moss)}.term .warn{color:var(--warn)}.term .hl{color:var(--beak)}
+.pill{display:inline-flex;align-items:center;gap:.35rem;font-family:var(--f-mono);font-size:.72rem;padding:.15rem .55rem;border-radius:99px;border:1px solid currentColor}
+.pill.on{color:var(--moss)}.pill.mid{color:var(--warn)}.pill.off{color:var(--bad)}
+.pill.on::before,.pill.mid::before,.pill.off::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.ground{position:relative;z-index:1;height:56px;margin-top:var(--s7);background:
+  linear-gradient(var(--moss) 0 12px,transparent 12px),
+  repeating-linear-gradient(90deg,#4a3424 0 28px,#3d2b1e 28px 56px);
+  border-top:4px solid #3e9a4a}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}.term pre{height:240px}}
+
+/* STATS */
+.stats{background:var(--soil);border-bottom:1px solid var(--line);padding-block:var(--s6)}
+.stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s5)}
+.stat b{display:block;font-family:var(--f-display);font-size:2.2rem;color:var(--text)}
+.stat span{color:var(--muted);font-size:.9rem}
+@media (max-width:700px){.stats .wrap{grid-template-columns:repeat(2,1fr)}}
+
+/* FEATURES */
+.feat{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.feat article{background:var(--night);padding:var(--s5);display:grid;gap:var(--s2);align-content:start}
+.feat svg{width:36px;height:36px;image-rendering:pixelated;margin-bottom:var(--s2)}
+.feat p{color:var(--muted);font-size:.94rem}
+@media (max-width:1000px){.feat{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.feat{grid-template-columns:1fr}}
+
+/* KREATOR */
+#kreator{background:var(--soil);border-block:1px solid var(--line)}
+.builder{display:grid;grid-template-columns:1.4fr 1fr;gap:var(--s6);align-items:start}
+.steps{display:grid;gap:var(--s5);min-width:0}
+fieldset{border:0;margin:0;padding:0;display:grid;gap:var(--s3);min-width:0}
+legend{font-family:var(--f-display);font-size:1.15rem;margin-bottom:var(--s3);padding:0}
+legend span{color:var(--beak);margin-right:.4rem}
+.engines{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s2)}
+.engines label{position:relative;cursor:pointer}
+.engines input{position:absolute;opacity:0}
+.engines .tile{display:grid;gap:2px;padding:.7rem .8rem;border:2px solid var(--line);border-radius:var(--r);background:var(--stone);height:100%}
+.engines .tile b{font-size:.95rem}
+.engines .tile small{color:var(--muted);font-size:.75rem;line-height:1.3}
+.engines input:checked+.tile{border-color:var(--beak);background:color-mix(in srgb,var(--beak) 10%,var(--stone))}
+.engines input:focus-visible+.tile{outline:2px solid var(--beak);outline-offset:2px}
+@media (max-width:640px){.engines{grid-template-columns:repeat(2,1fr)}}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4)}
+@media (max-width:560px){.row2{grid-template-columns:1fr}}
+.field{display:grid;gap:var(--s1)}
+.field label{font-size:.85rem;color:var(--muted)}
+.field select,.field input[type=text]{width:100%;background:var(--stone);border:2px solid var(--line);border-radius:var(--r);padding:.65rem .8rem}
+.sub{display:flex;align-items:stretch;border:2px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--stone)}
+.sub input{border:0!important;flex:1;min-width:0;border-radius:0!important}
+.sub span{display:flex;align-items:center;padding:0 .8rem;color:var(--muted);font-family:var(--f-mono);font-size:.85rem;border-left:1px solid var(--line);white-space:nowrap}
+.hint{font-size:.82rem;min-height:1.3em}
+.hint.ok{color:var(--moss)}.hint.bad{color:var(--bad)}
+.range{display:grid;gap:var(--s2)}
+.range-top{display:flex;justify-content:space-between;align-items:baseline}
+.range-top b{font-family:var(--f-mono);color:var(--beak)}
+input[type=range]{width:100%;accent-color:var(--beak)}
+.ticks{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.7rem;color:var(--muted)}
+.summary{position:sticky;top:calc(80px + env(safe-area-inset-top,0px));background:var(--night);border:2px solid var(--line);border-radius:var(--r);padding:var(--s5);display:grid;gap:var(--s4);min-width:0}
+.summary dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.45rem var(--s4);font-size:.92rem}
+.summary dt{color:var(--muted)}
+.summary dd{margin:0;text-align:right;font-family:var(--f-mono);overflow-wrap:anywhere}
+.price{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed var(--line);padding-top:var(--s4)}
+.price b{font-family:var(--f-display);font-size:2rem}
+.meter{height:8px;background:var(--stone);border-radius:4px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--moss);transition:width .25s}
+.done{border:2px solid var(--moss);border-radius:var(--r);padding:var(--s4);display:grid;gap:var(--s2);background:color-mix(in srgb,var(--moss) 8%,transparent)}
+.ipbox{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
+.ipbox code{font-family:var(--f-mono);background:var(--stone);padding:.35rem .6rem;border-radius:4px;user-select:all;overflow-wrap:anywhere}
+.ipbox button{padding:.35rem .7rem;font-size:.8rem}
+@media (max-width:900px){.builder{grid-template-columns:1fr}.summary{position:static}}
+
+/* CENNIK */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s4);align-items:stretch}
+.plan{border:2px solid var(--line);border-radius:var(--r);padding:var(--s5);display:grid;grid-template-rows:auto auto 1fr auto;gap:var(--s4);background:var(--soil)}
+.plan.star{border-color:var(--beak);position:relative}
+.plan.star::before{content:"Najczęściej wybierany";position:absolute;top:-12px;left:var(--s5);background:var(--beak);color:var(--beak-ink);font-size:.72rem;font-weight:700;padding:.15rem .6rem;border-radius:4px;letter-spacing:.04em;text-transform:uppercase}
+.plan .cost b{font-family:var(--f-display);font-size:2.6rem}
+.plan .cost span{color:var(--muted)}
+.plan ul{list-style:none;padding:0;margin:0;display:grid;gap:.45rem;font-size:.94rem;align-content:start}
+.plan li::before{content:"+ ";color:var(--moss);font-family:var(--f-mono)}
+.plan li.no{color:var(--muted)}
+.plan li.no::before{content:"− ";color:var(--muted)}
+.bill{display:inline-flex;border:2px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:var(--s5)}
+.bill button{background:none;border:0;padding:.5rem 1rem;cursor:pointer;color:var(--muted)}
+.bill button[aria-pressed=true]{background:var(--stone);color:var(--text)}
+.bill em{font-style:normal;color:var(--moss);font-size:.8rem}
+@media (max-width:900px){.plans{grid-template-columns:1fr}}
+.cmp{margin-top:var(--s6);overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+.cmp table{width:100%;border-collapse:collapse;min-width:620px;font-size:.92rem}
+.cmp th,.cmp td{padding:.7rem 1rem;border-bottom:1px solid var(--line);text-align:left}
+.cmp thead th{background:var(--soil);font-family:var(--f-display);font-weight:500}
+.cmp td:not(:first-child),.cmp th:not(:first-child){text-align:center;font-family:var(--f-mono)}
+.cmp tbody tr:last-child td{border-bottom:0}
+
+/* PANEL */
+#panel{background:var(--soil);border-block:1px solid var(--line)}
+.panel{display:grid;grid-template-columns:210px 1fr;border:2px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--night);min-height:460px}
+.panel nav{background:#0a1012;border-right:1px solid var(--line);padding:var(--s3);display:grid;gap:2px;align-content:start}
+.panel nav button{text-align:left;background:none;border:0;padding:.6rem .75rem;border-radius:4px;cursor:pointer;color:var(--muted);font-size:.92rem}
+.panel nav button[aria-selected=true]{background:var(--stone);color:var(--text)}
+.panel nav .srv{padding:.5rem .75rem var(--s3);border-bottom:1px solid var(--line);margin-bottom:var(--s2);display:grid;gap:4px}
+.panel nav .srv b{font-size:.95rem}
+.pbody{padding:var(--s5);min-width:0;display:grid;gap:var(--s4);align-content:start}
+.gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3)}
+.gauge{background:var(--stone);border-radius:var(--r);padding:var(--s3) var(--s4);display:grid;gap:6px}
+.gauge span{font-size:.8rem;color:var(--muted)}
+.gauge b{font-family:var(--f-mono);font-size:1.05rem}
+.ctrl{display:flex;gap:var(--s2);flex-wrap:wrap}
+.ctrl .btn{padding:.45rem .9rem;font-size:.88rem}
+.con{background:#070b0c;border:1px solid var(--line);border-radius:var(--r);display:grid;min-width:0}
+.con pre{margin:0;height:220px;overflow:auto;padding:var(--s3);font-family:var(--f-mono);font-size:.78rem;color:#bcd0c9;white-space:pre-wrap;word-break:break-word}
+.con form{display:flex;border-top:1px solid var(--line)}
+.con form span{padding:.6rem .7rem;color:var(--beak);font-family:var(--f-mono)}
+.con input{flex:1;min-width:0;background:none;border:0;font-family:var(--f-mono);font-size:.85rem;padding:.6rem 0}
+.con input:focus{outline:none}
+.files{width:100%;border-collapse:collapse;font-size:.9rem}
+.files td{padding:.55rem .4rem;border-bottom:1px solid var(--line)}
+.files td:last-child{text-align:right;color:var(--muted);font-family:var(--f-mono);font-size:.8rem}
+.tbl-wrap{overflow-x:auto}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:var(--s4);padding:.7rem 0;border-bottom:1px solid var(--line)}
+.toggle small{display:block;color:var(--muted)}
+.switch{appearance:none;width:42px;height:24px;border-radius:12px;background:var(--line);position:relative;cursor:pointer;flex:none;transition:background .15s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--text);transition:left .15s}
+.switch:checked{background:var(--moss)}
+.switch:checked::after{left:21px}
+@media (max-width:760px){.panel{grid-template-columns:1fr}.panel nav{grid-auto-flow:column;grid-auto-columns:max-content;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}.panel nav .srv{display:none}.gauges{grid-template-columns:1fr}}
+
+/* KATALOG */
+.cat-bar{display:flex;flex-wrap:wrap;gap:var(--s3);margin-bottom:var(--s5);align-items:center}
+.cat-bar input{flex:1 1 240px;min-width:0;background:var(--stone);border:2px solid var(--line);border-radius:var(--r);padding:.65rem .8rem}
+.chips{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.chips button{background:none;border:1px solid var(--line);border-radius:99px;padding:.35rem .85rem;cursor:pointer;color:var(--muted);font-size:.85rem}
+.chips button[aria-pressed=true]{border-color:var(--beak);color:var(--beak)}
+.cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--s3)}
+.item{border:1px solid var(--line);border-radius:var(--r);padding:var(--s4);display:grid;grid-template-columns:44px 1fr;gap:var(--s3);align-items:start;background:var(--soil)}
+.item .ico{width:44px;height:44px;border-radius:4px;display:grid;place-items:center;font-family:var(--f-display);font-size:1.2rem;color:var(--beak-ink)}
+.item b{display:block}
+.item p{color:var(--muted);font-size:.85rem;line-height:1.4}
+.item .meta{display:flex;gap:var(--s3);margin-top:6px;font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.item button{grid-column:1/-1;justify-self:start;background:none;border:1px solid var(--line);border-radius:4px;padding:.35rem .8rem;cursor:pointer;font-size:.82rem}
+.item button.added{border-color:var(--moss);color:var(--moss)}
+.empty{color:var(--muted);padding:var(--s5) 0}
+
+/* LOKALIZACJE + STATUS */
+#lokalizacje{background:var(--soil);border-block:1px solid var(--line)}
+.locs{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s3)}
+.loc{background:var(--night);border:1px solid var(--line);border-radius:var(--r);padding:var(--s4);display:grid;gap:var(--s2)}
+.loc .flag{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);letter-spacing:.1em}
+.loc .ping{font-family:var(--f-mono);font-size:1.6rem}
+.loc .ping small{font-size:.8rem;color:var(--muted)}
+.loc .bar{height:6px;background:var(--stone);border-radius:3px;overflow:hidden}
+.loc .bar i{display:block;height:100%;width:0;transition:width .6s}
+@media (max-width:900px){.locs{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:460px){.locs{grid-template-columns:1fr}}
+.status{margin-top:var(--s6);display:grid;gap:var(--s3)}
+.node{display:grid;grid-template-columns:180px 1fr 80px;gap:var(--s4);align-items:center;font-size:.9rem}
+.node .uptime{display:flex;gap:2px;height:26px;min-width:0}
+.node .uptime i{flex:1;border-radius:2px;background:var(--moss)}
+.node .uptime i.mid{background:var(--warn)}
+.node .uptime i.bad{background:var(--bad)}
+.node .pct{font-family:var(--f-mono);text-align:right}
+.status-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--s3)}
+.legend{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem;color:var(--muted);padding-left:calc(180px + var(--s4));padding-right:calc(80px + var(--s4))}
+@media (max-width:700px){.node{grid-template-columns:1fr 64px}.node .uptime{grid-column:1/-1;grid-row:2}.legend{padding:0}}
+
+/* FAQ */
+.faq-grid{display:grid;grid-template-columns:1fr 1.6fr;gap:var(--s7)}
+details{border-bottom:1px solid var(--line);padding-block:var(--s4)}
+summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:var(--s4)}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--f-mono);color:var(--beak);font-size:1.2rem;line-height:1}
+details[open] summary::after{content:"−"}
+details p{color:var(--muted);margin-top:var(--s3);max-width:65ch}
+details code{font-family:var(--f-mono);background:var(--stone);padding:.05rem .35rem;border-radius:3px;font-size:.88em}
+@media (max-width:860px){.faq-grid{grid-template-columns:1fr;gap:var(--s5)}}
+
+/* CTA + FOOTER */
+.cta{padding-block:var(--s7)}
+.cta .box{border:2px solid var(--beak);border-radius:var(--r);padding:var(--s7) var(--s6);display:grid;grid-template-columns:1fr auto;gap:var(--s5);align-items:center;background:
+  linear-gradient(135deg,color-mix(in srgb,var(--beak) 14%,transparent),transparent 60%),var(--soil)}
+.cta .box p{color:var(--muted);margin-top:var(--s2)}
+@media (max-width:760px){.cta .box{grid-template-columns:1fr;padding:var(--s5)}}
+footer{border-top:1px solid var(--line);padding-block:var(--s7) var(--s5);color:var(--muted);font-size:.9rem}
+.foot{display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:var(--s6)}
+.foot h4{color:var(--text);font-size:.85rem;margin:0 0 var(--s3);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.foot ul{list-style:none;padding:0;margin:0;display:grid;gap:.4rem}
+.foot a{text-decoration:none}.foot a:hover{color:var(--text)}
+.copy{margin-top:var(--s6);padding-top:var(--s4);border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s3);font-size:.8rem}
+@media (max-width:760px){.foot{grid-template-columns:1fr 1fr}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120px);background:var(--stone);border:2px solid var(--moss);padding:.7rem 1.1rem;border-radius:var(--r);z-index:80;transition:transform .25s;font-size:.92rem;max-width:calc(100% - 32px)}
+.toast.show{transform:translate(-50%,0)}
+</style>
+<script>
+/* Ochrona przed clickjackingiem: strona nie działa wewnątrz cudzej ramki */
+if(window.top!==window.self){document.documentElement.style.display='none';try{window.top.location.replace(window.self.location.href)}catch(e){}}
+/* Google AdSense (ca-pub-3538330634448004) - ładowany stąd, żeby przeszedł przez politykę CSP */
+(function(){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3538330634448004';document.head.appendChild(s)})();
+</script>
+<style>
+/* ===== Reklamy ===== */
+.ad-label{display:block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
+/* boczne paski: tylko na bardzo szerokich ekranach, poza treścią (.wrap = 1180px), więc nic nie zasłaniają */
+.ad-rail{position:fixed;top:96px;width:160px;z-index:40;display:none;flex-direction:column;gap:var(--s4)}
+.ad-rail-left{left:max(12px,calc((100vw - 1180px)/2 - 160px - 24px))}
+.ad-rail-right{right:max(12px,calc((100vw - 1180px)/2 - 160px - 24px))}
+.ad-rail .ad-box{background:var(--soil);border:1px solid var(--line);border-radius:var(--r);padding:.4rem;text-align:center}
+@media (min-width:1560px) and (min-height:700px){.ad-rail{display:flex}}
+/* okno reklamy (start strony i kreator) */
+.ad-modal{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:16px;background:color-mix(in srgb,var(--night) 82%,transparent);backdrop-filter:blur(4px)}
+.ad-card{width:min(100%,560px);background:var(--soil);border:2px solid var(--line);border-radius:var(--r);padding:var(--s5);display:grid;gap:var(--s4);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.ad-head{display:flex;justify-content:space-between;align-items:center;gap:var(--s3)}
+.ad-head b{font-family:var(--f-display);font-size:1.15rem}
+.ad-step{font-family:var(--f-mono);font-size:.8rem;color:var(--beak)}
+.ad-slot{min-height:250px;display:grid;place-items:center;background:var(--stone);border:1px dashed var(--line);border-radius:var(--r);overflow:hidden}
+.ad-slot ins{display:block;width:100%;min-height:250px}
+.ad-dots{display:flex;gap:6px}
+.ad-dots i{width:22px;height:6px;border-radius:3px;background:var(--line)}
+.ad-dots i.on{background:var(--beak)}
+.ad-bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.ad-bar i{display:block;height:100%;width:0;background:var(--beak)}
+.ad-foot{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);color:var(--muted);font-size:.85rem}
+.ad-foot .btn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
+body.ad-open{overflow:hidden}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap nav">
+    <a class="logo" href="#start" aria-label="DziobHost.PL, strona główna">
+      <svg width="34" height="34" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="1" y="1" width="5" height="5" fill="#f2f2e6"/><rect x="2" y="2" width="1" height="1" fill="#0d1416"/>
+        <rect x="5" y="3" width="3" height="2" fill="#ff9d2e"/><rect x="5" y="4" width="2" height="1" fill="#d9761a"/>
+        <rect x="1" y="6" width="5" height="1" fill="#5fbf6a"/>
+      </svg>
+      <span>Dziob<b>Host</b><small>.PL</small></span>
+    </a>
+    <ul id="menu">
+      <li><a href="#funkcje">Funkcje</a></li>
+      <li><a href="#kreator">Kreator</a></li>
+      <li><a href="#cennik">Cennik</a></li>
+      <li><a href="#panel">Panel</a></li>
+      <li><a href="#katalog">Pluginy</a></li>
+      <li><a href="#lokalizacje">Status</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <a class="btn btn-beak" href="#kreator">Załóż serwer</a>
+    <button class="burger" id="burger" aria-label="Otwórz menu" aria-expanded="false">☰</button>
+  </div>
+</header>
+
+<main id="start">
+<section class="hero">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="hero-copy">
+      <p class="eyebrow">Darmowy hosting serwerów Minecraft</p>
+      <h1>Twój serwer Minecraft. <em>0 zł</em> na zawsze.</h1>
+      <p class="lead">Postaw serwer Java albo Bedrock w 60 sekund. Bez karty płatniczej, bez reklam w grze, z panelem po polsku i ochroną DDoS w standardzie.</p>
+      <div class="hero-cta">
+        <a class="btn btn-beak" href="#kreator">Stwórz darmowy serwer</a>
+        <a class="btn" href="#panel">Zobacz panel</a>
+      </div>
+      <ul class="checks">
+        <li>4 GB RAM za darmo</li><li>Ochrona DDoS</li><li>Własna subdomena</li><li>Kopie zapasowe co 6 h</li>
+      </ul>
+    </div>
+    <div class="term" aria-label="Przykładowy start serwera">
+      <div class="term-bar"><i></i><i></i><i></i> kraina-kaczek.dziobhost.pl <span class="pill on" id="heroPill">online</span></div>
+      <pre id="heroTerm"></pre>
+    </div>
+  </div>
+  <div class="ground" aria-hidden="true"></div>
+</section>
+
+<div class="stats">
+  <div class="wrap">
+    <div class="stat"><b class="tnum" data-count="18420">18 420</b><span>aktywnych serwerów</span></div>
+    <div class="stat"><b class="tnum" data-count="96300">96 300</b><span>graczy online w szczycie</span></div>
+    <div class="stat"><b class="tnum">99,94%</b><span>dostępność w ostatnich 90 dniach</span></div>
+    <div class="stat"><b class="tnum">58 s</b><span>średni czas postawienia serwera</span></div>
+  </div>
+</div>
+
+<section id="funkcje">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Funkcje</p>
+      <h2>Wszystko, czego potrzebuje serwer</h2>
+      <p class="lead">Darmowy pakiet to nie wersja demo. Dostajesz ten sam sprzęt, panel i ochronę co serwery płatne.</p>
+    </div>
+    <div class="feat" id="featGrid"></div>
+  </div>
+</section>
+
+<section id="kreator">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Kreator serwera</p>
+      <h2>Skonfiguruj serwer w czterech krokach</h2>
+      <p class="lead">Wybierz silnik, wersję i zasoby. Zmiany możesz wprowadzić później w panelu, bez reinstalacji świata.</p>
+    </div>
+    <div class="builder">
+      <form class="steps" id="builder" novalidate>
+        <fieldset>
+          <legend><span>1</span>Silnik serwera</legend>
+          <div class="engines" id="engines"></div>
+        </fieldset>
+        <fieldset>
+          <legend><span>2</span>Wersja i lokalizacja</legend>
+          <div class="row2">
+            <div class="field"><label for="ver">Wersja gry</label><select id="ver"></select></div>
+            <div class="field"><label for="loc">Lokalizacja</label>
+              <select id="loc"><option value="WAW">Warszawa, PL</option><option value="KRK">Kraków, PL</option><option value="FRA">Frankfurt, DE</option><option value="AMS">Amsterdam, NL</option></select></div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend><span>3</span>Zasoby</legend>
+          <div class="range">
+            <div class="range-top"><label for="ram">Pamięć RAM</label><b id="ramOut">4 GB</b></div>
+            <input type="range" id="ram" min="1" max="16" step="1" value="4">
+            <div class="ticks"><span>1 GB</span><span>4 GB (darmowe)</span><span>8 GB</span><span>16 GB</span></div>
+          </div>
+          <div class="range">
+            <div class="range-top"><label for="slots">Sloty graczy</label><b id="slotsOut">20</b></div>
+            <input type="range" id="slots" min="5" max="200" step="5" value="20">
+            <div class="ticks"><span>5</span><span>50</span><span>100</span><span>200</span></div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend><span>4</span>Adres serwera</legend>
+          <div class="field">
+            <label for="subdomain">Subdomena (3–24 znaki: litery, cyfry, myślnik)</label>
+            <div class="sub"><input type="text" id="subdomain" maxlength="24" pattern="[a-z0-9-]{3,24}" value="kraina-kaczek" autocomplete="off" spellcheck="false"><span>.dziobhost.pl</span></div>
+            <p class="hint ok" id="subHint">Adres wolny</p>
+          </div>
+        </fieldset>
+      </form>
+
+      <aside class="summary" aria-live="polite">
+        <h3>Podsumowanie</h3>
+        <dl>
+          <dt>Silnik</dt><dd id="sEngine">Paper</dd>
+          <dt>Wersja</dt><dd id="sVer">1.21.4</dd>
+          <dt>Lokalizacja</dt><dd id="sLoc">Warszawa, PL</dd>
+          <dt>RAM</dt><dd id="sRam">4 GB</dd>
+          <dt>Sloty</dt><dd id="sSlots">20</dd>
+          <dt>Dysk NVMe</dt><dd id="sDisk">15 GB</dd>
+          <dt>Rdzenie CPU</dt><dd id="sCpu">2 vCore</dd>
+          <dt>Adres</dt><dd id="sAddr">kraina-kaczek.dziobhost.pl</dd>
+        </dl>
+        <div>
+          <div class="range-top" style="font-size:.82rem;color:var(--muted)"><span>Szacowane obciążenie przy pełnych slotach</span><span id="loadPct" class="mono">38%</span></div>
+          <div class="meter"><i id="loadBar" style="width:38%"></i></div>
+          <p class="hint" id="loadHint" style="color:var(--muted)">Zapas na pluginy i farmy mobów.</p>
+        </div>
+        <div class="price"><span id="planName">Pakiet Pisklak</span><b id="priceOut">0 zł</b></div>
+        <button class="btn btn-beak" id="createBtn" type="button" style="justify-content:center">Utwórz serwer</button>
+        <div class="done" id="doneBox" hidden>
+          <b>Serwer gotowy (podgląd)</b>
+          <span style="color:var(--muted);font-size:.88rem">Tak wygląda adres, który wpiszesz w Minecraft → Multiplayer → Dodaj serwer:</span>
+          <div class="ipbox"><code id="ipCode">kraina-kaczek.dziobhost.pl</code><button class="btn" type="button" id="copyIp">Kopiuj</button></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section id="cennik">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Cennik</p>
+      <h2>Za darmo albo z dopalaczem</h2>
+      <p class="lead">Pakiet Pisklak jest darmowy bez limitu czasu. Płatne pakiety dają więcej mocy i serwer, który nie usypia, gdy nikt nie gra.</p>
+    </div>
+    <div class="bill" role="group" aria-label="Okres rozliczenia">
+      <button type="button" id="billM" aria-pressed="true">Miesięcznie</button>
+      <button type="button" id="billY" aria-pressed="false">Rocznie <em>−20%</em></button>
+    </div>
+    <div class="plans">
+      <article class="plan">
+        <div><h3>Pisklak</h3><p style="color:var(--muted);font-size:.9rem">Na start ze znajomymi</p></div>
+        <div class="cost"><b>0 zł</b> <span>/ na zawsze</span></div>
+        <ul>
+          <li>4 GB RAM, 2 vCore</li><li>15 GB NVMe</li><li>do 20 slotów</li><li>Subdomena .dziobhost.pl</li><li>Kopie zapasowe co 6 h (2 sztuki)</li><li>Ochrona DDoS</li>
+          <li class="no">Usypianie po 30 min bez graczy</li><li class="no">Bez własnej domeny</li>
+        </ul>
+        <a class="btn" href="#kreator" style="justify-content:center">Wybieram za darmo</a>
+      </article>
+      <article class="plan star">
+        <div><h3>Kaczor</h3><p style="color:var(--muted);font-size:.9rem">Dla rosnącej społeczności</p></div>
+        <div class="cost"><b class="tnum" data-m="14,99" data-y="11,99">14,99 zł</b> <span>/ mies.</span></div>
+        <ul>
+          <li>8 GB RAM, 4 vCore</li><li>40 GB NVMe</li><li>do 80 slotów</li><li>Serwer działa 24/7</li><li>Własna domena i dedykowany port</li><li>Kopie co 2 h (10 sztuk)</li><li>Priorytetowe wsparcie na Discordzie</li>
+        </ul>
+        <a class="btn btn-beak" href="#kreator" style="justify-content:center">Wybieram Kaczora</a>
+      </article>
+      <article class="plan">
+        <div><h3>Łabędź</h3><p style="color:var(--muted);font-size:.9rem">Duże modpacki i sieci</p></div>
+        <div class="cost"><b class="tnum" data-m="34,99" data-y="27,99">34,99 zł</b> <span>/ mies.</span></div>
+        <ul>
+          <li>16 GB RAM, 6 vCore</li><li>100 GB NVMe</li><li>Bez limitu slotów</li><li>Serwer działa 24/7</li><li>Dedykowany adres IPv4</li><li>Kopie co godzinę (24 sztuki)</li><li>Baza MySQL ×5, BungeeCord/Velocity</li>
+        </ul>
+        <a class="btn" href="#kreator" style="justify-content:center">Wybieram Łabędzia</a>
+      </article>
+    </div>
+    <div class="cmp">
+      <table>
+        <thead><tr><th>Funkcja</th><th>Pisklak</th><th>Kaczor</th><th>Łabędź</th></tr></thead>
+        <tbody>
+          <tr><td>Procesor</td><td>Ryzen 9 7950X</td><td>Ryzen 9 7950X</td><td>Ryzen 9 7950X</td></tr>
+          <tr><td>Instalator modpacków (CurseForge, Modrinth)</td><td>tak</td><td>tak</td><td>tak</td></tr>
+          <tr><td>Dostęp SFTP</td><td>tak</td><td>tak</td><td>tak</td></tr>
+          <tr><td>Podserwery w sieci</td><td>—</td><td>2</td><td>8</td></tr>
+          <tr><td>Harmonogram zadań</td><td>3 zadania</td><td>20 zadań</td><td>bez limitu</td></tr>
+          <tr><td>Współadministratorzy</td><td>1</td><td>5</td><td>bez limitu</td></tr>
+          <tr><td>Odnowienie co</td><td>7 dni logowania</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="panel">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Panel DziobPanel</p>
+      <h2>Panel, który nie wymaga instrukcji</h2>
+      <p class="lead">To działający podgląd. Wpisz w konsoli <span class="mono">help</span>, <span class="mono">list</span> albo <span class="mono">say Cześć</span>, przełączaj zakładki i włączaj ustawienia.</p>
+    </div>
+    <div class="panel">
+      <nav role="tablist" aria-label="Sekcje panelu">
+        <div class="srv"><b>kraina-kaczek</b><span class="pill on" id="pPill">online</span></div>
+        <button role="tab" aria-selected="true" data-tab="con">Konsola</button>
+        <button role="tab" aria-selected="false" data-tab="files">Pliki</button>
+        <button role="tab" aria-selected="false" data-tab="backup">Kopie zapasowe</button>
+        <button role="tab" aria-selected="false" data-tab="set">Ustawienia</button>
+      </nav>
+      <div class="pbody">
+        <div class="gauges">
+          <div class="gauge"><span>CPU</span><b id="gCpu" class="tnum">23%</b><div class="meter"><i id="gCpuB" style="width:23%"></i></div></div>
+          <div class="gauge"><span>RAM</span><b id="gRam" class="tnum">2,1 / 4 GB</b><div class="meter"><i id="gRamB" style="width:52%"></i></div></div>
+          <div class="gauge"><span>Gracze · TPS</span><b id="gPl" class="tnum">7 / 20 · 20,0</b><div class="meter"><i id="gPlB" style="width:35%"></i></div></div>
+        </div>
+        <div class="ctrl">
+          <button class="btn" type="button" id="bStart">Start</button>
+          <button class="btn" type="button" id="bRestart">Restart</button>
+          <button class="btn" type="button" id="bStop">Stop</button>
+        </div>
+        <div data-pane="con">
+          <div class="con">
+            <pre id="pCon" aria-live="polite"></pre>
+            <form id="pForm"><span>&gt;</span><input id="pIn" maxlength="200" placeholder="Wpisz komendę, np. help" autocomplete="off" aria-label="Komenda konsoli"></form>
+          </div>
+        </div>
+        <div data-pane="files" hidden>
+          <div class="tbl-wrap"><table class="files" id="filesTbl"></table></div>
+        </div>
+        <div data-pane="backup" hidden>
+          <div class="tbl-wrap"><table class="files" id="bkTbl"></table></div>
+          <button class="btn" type="button" id="bkNew" style="margin-top:var(--s3)">Utwórz kopię teraz</button>
+        </div>
+        <div data-pane="set" hidden>
+          <div class="toggle"><span>Tryb PvP<small>Gracze mogą atakować siebie nawzajem</small></span><input type="checkbox" class="switch" id="tPvp" checked></div>
+          <div class="toggle"><span>Biała lista<small>Wchodzą tylko dodani gracze</small></span><input type="checkbox" class="switch" id="tWl"></div>
+          <div class="toggle"><span>Tryb online (premium)<small>Weryfikacja kont Mojang/Microsoft</small></span><input type="checkbox" class="switch" id="tOnline" checked></div>
+          <div class="toggle"><span>Automatyczny restart o 5:00<small>Czyści pamięć i zapisuje świat</small></span><input type="checkbox" class="switch" id="tAuto" checked></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="katalog">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Instalator jednym kliknięciem</p>
+      <h2>Pluginy i modpacki</h2>
+      <p class="lead">Ponad 120 000 pozycji z Modrinth, CurseForge i Hangar. Poniżej najpopularniejsze na naszych serwerach.</p>
+    </div>
+    <div class="cat-bar">
+      <input type="search" id="catQ" maxlength="60" placeholder="Szukaj, np. ochrona, ekonomia, mapa…" aria-label="Szukaj pluginów">
+      <div class="chips" id="catChips"></div>
+    </div>
+    <div class="cat" id="catGrid"></div>
+  </div>
+</section>
+
+<section id="lokalizacje">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Lokalizacje i status</p>
+      <h2>Serwery blisko Twoich graczy</h2>
+      <p class="lead">Cztery centra danych, łącza 10 Gbit/s i filtrowanie ataków na brzegu sieci. Zmierz przybliżone opóźnienie ze swojej lokalizacji.</p>
+    </div>
+    <div class="locs" id="locs"></div>
+    <div style="margin-top:var(--s4)"><button class="btn" type="button" id="pingBtn">Zmierz ping ponownie</button></div>
+
+    <div class="status">
+      <div class="status-head"><h3>Dostępność węzłów, ostatnie 30 dni</h3><span class="pill on">Wszystkie systemy działają</span></div>
+      <div id="nodes" style="display:grid;gap:var(--s3)"></div>
+      <div class="legend"><span>30 dni temu</span><span>dziś</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap faq-grid">
+    <div class="sec-head" style="align-content:start">
+      <p class="eyebrow">FAQ</p>
+      <h2>Najczęstsze pytania</h2>
+      <p class="lead">Nie ma tu odpowiedzi? Napisz na naszym Discordzie, odpisujemy zwykle w kilkanaście minut.</p>
+    </div>
+    <div>
+      <details open><summary>Czy serwer naprawdę jest darmowy?</summary><p>Tak. Pakiet Pisklak nie ma okresu próbnego ani ukrytych opłat i nie wymaga karty. Utrzymujemy go z płatnych pakietów Kaczor i Łabędź.</p></details>
+      <details><summary>Dlaczego darmowy serwer usypia?</summary><p>Po 30 minutach bez graczy serwer się zatrzymuje, żeby zwolnić zasoby. Budzi się sam, gdy ktoś spróbuje się połączyć, co trwa około 15 sekund. Świat i ustawienia zostają bez zmian.</p></details>
+      <details><summary>Co oznacza odnawianie co 7 dni?</summary><p>Darmowy serwer pozostaje aktywny, dopóki zalogujesz się do panelu przynajmniej raz na 7 dni. Przed wygaśnięciem dostaniesz przypomnienie mailem, a pliki trzymamy jeszcze 14 dni.</p></details>
+      <details><summary>Czy mogę grać na Bedrock (telefon, konsola)?</summary><p>Tak. Wybierz silnik Bedrock albo dodaj do serwera Java plugin <code>Geyser</code>, żeby gracze z obu wersji grali razem. Domyślny port Bedrock to <code>19132</code>.</p></details>
+      <details><summary>Jak wgrać własną mapę?</summary><p>W zakładce Pliki przeciągnij spakowany folder świata (.zip) albo połącz się przez SFTP. Następnie ustaw <code>level-name</code> w server.properties na nazwę folderu.</p></details>
+      <details><summary>Czy mogę zmienić pakiet bez utraty świata?</summary><p>Tak. Zmiana pakietu w obie strony trwa chwilę i wymaga tylko restartu. Pliki, gracze i pluginy zostają.</p></details>
+      <details><summary>Jakie wersje Minecrafta obsługujecie?</summary><p>Wszystkie wydania Java od 1.7.10 do najnowszej oraz aktualne wydanie Bedrock. Starsze wersje włączysz w ustawieniach silnika.</p></details>
+    </div>
+  </div>
+</section>
+
+<div class="cta">
+  <div class="wrap">
+    <div class="box">
+      <div><h2>Zbierz ekipę jeszcze dziś</h2><p>Serwer na 20 osób, 4 GB RAM i ochrona DDoS. Płacisz 0 zł.</p></div>
+      <a class="btn btn-beak" href="#kreator">Stwórz darmowy serwer</a>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div style="display:grid;gap:var(--s3);align-content:start">
+        <span class="logo" style="color:var(--text)">Dziob<b>Host</b><small>.PL</small></span>
+        <p>Darmowy hosting serwerów Minecraft z Polski. Robiony przez graczy dla graczy.</p>
+        <p class="mono" style="font-size:.8rem">kontakt@dziobhost.pl</p>
+      </div>
+      <div><h4>Hosting</h4><ul><li><a href="#kreator">Kreator serwera</a></li><li><a href="#cennik">Cennik</a></li><li><a href="#katalog">Pluginy i modpacki</a></li><li><a href="#lokalizacje">Lokalizacje</a></li></ul></div>
+      <div><h4>Pomoc</h4><ul><li><a href="#faq">FAQ</a></li><li><a href="#lokalizacje">Status usług</a></li><li><a href="#panel">Panel</a></li></ul></div>
+      <div><h4>Informacje</h4><ul><li>Regulamin</li><li>Polityka prywatności</li><li>Zgłoś nadużycie</li></ul></div>
+    </div>
+    <div class="copy"><span>© 2026 DziobHost.PL</span><span>Nie jesteśmy powiązani z Mojang Studios ani Microsoft. Minecraft jest znakiem towarowym Mojang AB.</span></div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const toast=(t)=>{const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2400)};
+const fmt=n=>n.toLocaleString('pl-PL');
+
+/* menu */
+$('#burger').onclick=()=>{const m=$('#menu');const o=m.classList.toggle('open');$('#burger').setAttribute('aria-expanded',o)};
+$$('#menu a').forEach(a=>a.onclick=()=>{$('#menu').classList.remove('open');$('#burger').setAttribute('aria-expanded','false')});
+
+/* niebo z gwiazdami i blokowymi chmurami */
+(()=>{const c=$('#sky'),x=c.getContext('2d');let w,h,stars=[],clouds=[];
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ function size(){w=c.width=c.offsetWidth;h=c.height=c.offsetHeight;
+  stars=Array.from({length:Math.round(w*h/9000)},()=>({x:Math.random()*w,y:Math.random()*h*.8,s:Math.random()<.2?3:2,p:Math.random()*6}));
+  clouds=Array.from({length:4},(_,i)=>({x:Math.random()*w,y:30+i*55,len:4+Math.floor(Math.random()*5),v:.08+Math.random()*.12}))}
+ function draw(t){x.clearRect(0,0,w,h);
+  for(const s of stars){x.globalAlpha=.25+.55*Math.abs(Math.sin(t/1400+s.p));x.fillStyle='#e6efe9';x.fillRect(s.x|0,s.y|0,s.s,s.s)}
+  x.globalAlpha=.06;x.fillStyle='#e6efe9';
+  for(const cl of clouds){for(let i=0;i<cl.len;i++){x.fillRect((cl.x+i*24)%(w+200)-100,cl.y,24,12);if(i%2)x.fillRect((cl.x+i*24)%(w+200)-100,cl.y-12,24,12)}if(!reduce)cl.x+=cl.v}
+  x.globalAlpha=1;if(!reduce)requestAnimationFrame(draw)}
+ size();addEventListener('resize',size);requestAnimationFrame(draw)})();
+
+/* terminal w hero */
+(()=>{const lines=[
+ ['[DziobHost] Przydzielanie zasobów: 4 GB RAM, 2 vCore (WAW-03)','hl'],
+ ['[DziobHost] Pobieranie Paper 1.21.4 build #232… gotowe',''],
+ ['[DziobHost] Akceptowanie EULA i generowanie server.properties',''],
+ ['[12:00:01 INFO]: Starting minecraft server version 1.21.4',''],
+ ['[12:00:01 INFO]: Loading properties',''],
+ ['[12:00:02 INFO]: Default game type: SURVIVAL',''],
+ ['[12:00:03 INFO]: Preparing level "world"',''],
+ ['[12:00:05 INFO]: Preparing spawn area: 64%',''],
+ ['[12:00:06 INFO]: Preparing spawn area: 100%',''],
+ ['[12:00:06 INFO]: Done (4.812s)! For help, type "help"','ok'],
+ ['[DziobHost] Ochrona DDoS aktywna · adres: kraina-kaczek.dziobhost.pl','hl'],
+ ['[12:00:41 INFO]: Kaczor_Donald joined the game',''],
+ ['[12:00:58 INFO]: <Kaczor_Donald> no siema, budujemy port?',''],
+ ['[12:01:12 INFO]: Zielony_Dziob joined the game',''],
+ ['[12:01:30 WARN]: Can\'t keep up? Not today. TPS 20.0','warn'],
+];const pre=$('#heroTerm');let i=0;
+ function step(){if(i>=lines.length){setTimeout(()=>{pre.innerHTML='';i=0;step()},5000);return}
+  const [t,c]=lines[i++];const s=document.createElement('span');if(c)s.className=c;s.textContent=t+'\n';pre.appendChild(s);
+  while(pre.scrollHeight>pre.clientHeight&&pre.firstChild)pre.removeChild(pre.firstChild);
+  setTimeout(step,i<4?650:i<11?380:1400)}
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches){lines.forEach(([t,c])=>{const s=document.createElement('span');if(c)s.className=c;s.textContent=t+'\n';pre.appendChild(s)});while(pre.scrollHeight>pre.clientHeight&&pre.firstChild)pre.removeChild(pre.firstChild)}
+ else{lines.slice(0,10).forEach(([t,c])=>{const s=document.createElement('span');if(c)s.className=c;s.textContent=t+'\n';pre.appendChild(s)});i=10;setTimeout(step,1200)}})();
+
+/* funkcje: ikony pikselowe 8x8 */
+(()=>{const P={o:'#ff9d2e',g:'#5fbf6a',w:'#e6efe9',m:'#93a8a2',b:'#4a7fd4',r:'#ef6b5b',y:'#f2c94c',d:'#3d2b1e'};
+ const ic=rows=>{let s='<svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">';rows.forEach((r,y)=>[...r].forEach((ch,x)=>{if(P[ch])s+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${P[ch]}"/>`}));return s+'</svg>'};
+ const F=[
+  ['Ochrona DDoS do 2 Tb/s',"Filtrujemy ruch na brzegu sieci, zanim dotrze do serwera. Gracze nie odczuwają ataku.",['..bbbb..','.bwwwwb.','.bwbbwb.','.bwbbwb.','.bwwwwb.','..bwwb..','...bb...','........']],
+  ['Ryzen 9 i dyski NVMe',"Wysokie taktowanie jednego rdzenia, czyli stabilne 20 TPS nawet przy dużych farmach.",['.mmmmmm.','m.o..o.m','mo.oo.om','m.oooo.m','m.oooo.m','mo.oo.om','m.o..o.m','.mmmmmm.']],
+  ['Kopie zapasowe',"Automatycznie co 6 godzin. Przywracasz świat jednym kliknięciem po griefie albo nieudanym update.",['.yyyyyy.','y......y','y.yyyy.y','y......y','y.yyyy.y','y......y','y......y','.yyyyyy.']],
+  ['Instalator modpacków',"Modrinth, CurseForge, FTB i ATLauncher. Wybierasz paczkę, my dobieramy wersję Forge lub Fabric.",['...oo...','..oooo..','.oo..oo.','oo....oo','.oo..oo.','..oooo..','...oo...','........']],
+  ['Java i Bedrock',"Serwer dla PC, telefonów i konsol. Geyser i Floodgate instalujesz jednym przełącznikiem.",['gggggggg','gdgdgdgd','dddddddd','dddddddd','dddddddd','dddddddd','dddddddd','dddddddd']],
+  ['Panel po polsku',"Konsola na żywo, menedżer plików, harmonogram zadań i uprawnienia dla współadminów.",['wwwwwwww','w.....ww','wwwwwwww','w.g....w','w.gg...w','w.g....w','w......w','wwwwwwww']],
+  ['Własna subdomena',"Adres w stylu twojserwer.dziobhost.pl bez wpisywania portu. Rekord SRV ustawiamy za Ciebie.",['..bbbb..','.b.bb.b.','b..bb..b','bbbbbbbb','b..bb..b','.b.bb.b.','..bbbb..','........']],
+  ['Wsparcie na Discordzie',"Ponad 9 000 osób na serwerze społeczności i ekipa, która zna się na pluginach.",['.oooooo.','oooooooo','oo.oo.oo','oooooooo','.oooooo.','..o.....','.o......','........']],
+ ];
+ $('#featGrid').innerHTML=F.map(([t,d,i])=>`<article>${ic(i)}<h3>${t}</h3><p>${d}</p></article>`).join('')})();
+
+/* kreator */
+const ENG={
+ Paper:{d:'Szybki, pluginy Bukkit',v:['1.21.4','1.21.1','1.20.6','1.20.4','1.19.4','1.18.2','1.16.5','1.12.2','1.8.8']},
+ Purpur:{d:'Paper z dodatkami',v:['1.21.4','1.21.1','1.20.4','1.19.4']},
+ Vanilla:{d:'Czysty Minecraft',v:['1.21.4','1.21.1','1.20.6','1.19.4','1.16.5','1.12.2']},
+ Fabric:{d:'Lekkie mody',v:['1.21.4','1.21.1','1.20.1','1.19.2']},
+ Forge:{d:'Klasyczne modpacki',v:['1.20.1','1.19.2','1.18.2','1.16.5','1.12.2','1.7.10']},
+ NeoForge:{d:'Nowe modpacki',v:['1.21.4','1.21.1','1.20.4']},
+ Velocity:{d:'Proxy sieci serwerów',v:['3.4.0','3.3.0']},
+ Bedrock:{d:'Telefony i konsole',v:['1.21.50','1.21.44','1.21.30']}};
+$('#engines').innerHTML=Object.entries(ENG).map(([k,e],i)=>`<label><input type="radio" name="eng" value="${k}" ${i?'':'checked'}><span class="tile"><b>${k}</b><small>${e.d}</small></span></label>`).join('');
+const LOCN={WAW:'Warszawa, PL',KRK:'Kraków, PL',FRA:'Frankfurt, DE',AMS:'Amsterdam, NL'};
+const TAKEN=['test','minecraft','serwer','admin','dziob','skyblock','survival'];
+function fillVer(){const e=$('input[name=eng]:checked').value;$('#ver').innerHTML=ENG[e].v.map(v=>`<option>${v}</option>`).join('')}
+function upd(){
+ const e=$('input[name=eng]:checked').value, ram=+$('#ram').value, slots=+$('#slots').value, sub=$('#subdomain').value.trim().toLowerCase();
+ $('#ramOut').textContent=ram+' GB';$('#slotsOut').textContent=slots;
+ $('#sEngine').textContent=e;$('#sVer').textContent=$('#ver').value;$('#sLoc').textContent=LOCN[$('#loc').value];
+ $('#sRam').textContent=ram+' GB';$('#sSlots').textContent=slots;
+ const plan=ram<=4&&slots<=20?0:ram<=8&&slots<=80?1:2;
+ $('#sDisk').textContent=[15,40,100][plan]+' GB';$('#sCpu').textContent=[2,4,6][plan]+' vCore';
+ $('#planName').textContent='Pakiet '+['Pisklak','Kaczor','Łabędź'][plan];
+ $('#priceOut').textContent=['0 zł','14,99 zł','34,99 zł'][plan];
+ const modded=['Forge','NeoForge','Fabric'].includes(e)?1.6:1;
+ const load=Math.min(140,Math.round(slots*0.12*modded/ram*100*0.6+12));
+ $('#loadPct').textContent=Math.min(load,100)+'%';
+ const bar=$('#loadBar');bar.style.width=Math.min(load,100)+'%';
+ bar.style.background=load>90?'var(--bad)':load>65?'var(--warn)':'var(--moss)';
+ $('#loadHint').textContent=load>90?'Za mało RAM na tylu graczy. Dodaj pamięć albo zmniejsz sloty.':load>65?'Wystarczy, ale duże farmy mogą obniżyć TPS.':'Zapas na pluginy i farmy mobów.';
+ const valid=/^[a-z0-9](?:[a-z0-9-]{1,22})[a-z0-9]$/.test(sub), taken=TAKEN.includes(sub);
+ const h=$('#subHint');
+ if(!valid){h.textContent='Użyj 3–24 znaków: małe litery, cyfry i myślnik (nie na początku ani końcu).';h.className='hint bad'}
+ else if(taken){h.textContent=`Adres ${sub}.dziobhost.pl jest zajęty. Spróbuj ${sub}-mc albo ${sub}${Math.floor(Math.random()*90+10)}.`;h.className='hint bad'}
+ else{h.textContent='Adres wolny';h.className='hint ok'}
+ $('#sAddr').textContent=(sub||'…')+'.dziobhost.pl';
+ $('#createBtn').disabled=!valid||taken;$('#createBtn').style.opacity=(!valid||taken)?.5:1;
+ $('#doneBox').hidden=true;
+}
+$('#builder').addEventListener('submit',e=>e.preventDefault());
+$('#engines').addEventListener('change',()=>{fillVer();upd()});
+['#ver','#loc','#ram','#slots','#subdomain'].forEach(s=>$(s).addEventListener('input',upd));
+const SUB_RE=/^[a-z0-9](?:[a-z0-9-]{1,22})[a-z0-9]$/;
+const doCreate=()=>{const s0=$('#subdomain').value.trim().toLowerCase();if(!SUB_RE.test(s0)||TAKEN.includes(s0)){upd();toast('Niepoprawny adres serwera');return}const b=$('#createBtn');b.textContent='Tworzenie…';b.disabled=true;
+ setTimeout(()=>{b.textContent='Utwórz serwer';b.disabled=false;const sub=$('#subdomain').value.trim().toLowerCase();
+  $('#ipCode').textContent=$('input[name=eng]:checked').value==='Bedrock'?sub+'.dziobhost.pl:19132':sub+'.dziobhost.pl';$('#doneBox').hidden=false;toast('Serwer skonfigurowany (podgląd)')},1100)};
+$('#createBtn').onclick=()=>window.showAds?showAds({count:3,title:'Tworzymy Twój serwer',done:'Utwórz serwer',onDone:doCreate}):doCreate();
+$('#copyIp').onclick=()=>{const t=$('#ipCode').textContent;navigator.clipboard?.writeText(t).then(()=>toast('Skopiowano adres'),()=>{const r=document.createRange();r.selectNodeContents($('#ipCode'));getSelection().removeAllRanges();getSelection().addRange(r);toast('Zaznaczono adres, skopiuj Ctrl+C')})};
+fillVer();upd();
+
+/* cennik: okres */
+function bill(y){$('#billM').setAttribute('aria-pressed',!y);$('#billY').setAttribute('aria-pressed',y);
+ $$('.cost b[data-m]').forEach(b=>b.textContent=(y?b.dataset.y:b.dataset.m)+' zł')}
+$('#billM').onclick=()=>bill(false);$('#billY').onclick=()=>bill(true);
+
+/* panel */
+$$('.panel nav [role=tab]').forEach(t=>t.onclick=()=>{
+ $$('.panel nav [role=tab]').forEach(x=>x.setAttribute('aria-selected',x===t));
+ $$('[data-pane]').forEach(p=>p.hidden=p.dataset.pane!==t.dataset.tab)});
+const con=$('#pCon');let running=true;
+const PLAYERS=['Kaczor_Donald','Zielony_Dziob','Mateusz2011','KasiaBuduje','Creeper_PL','Olek_Gamer','Piorek'];
+let online=PLAYERS.slice();
+function log(t,cls){const now=new Date();const ts=now.toTimeString().slice(0,8);const s=document.createElement('span');if(cls)s.className=cls;s.textContent=`[${ts} INFO]: ${t}\n`;con.appendChild(s);con.scrollTop=con.scrollHeight}
+['Done (4.812s)! For help, type "help"','Kaczor_Donald joined the game','Zielony_Dziob joined the game','<KasiaBuduje> ktoś ma diamenty?','Saving the game (this may take a moment!)','Saved the game'].forEach(l=>log(l));
+$('#pForm').onsubmit=e=>{e.preventDefault();const v=$('#pIn').value.trim();if(!v)return;$('#pIn').value='';
+ const s=document.createElement('span');s.className='hl';s.textContent='> '+v+'\n';con.appendChild(s);
+ if(!running){log('Serwer jest wyłączony. Kliknij Start.');return}
+ const [cmd,...a]=v.replace(/^\//,'').split(' ');const arg=a.join(' ');
+ const R={
+  help:()=>['Dostępne: help, list, say <tekst>, time set day|night, weather clear|rain, op <gracz>, kick <gracz>, tps, save-all, seed'],
+  list:()=>[`There are ${online.length} of a max of 20 players online: ${online.join(', ')}`],
+  say:()=>[arg?`[Server] ${arg}`:'Użycie: say <tekst>'],
+  time:()=>[/night/.test(arg)?'Set the time to 13000':'Set the time to 1000'],
+  weather:()=>[/rain/.test(arg)?'Set the weather to rain':'Set the weather to clear'],
+  op:()=>[arg?`Made ${arg} a server operator`:'Użycie: op <gracz>'],
+  kick:()=>{if(!online.includes(arg))return[`Nie znaleziono gracza ${arg||''}`];online=online.filter(p=>p!==arg);updPl();return[`Kicked ${arg}: Kicked by an operator`]},
+  tps:()=>['TPS from last 1m, 5m, 15m: 20.0, 20.0, 19.98'],
+  'save-all':()=>['Saving the game (this may take a moment!)','Saved the game'],
+  seed:()=>['Seed: [-4172144997902289642]'],
+  stop:()=>{stopSrv();return[]}};
+ (Object.prototype.hasOwnProperty.call(R,cmd)?R[cmd]():[`Unknown command "${cmd}". Wpisz help.`]).forEach(l=>log(l));
+};
+function setPill(state){['#pPill','#heroPill'].forEach(s=>{const p=$(s);p.className='pill '+({on:'on',mid:'mid',off:'off'}[state]);p.textContent={on:'online',mid:'uruchamianie',off:'offline'}[state]})}
+function stopSrv(){if(!running)return;log('Stopping server');log('Saving worlds');running=false;online=[];setPill('off');updPl()}
+function startSrv(){if(running)return;setPill('mid');log('Starting minecraft server version 1.21.4');
+ setTimeout(()=>{log('Done (4.355s)! For help, type "help"','ok');running=true;setPill('on');online=PLAYERS.slice(0,3);updPl()},1600)}
+$('#bStop').onclick=stopSrv;$('#bStart').onclick=startSrv;$('#bRestart').onclick=()=>{stopSrv();setTimeout(startSrv,700)};
+function updPl(){$('#gPl').textContent=`${online.length} / 20 · ${running?'20,0':'—'}`;$('#gPlB').style.width=online.length/20*100+'%'}
+setInterval(()=>{const cpu=running?Math.round(14+Math.random()*22+online.length*1.5):0;const ram=running?(1.6+online.length*.08+Math.random()*.3):0;
+ $('#gCpu').textContent=cpu+'%';$('#gCpuB').style.width=cpu+'%';
+ $('#gRam').textContent=ram.toFixed(1).replace('.',',')+' / 4 GB';$('#gRamB').style.width=ram/4*100+'%';
+ if(running&&Math.random()<.15){const off=PLAYERS.filter(p=>!online.includes(p));if(off.length&&Math.random()<.6){const p=off[Math.random()*off.length|0];online.push(p);log(p+' joined the game')}else if(online.length>2){const p=online.splice(Math.random()*online.length|0,1)[0];log(p+' left the game')}}
+ updPl()},2000);
+updPl();
+$('#filesTbl').innerHTML=[['📁 world','—','dziś 12:00'],['📁 world_nether','—','dziś 12:00'],['📁 plugins','—','wczoraj'],['📄 server.properties','1,4 KB','dziś 11:58'],['📄 ops.json','212 B','dziś 12:02'],['📄 paper-1.21.4.jar','48,2 MB','dziś 11:57'],['📄 eula.txt','158 B','dziś 11:57']].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+let bks=[['auto-2026-10-31-12-00','612 MB'],['auto-2026-10-31-06-00','598 MB']];
+const drawBk=()=>$('#bkTbl').innerHTML=bks.map(b=>`<tr><td class="mono">${b[0]}</td><td>${b[1]}</td><td><button class="btn" type="button" style="padding:.25rem .6rem;font-size:.78rem" data-restore="${b[0]}">Przywróć</button></td></tr>`).join('');
+drawBk();
+$('#bkNew').onclick=()=>{const d=new Date();const n='manual-'+d.toISOString().slice(0,16).replace(/[T:]/g,'-');bks.unshift([n,'615 MB']);if(bks.length>2)bks.pop();drawBk();toast('Utworzono kopię '+n)};
+$('#bkTbl').onclick=e=>{const r=e.target.dataset.restore;if(r)toast('Przywracanie '+r+' (podgląd)')};
+$$('.switch').forEach(s=>s.onchange=()=>{const lbl=s.parentElement.querySelector('span').firstChild.textContent.trim();toast(lbl+': '+(s.checked?'włączone':'wyłączone'));if(running)log(`[DziobPanel] ${lbl} → ${s.checked?'on':'off'}`)});
+
+/* katalog */
+const CAT=[
+ ['EssentialsX','Plugin','Podstawowe komendy: /home, /tpa, /spawn, kity i ekonomia.','12,4 tys.','#ff9d2e'],
+ ['LuckPerms','Plugin','Uprawnienia i rangi z edytorem w przeglądarce.','11,1 tys.','#5fbf6a'],
+ ['WorldGuard','Plugin','Ochrona regionów przed griefem i PvP w strefach.','8,7 tys.','#4a7fd4'],
+ ['CoreProtect','Plugin','Logi bloków i cofanie zniszczeń jedną komendą.','7,9 tys.','#ef6b5b'],
+ ['Geyser + Floodgate','Plugin','Gracze Bedrock na serwerze Java.','6,3 tys.','#f2c94c'],
+ ['BlueMap','Plugin','Mapa 3D świata w przeglądarce.','4,2 tys.','#4a7fd4'],
+ ['Vault','Plugin','Most ekonomii i uprawnień dla innych pluginów.','9,8 tys.','#93a8a2'],
+ ['Chunky','Plugin','Pregeneracja świata, żeby nie lagowało przy eksploracji.','3,9 tys.','#5fbf6a'],
+ ['Better MC','Modpack','Ulepszony vanilla z 200+ modami. Fabric.','2,1 tys.','#ff9d2e'],
+ ['All the Mods 10','Modpack','Ponad 400 modów technicznych i magicznych. NeoForge.','1,7 tys.','#ef6b5b'],
+ ['Create: Above & Beyond','Modpack','Mechaniczne fabryki i questy. Forge.','1,2 tys.','#f2c94c'],
+ ['Cobblemon','Modpack','Łapanie stworków w świecie Minecrafta. Fabric.','1,9 tys.','#5fbf6a'],
+ ['Lithium','Mod','Optymalizacja serwera bez zmiany rozgrywki.','3,3 tys.','#93a8a2'],
+ ['Terralith','Mod','Ponad 95 nowych biomów. Działa też jako datapack.','2,6 tys.','#4a7fd4'],
+];
+const CATS=['Wszystkie','Plugin','Modpack','Mod'];let cat='Wszystkie';const added=new Set();
+$('#catChips').innerHTML=CATS.map(c=>`<button type="button" aria-pressed="${c===cat}" data-c="${c}">${c}</button>`).join('');
+$('#catChips').onclick=e=>{const c=e.target.dataset.c;if(!c)return;cat=c;$$('#catChips button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c));drawCat()};
+$('#catQ').oninput=drawCat;
+function drawCat(){const q=$('#catQ').value.toLowerCase();
+ const list=CAT.filter(i=>(cat==='Wszystkie'||i[1]===cat)&&(i[0]+i[2]).toLowerCase().includes(q));
+ $('#catGrid').innerHTML=list.length?list.map(i=>`<div class="item"><div class="ico" style="background:${i[4]}">${i[0][0]}</div><div style="min-width:0"><b>${i[0]}</b><p>${i[2]}</p><div class="meta"><span>${i[1]}</span><span>${i[3]} serwerów</span></div></div><button type="button" data-add="${i[0]}" class="${added.has(i[0])?'added':''}">${added.has(i[0])?'Zainstalowano ✓':'Zainstaluj'}</button></div>`).join(''):'<p class="empty">Brak wyników. Spróbuj innej nazwy albo kategorii.</p>'}
+$('#catGrid').onclick=e=>{const n=e.target.dataset.add;if(!n)return;added.has(n)?added.delete(n):added.add(n);drawCat();toast(added.has(n)?n+' zainstalowany na serwerze (podgląd)':n+' odinstalowany')};
+drawCat();
+
+/* lokalizacje */
+const LOCS=[['WAW','Warszawa','PL · 3 węzły',12],['KRK','Kraków','PL · 2 węzły',16],['FRA','Frankfurt','DE · 2 węzły',27],['AMS','Amsterdam','NL · 1 węzeł',34]];
+$('#locs').innerHTML=LOCS.map(l=>`<div class="loc"><span class="flag">${l[0]} · ${l[2]}</span><h3>${l[1]}</h3><span class="ping tnum" id="ping-${l[0]}">— <small>ms</small></span><div class="bar"><i id="pbar-${l[0]}"></i></div></div>`).join('');
+function ping(){LOCS.forEach((l,i)=>setTimeout(()=>{const v=Math.round(l[3]+Math.random()*8-3);$('#ping-'+l[0]).innerHTML=`${v} <small>ms</small>`;
+ const b=$('#pbar-'+l[0]);b.style.width=Math.max(8,100-v*2)+'%';b.style.background=v<25?'var(--moss)':v<45?'var(--warn)':'var(--bad)'},250+i*220))}
+$('#pingBtn').onclick=ping;ping();
+const NODES=[['WAW-01 · Warszawa','99,99%',[]],['WAW-02 · Warszawa','100%',[]],['WAW-03 · Warszawa','99,93%',[17]],['KRK-01 · Kraków','99,97%',[8]],['FRA-01 · Frankfurt','99,81%',[22,23]],['AMS-01 · Amsterdam','100%',[]]];
+$('#nodes').innerHTML=NODES.map(n=>`<div class="node"><span>${n[0]}</span><div class="uptime" role="img" aria-label="${n[0]}: ${n[1]} dostępności">${Array.from({length:30},(_,d)=>`<i class="${n[2].includes(d)?(n[2].length>1&&d===n[2][1]?'bad':'mid'):''}" title="dzień ${d+1}"></i>`).join('')}</div><span class="pct">${n[1]}</span></div>`).join('');
+</script>
+
+
+<!-- Boczne reklamy (3 naraz, tylko szerokie ekrany) -->
+<aside class="ad-rail ad-rail-left" aria-label="Reklamy">
+  <div class="ad-box"><span class="ad-label">Reklama</span><ins class="adsbygoogle rail-ad" style="display:inline-block;width:150px;height:280px" data-ad-client="ca-pub-3538330634448004" data-ad-slot="SIDE_SLOT_1"></ins></div>
+  <div class="ad-box"><span class="ad-label">Reklama</span><ins class="adsbygoogle rail-ad" style="display:inline-block;width:150px;height:280px" data-ad-client="ca-pub-3538330634448004" data-ad-slot="SIDE_SLOT_2"></ins></div>
+</aside>
+<aside class="ad-rail ad-rail-right" aria-label="Reklamy">
+  <div class="ad-box"><span class="ad-label">Reklama</span><ins class="adsbygoogle rail-ad" style="display:inline-block;width:150px;height:600px" data-ad-client="ca-pub-3538330634448004" data-ad-slot="SIDE_SLOT_3"></ins></div>
+</aside>
+
+<!-- Okno reklamy -->
+<!-- KONFIGURACJA REKLAM: data-slot = ID jednostki AdSense (same cyfry), data-seconds = czas jednej reklamy,
+     data-welcome-once = "1" reklama startowa raz na wizytę, "0" przy każdym wejściu.
+     Zmiana tych atrybutów NIE wymaga przeliczania CSP. -->
+<div class="ad-modal" id="adModal" data-slot="MODAL_SLOT" data-seconds="5" data-welcome-once="1" role="dialog" aria-modal="true" aria-labelledby="adTitle" hidden>
+  <div class="ad-card">
+    <div class="ad-head"><b id="adTitle">Reklama</b><span class="ad-step" id="adStep"></span></div>
+    <div class="ad-dots" id="adDots"></div>
+    <div><span class="ad-label">Reklama</span><div class="ad-slot" id="adSlot"></div></div>
+    <div class="ad-bar"><i id="adBar"></i></div>
+    <div class="ad-foot"><span id="adInfo">Reklamy utrzymują darmowe serwery. Dziękujemy!</span><button class="btn btn-beak" type="button" id="adNext" disabled>Dalej</button></div>
+  </div>
+</div>
+
+<script>
+/* ===== Reklamy AdSense =====
+   Konfiguracja jest w atrybutach data-* elementu #adModal (HTML powyżej), nie tutaj:
+   każda zmiana w tym skrypcie wymaga uruchomienia tools/update-csp.py. */
+const AD_CFG=$('#adModal').dataset;
+const AD_SLOT_MODAL=AD_CFG.slot||'';
+const AD_SECONDS=Math.min(30,Math.max(1,parseInt(AD_CFG.seconds,10)||5));
+const AD_WELCOME_ONCE_PER_SESSION=AD_CFG.welcomeOnce!=='0';
+
+const safeSlot=s=>/^\d{6,20}$/.test(s)?s:'';
+const pushAd=()=>{try{(window.adsbygoogle=window.adsbygoogle||[]).push({})}catch(e){}};
+
+/* okno z sekwencją reklam: po ostatniej wywołuje onDone */
+function showAds({count=1,title='Reklama',done='Zamknij',onDone=()=>{}}={}){
+  const m=$('#adModal');if(!m.hidden)return;
+  let n=0,timer=null;const btn=$('#adNext'),prevFocus=document.activeElement;
+  $('#adTitle').textContent=title;
+  $('#adDots').innerHTML=count>1?Array.from({length:count},()=>'<i></i>').join(''):'';
+  m.hidden=false;document.body.classList.add('ad-open');
+  const show=()=>{
+    $('#adStep').textContent=count>1?`Reklama ${n+1} z ${count}`:'';
+    $$('#adDots i').forEach((d,k)=>d.classList.toggle('on',k<=n));
+    $('#adSlot').innerHTML=`<ins class="adsbygoogle" data-ad-client="ca-pub-3538330634448004" data-ad-slot="${safeSlot(AD_SLOT_MODAL)}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+    pushAd();
+    let left=AD_SECONDS;const bar=$('#adBar');
+    bar.style.transition='none';bar.style.width='0';bar.offsetWidth;
+    bar.style.transition=`width ${AD_SECONDS}s linear`;bar.style.width='100%';
+    btn.disabled=true;btn.textContent=`Dalej za ${left} s`;
+    clearInterval(timer);timer=setInterval(()=>{left--;
+      if(left>0){btn.textContent=`Dalej za ${left} s`;return}
+      clearInterval(timer);btn.disabled=false;btn.textContent=n<count-1?'Następna →':done;btn.focus()},1000)};
+  const close=()=>{clearInterval(timer);m.hidden=true;document.body.classList.remove('ad-open');$('#adSlot').innerHTML='';btn.onclick=null;prevFocus?.focus?.()};
+  btn.onclick=()=>{if(btn.disabled)return;n++;if(n<count)show();else{close();onDone()}};
+  show();
+}
+window.showAds=showAds;
+
+/* boczne reklamy: ładowane tylko, gdy paski są widoczne (szeroki ekran) */
+(function(){
+  const mq=matchMedia('(min-width:1560px) and (min-height:700px)');let loaded=false;
+  const load=()=>{if(loaded||!mq.matches)return;loaded=true;$$('.rail-ad').forEach(pushAd)};
+  load();mq.addEventListener?.('change',load);
+})();
+
+/* jedna reklama zaraz po wejściu na stronę */
+(function(){
+  if(AD_WELCOME_ONCE_PER_SESSION){try{if(sessionStorage.getItem('dh_ad_welcome'))return;sessionStorage.setItem('dh_ad_welcome','1')}catch(e){}}
+  showAds({count:1,title:'Witaj na DziobHost.PL',done:'Przejdź do strony'});
+})();
+</script>
+
+</body></html>
