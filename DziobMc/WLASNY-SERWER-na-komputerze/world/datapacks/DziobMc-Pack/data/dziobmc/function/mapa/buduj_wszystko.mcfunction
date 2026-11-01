@@ -2,6 +2,7 @@ function dziobmc:mapa/etap/wyspa
 function dziobmc:mapa/etap/plac
 function dziobmc:mapa/etap/arena
 function dziobmc:mapa/etap/parkour
+function dziobmc:mapa/etap/arena_pvp
 function dziobmc:mapa/dekoracje
 setworldspawn 0 151 18
 scoreboard players set #mapa dz.data 1

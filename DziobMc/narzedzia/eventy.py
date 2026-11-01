@@ -9,6 +9,7 @@ EVENTY = [
     (4, "podwojne", "Podwójne Monety", "yellow", 600, "green", "wszystkie monety x2"),
     (5, "polowanie", "Polowanie", "red", 300, "pink", "pierwszy, kto zabije 10 custom mobów, wygrywa 500 monet"),
     (6, "deszcz", "Deszcz Monet", "green", 15, "green", "każdy gracz online dostaje 100 monet"),
+    (7, "bitwa", "Bitwa PvP", "dark_red", 300, "red", "kill na graczu = 100 monet, najlepszy wojownik +500"),
 ]
 
 
@@ -53,7 +54,7 @@ def build():
         execute if score #next dz.data matches 1..5 run title @a actionbar {J([t("Event za ", "gold"), sc("#next", "dz.data", "yellow", True), t("...", "gold")])}
         execute if score #next dz.data matches ..0 run function {NS}:event/losuj
     """)
-    los = ["execute store result score #los dz.data run random value 1..6"]
+    los = [f"execute store result score #los dz.data run random value 1..{len(EVENTY)}"]
     for nr, eid, *_ in EVENTY:
         los.append(f"execute if score #los dz.data matches {nr} run function {NS}:event/start/{eid}")
     fn("event/losuj", "\n".join(los))
@@ -80,6 +81,7 @@ def build():
         przycisk = {
             "drop": ("[TELEPORTUJ NA SPAWN]", "/trigger warp set 11"),
             "boss": ("[TELEPORTUJ NA ARENĘ]", "/trigger warp set 12"),
+            "bitwa": ("[TELEPORTUJ NA ARENĘ PvP]", "/trigger warp set 14"),
         }.get(eid)
         fn(f"event/start/{eid}", f"""
             execute if score #event dz.data matches 1.. run function {NS}:event/koniec
@@ -253,4 +255,27 @@ def build():
     """)
     fn("event/deszcz/tik", "execute as @a at @s run particle minecraft:totem_of_undying ~ ~3 ~ 1.5 0.5 1.5 0.1 25")
     fn("event/deszcz/koniec", "")
+
+    # ------------------------------------------------------------ 7. Bitwa PvP
+    fn("event/bitwa/start", """
+        scoreboard players reset * dz.bitwa
+        scoreboard players set @a dz.bitwa 0
+    """)
+    fn("event/bitwa/tik", "execute in minecraft:overworld run particle minecraft:flame 0 155 75 12 3 12 0.01 30 force")
+    fn("event/bitwa/koniec", f"""
+        scoreboard players add @a dz.bitwa 0
+        scoreboard players set #max dz.data 0
+        scoreboard players operation #max dz.data > @a dz.bitwa
+        execute if score #max dz.data matches 0 run {tellraw("@a", t("⚔ Bitwa PvP zakończona – nikt nikogo nie pokonał!", "red"))}
+        execute if score #max dz.data matches 1.. as @a if score @s dz.bitwa = #max dz.data at @s run function {NS}:event/bitwa/zwyciezca
+    """)
+    fn("event/bitwa/zwyciezca", f"""
+        {tellraw("@a", t("⚔ ", "red"), sel("@s"), t(" wygrywa Bitwę PvP z wynikiem ", "gold", bold=True), sc("@s", "dz.bitwa", "red", True), t(" zabójstw! +500 monet", "gold"))}
+        title @a times 10 60 20
+        title @a title {J(t("BITWA WYGRANA!", "dark_red", bold=True))}
+        title @a subtitle {J([t("Zwycięzca: ", "gray"), sel("@s")])}
+        scoreboard players set #ile dz.data 500
+        function {NS}:monety/dodaj
+        {firework_cmd()}
+    """)
     _ = SPAWN

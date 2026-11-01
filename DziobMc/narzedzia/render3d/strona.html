@@ -1,0 +1,27 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+body{margin:0;width:1600px;height:900px;overflow:hidden;background:#000;font-family:"DejaVu Sans Mono",monospace;font-weight:bold}
+#gl,#hud{position:absolute;inset:0}
+.s,.s *{text-shadow:2px 2px 0 #3f3f3f}
+#boss{position:absolute;top:10px;left:50%;transform:translateX(-50%);text-align:center;font-size:16px}
+.bar{width:546px;height:11px;margin:4px auto 9px;border:2px solid #111;position:relative;background:#333}
+.bar i{position:absolute;left:0;top:0;bottom:0}
+.bar b{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 26px,rgba(0,0,0,.45) 26px 27px)}
+#side{position:absolute;right:4px;top:290px;background:rgba(0,0,0,.4);font-size:16px;min-width:245px;padding-bottom:3px}
+#side .t{background:rgba(0,0,0,.25);text-align:center;padding:3px 0}
+#side div{padding:1px 8px;height:20px;display:flex;justify-content:space-between;white-space:pre}
+#chat{position:absolute;left:4px;bottom:100px;width:690px;font-size:15px}
+#chat div{background:rgba(0,0,0,.45);padding:1px 6px;white-space:pre}
+#act{position:absolute;bottom:96px;left:50%;transform:translateX(-50%);font-size:17px;white-space:pre}
+#hot{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;border:3px solid #222;background:rgba(60,60,60,.65)}
+#hot span{width:50px;height:50px;border:2px solid #8b8b8b;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:25px;position:relative}
+#hot span.sel{border:3px solid #fff}
+#hot span em{position:absolute;right:3px;bottom:0;font-size:13px;font-style:normal;color:#fff}
+#stats{position:absolute;bottom:64px;left:calc(50% - 228px);width:456px;display:flex;justify-content:space-between;font-size:17px}
+#xp{position:absolute;bottom:60px;left:calc(50% - 228px);width:456px;height:5px;background:#222;border:1px solid #000}
+#xp i{display:block;height:100%;width:40%;background:#80ff20}
+#cross{position:absolute;left:50%;top:50%;width:20px;height:20px;transform:translate(-50%,-50%)}
+#cross:before,#cross:after{content:"";position:absolute;background:rgba(255,255,255,.85)}
+#cross:before{left:9px;top:0;width:2px;height:20px}#cross:after{top:9px;left:0;height:2px;width:20px}
+#title{position:absolute;top:300px;width:100%;text-align:center}
+#znak{position:absolute;right:8px;bottom:6px;font:12px "DejaVu Sans";color:#eee;background:rgba(0,0,0,.55);padding:2px 7px}
+</style></head><body><div id="gl"></div><div id="hud"></div></body></html>

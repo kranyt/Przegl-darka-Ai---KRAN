@@ -3,7 +3,15 @@ tag @a remove dz.lobby
 execute in minecraft:overworld run tag @a[x=-110,y=140,z=-110,dx=220,dy=80,dz=220] add dz.lobby
 gamemode adventure @a[tag=dz.lobby,gamemode=survival,tag=!dz.build]
 gamemode survival @a[tag=!dz.lobby,gamemode=adventure,tag=!dz.build]
-effect give @a[tag=dz.lobby] minecraft:saturation 2 0 true
+# Strefy: arena PvP i arena bossa = walka; reszta lobby = bezpieczna (Resistance V)
+tag @a remove dz.pvp_strefa
+tag @a remove dz.boss_strefa
+execute in minecraft:overworld run tag @a[x=-20,y=140,z=55,dx=40,dy=40,dz=40] add dz.pvp_strefa
+execute in minecraft:overworld run tag @a[x=-21,y=140,z=-96,dx=42,dy=40,dz=42] add dz.boss_strefa
+execute as @a[tag=dz.pvp_strefa,tag=!dz.pvp_bylo] at @s run function dziobmc:pvp/wejscie
+execute as @a[tag=!dz.pvp_strefa,tag=dz.pvp_bylo] run function dziobmc:pvp/wyjscie
+effect give @a[tag=dz.lobby,tag=!dz.pvp_strefa,tag=!dz.boss_strefa] minecraft:resistance 2 4 true
+effect give @a[tag=dz.lobby,tag=!dz.pvp_strefa,tag=!dz.boss_strefa] minecraft:saturation 2 0 true
 # Wrogie moby nie mają wstępu do lobby
 execute in minecraft:overworld as @e[x=-110,y=128,z=-110,dx=220,dy=92,dz=220,type=#dziobmc:wrogie,tag=!dz.event] at @s run function dziobmc:util/usun
 # Portal losowego teleportu

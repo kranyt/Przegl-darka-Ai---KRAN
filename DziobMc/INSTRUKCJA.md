@@ -5,16 +5,28 @@
 Gotowy serwer survival z własną mapą lobby, custom mobami, bossem, eventami, scoreboardem,
 rangami, sklepem, kitami i komendami.
 
-## 📸 Jak to wygląda
+## 📸 Jak to wygląda (widok z gry, 3D)
 
-> Zrzuty 1–3 to wizualizacje 3D dokładnie tych bloków, które stawia paczka (nie zrzuty z gry).
-> Zrzuty 4–5 to makiety interfejsu z tekstami 1:1 z paczki.
+> To rendery 3D zrobione z dokładnie tych bloków, które stawia paczka, z HUD-em z tekstami z paczki.
+> Tekstury są poglądowe. W grze zobaczysz zwykłe tekstury Minecrafta.
 
-![Spawn](screeny/2-spawn.png)
-![Cała mapa](screeny/1-cala-mapa.png)
-![Arena bossa](screeny/3-arena-bossa.png)
-![Interfejs gry](screeny/4-interfejs-gry.png)
-![TAB i powitanie](screeny/5-tab-i-powitanie.png)
+**Spawn**: fontanna z beaconem, napis DziobMc, NPC, scoreboard i bossbar z odliczaniem do eventu
+![Spawn](screeny/1-spawn.png)
+
+**Arena PvP**: walka z graczami, 25 monet za kill i serie zabójstw
+![Arena PvP](screeny/3-arena-pvp.png)
+
+**Boss: Król Dziobów**: event z bossem na arenie
+![Boss](screeny/4-boss.png)
+
+**Sklep (NPC)**: kliknij NPC, a menu otworzy się na czacie
+![Sklep](screeny/2-sklep.png)
+
+**Cała mapa z lotu ptaka**: wyspa-spawn, arena PvP, arena bossa i parkour
+![Z lotu ptaka](screeny/5-z-lotu-ptaka.png)
+
+**Parkour**
+![Parkour](screeny/6-parkour.png)
 
 ---
 
@@ -29,7 +41,8 @@ DziobMc/
 │   └── DziobMc-Datapack.zip   ← sama paczka
 ├── WLASNY-SERWER-na-komputerze/ ← rozpakowany DziobMc-Serwer.zip
 ├── narzedzia/                 ← generator (tylko do zmian)
-└── INSTRUKCJA.md, podglad-mapy.png
+├── screeny/               ← screeny 3D
+└── INSTRUKCJA.md
 ```
 
 ## 🌍 Masz gotowy hosting? (serwer publiczny)
@@ -114,7 +127,8 @@ a **ViaVersion + ViaBackwards** tłumaczą grę dla każdego gracza. Efekt:
 | **Plac główny** | fontanna z beaconem (pomarańczowy promień), animowany napis *DziobMc*, latarnie, wiśnie i dęby |
 | **4 NPC** | ⛃ Sklep, ⚔ Kity, ✿ Nagroda, ? Pomoc. Kliknij prawym, żeby otworzyć menu |
 | **Portal (wschód)** | wejdź, a przeniesie cię w losowe miejsce świata survival (RTP do 3000 kratek) |
-| **Most → Arena (północ)** | arena bossa z ogniskami dusz i kręgami z płaczącego obsydianu |
+| **Most → Arena PvP (południe)** | koloseum z piaskowca, osłony, wieże z ogniem; walka z graczami |
+| **Most → Arena bossa (północ)** | arena bossa z ogniskami dusz i kręgami z płaczącego obsydianu |
 | **Parkour (zachód)** | 18 tęczowych skoków; meta z szmaragdów daje 75 monet (co 10 min) |
 
 Lobby jest strefą bezpieczną: gracze mają tam tryb przygody (nie da się niczego zniszczyć), wrogie moby
@@ -141,6 +155,19 @@ Każdy mob ma własny drop (loot table).
 
 ---
 
+## ⚔ PvP
+
+* **Arena PvP**: koloseum na południe od spawnu (`/trigger warp set 14`).
+  Po wejściu dostajesz komunikat „STREFA PvP” i przycisk do kitu PvP.
+* **Kit PvP** (`/trigger kit set 15`, co 5 min): żelazna zbroja, miecz, łuk, tarcza i złote jabłka.
+* **Nagrody:** 25 monet za każde zabójstwo gracza (na arenie i w świecie survival).
+* **Serie zabójstw:** przy 3 zabójstwach ogłoszenie na czacie, przy 5 dostajesz +50 monet i świecisz,
+  przy 10 jest +200 monet i napis na ekranie u wszystkich. Gdy zginiesz, seria się zeruje.
+* **Strefa bezpieczna:** na spawnie, mostach i parkourze nikt nie może zrobić ci krzywdy.
+  Walczy się tylko na arenie PvP, na arenie bossa i w świecie survival (PvP włączone).
+* **HUD:** monety, zabite moby, kille PvP i aktualna seria.
+* **Uwaga:** na arenie walczysz swoim ekwipunkiem i po śmierci go tracisz (tak jak w survivalu).
+
 ## 🎉 Eventy (co 20 minut gry, odliczanie na bossbarze)
 
 | Event | Czas | Co się dzieje |
@@ -150,6 +177,7 @@ Każdy mob ma własny drop (loot table).
 | ♛ Król Dziobów | 10 min | boss na arenie; ostatni cios = 1000 monet |
 | ⛃ Podwójne Monety | 10 min | wszystkie monety x2 |
 | ⚔ Polowanie | 5 min | pierwszy, kto zabije 10 custom mobów, wygrywa 500 monet |
+| ⚔ Bitwa PvP | 5 min | kill na graczu = 100 monet, najlepszy wojownik dostaje +500 |
 | 💰 Deszcz Monet | chwila | każdy online dostaje 100 monet |
 
 ---
@@ -176,7 +204,7 @@ Każdy gracz może je wpisać bez OP-a albo kliknąć w menu na czacie.
 | `/trigger pomoc` | menu ze wszystkimi komendami |
 | `/trigger spawn` | teleport na spawn |
 | `/trigger rtp` | losowy teleport w świat (co 1 min) |
-| `/trigger warp` | warpy: spawn, arena, parkour |
+| `/trigger warp` | warpy: spawn, arena PvP, arena bossa, parkour |
 | `/trigger kit` | kity: Start, VIP, MVP, Legenda |
 | `/trigger sklep` | sklep za monety (diamenty, totem, Miecz Dzioba, elytra…) |
 | `/trigger nagroda` | 50–150 monet + losowy przedmiot co godzinę |
@@ -185,7 +213,7 @@ Każdy gracz może je wpisać bez OP-a albo kliknąć w menu na czacie.
 | `/trigger rangi` | lista rang i bonusów |
 | `/trigger discord` | linki Discord i strona |
 
-**Monety zdobywasz:** za custom moby, eventy, parkour, nagrodę godzinową i +10 za każde 5 minut gry.
+**Monety zdobywasz:** za zabicie gracza (25), za custom moby, eventy, parkour, nagrodę godzinową i +10 za każde 5 minut gry.
 
 ---
 

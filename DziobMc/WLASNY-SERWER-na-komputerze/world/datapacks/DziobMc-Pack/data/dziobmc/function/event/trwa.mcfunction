@@ -10,10 +10,12 @@ execute if score #event dz.data matches 3 run bossbar set dziobmc:event name [{"
 execute if score #event dz.data matches 4 run bossbar set dziobmc:event name [{"text":"★ EVENT: ","color":"white","bold":true},{"text":"Podwójne Monety","color":"yellow","bold":true},{"text":"  •  zostało ","color":"gray"},{"score":{"name":"#min","objective":"dz.data"},"color":"white"},{"text":"m ","color":"white"},{"score":{"name":"#s","objective":"dz.data"},"color":"white"},{"text":"s","color":"white"}]
 execute if score #event dz.data matches 5 run bossbar set dziobmc:event name [{"text":"★ EVENT: ","color":"white","bold":true},{"text":"Polowanie","color":"red","bold":true},{"text":"  •  zostało ","color":"gray"},{"score":{"name":"#min","objective":"dz.data"},"color":"white"},{"text":"m ","color":"white"},{"score":{"name":"#s","objective":"dz.data"},"color":"white"},{"text":"s","color":"white"}]
 execute if score #event dz.data matches 6 run bossbar set dziobmc:event name [{"text":"★ EVENT: ","color":"white","bold":true},{"text":"Deszcz Monet","color":"green","bold":true},{"text":"  •  zostało ","color":"gray"},{"score":{"name":"#min","objective":"dz.data"},"color":"white"},{"text":"m ","color":"white"},{"score":{"name":"#s","objective":"dz.data"},"color":"white"},{"text":"s","color":"white"}]
+execute if score #event dz.data matches 7 run bossbar set dziobmc:event name [{"text":"★ EVENT: ","color":"white","bold":true},{"text":"Bitwa PvP","color":"dark_red","bold":true},{"text":"  •  zostało ","color":"gray"},{"score":{"name":"#min","objective":"dz.data"},"color":"white"},{"text":"m ","color":"white"},{"score":{"name":"#s","objective":"dz.data"},"color":"white"},{"text":"s","color":"white"}]
 execute if score #event dz.data matches 1 run function dziobmc:event/krwawy/tik
 execute if score #event dz.data matches 2 run function dziobmc:event/drop/tik
 execute if score #event dz.data matches 3 run function dziobmc:event/boss/tik
 execute if score #event dz.data matches 4 run function dziobmc:event/podwojne/tik
 execute if score #event dz.data matches 5 run function dziobmc:event/polowanie/tik
 execute if score #event dz.data matches 6 run function dziobmc:event/deszcz/tik
+execute if score #event dz.data matches 7 run function dziobmc:event/bitwa/tik
 execute if score #event dz.data matches 1.. if score #left dz.data matches ..0 run function dziobmc:event/koniec

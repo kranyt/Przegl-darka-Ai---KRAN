@@ -10,6 +10,10 @@ scoreboard objectives add dz.rank dummy
 scoreboard objectives add dz.czas dummy
 scoreboard objectives add dz.minuty dummy
 scoreboard objectives add dz.hunt dummy
+scoreboard objectives add dz.zab playerKillCount
+scoreboard objectives add dz.smierc deathCount
+scoreboard objectives add dz.streak dummy
+scoreboard objectives add dz.bitwa dummy
 scoreboard objectives add dz.sidebar dummy [{"text":"✦ ","color":"yellow"},{"text":"DziobMc","color":"gold","bold":true},{"text":" ✦","color":"yellow"}]
 scoreboard objectives add dz.cd_kit1 dummy
 scoreboard objectives add dz.cd_kit2 dummy
@@ -19,6 +23,7 @@ scoreboard objectives add dz.cd_nagr dummy
 scoreboard objectives add dz.cd_spawn dummy
 scoreboard objectives add dz.cd_rtp dummy
 scoreboard objectives add dz.cd_park dummy
+scoreboard objectives add dz.cd_kit5 dummy
 scoreboard objectives add pomoc trigger
 scoreboard objectives add spawn trigger
 scoreboard objectives add kit trigger

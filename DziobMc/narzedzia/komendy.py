@@ -58,6 +58,10 @@ KITY = [
         (item("diamond_boots", ench={"protection": 4, "unbreaking": 3, "feather_falling": 4}), 1),
         (item("totem_of_undying"), 1), (item("golden_apple"), 16),
         (item("enchanted_golden_apple"), 1)]),
+    (15, "pvp", "PvP", 0, 6000, "każdy gracz • co 5 min", [
+        (item("iron_sword", "Miecz Areny", "red", {"sharpness": 1}), 1), (item("bow"), 1), (item("arrow"), 16),
+        (item("iron_helmet"), 1), (item("iron_chestplate"), 1), (item("iron_leggings"), 1), (item("iron_boots"), 1),
+        (item("shield"), 1), (item("golden_apple"), 3), (item("cooked_beef"), 16)]),
 ]
 
 # ------------------------------------------------------------------- sklep
@@ -91,7 +95,7 @@ def build():
     fn("komendy/menu_pomoc", "\n".join(naglowek("KOMENDY") + [
         przycisk("SPAWN", "/trigger spawn", "green", "teleport na spawn", "/trigger spawn"),
         przycisk("LOSOWY TP", "/trigger rtp", "dark_purple", "teleport w losowe miejsce świata", "/trigger rtp"),
-        przycisk("WARPY", "/trigger warp", "aqua", "arena bossa, parkour, spawn", "/trigger warp"),
+        przycisk("WARPY", "/trigger warp", "aqua", "arena PvP, arena bossa, parkour, spawn", "/trigger warp"),
         przycisk("KITY", "/trigger kit", "yellow", "darmowe zestawy przedmiotów", "/trigger kit"),
         przycisk("SKLEP", "/trigger sklep", "gold", "kupuj przedmioty za monety ⛃", "/trigger sklep"),
         przycisk("NAGRODA", "/trigger nagroda", "light_purple", "darmowe monety co godzinę", "/trigger nagroda"),
@@ -136,7 +140,8 @@ def build():
         execute if score @s warp matches 11 in minecraft:overworld run tp @s {SPAWN}
         execute if score @s warp matches 12 in minecraft:overworld run tp @s 0 151 -57 180 0
         execute if score @s warp matches 13 in minecraft:overworld run tp @s -29 151 0 90 0
-        execute if score @s warp matches 11..13 at @s run playsound minecraft:entity.enderman.teleport master @s ~ ~ ~ 1 1
+        execute if score @s warp matches 14 in minecraft:overworld run tp @s 0 151 50 0 0
+        execute if score @s warp matches 11..14 at @s run playsound minecraft:entity.enderman.teleport master @s ~ ~ ~ 1 1
         execute if score @s warp matches 1 run function {NS}:komendy/menu_warp
         scoreboard players set @s warp 0
     """)
@@ -144,6 +149,7 @@ def build():
         przycisk("SPAWN", "/trigger warp set 11", "green", "główna wyspa", "Teleportuj"),
         przycisk("ARENA BOSSA", "/trigger warp set 12", "red", "tu walczy się z Królem Dziobów", "Teleportuj"),
         przycisk("PARKOUR", "/trigger warp set 13", "aqua", "ukończ go i zgarnij 75 monet!", "Teleportuj"),
+        przycisk("ARENA PvP", "/trigger warp set 14", "dark_red", "walcz z graczami – 25 monet za kill!", "Teleportuj"),
         przycisk("LOSOWY TP", "/trigger rtp", "dark_purple", "dziki świat survival", "Teleportuj"),
     ] + stopka()))
 
@@ -259,7 +265,8 @@ def build():
                 t("[Boss]", "red", run=f"/function {NS}:event/start/boss"), t(" "),
                 t("[x2]", "gold", run=f"/function {NS}:event/start/podwojne"), t(" "),
                 t("[Polowanie]", "yellow", run=f"/function {NS}:event/start/polowanie"), t(" "),
-                t("[Deszcz]", "green", run=f"/function {NS}:event/start/deszcz")),
+                t("[Deszcz]", "green", run=f"/function {NS}:event/start/deszcz"), t(" "),
+                t("[Bitwa PvP]", "dark_red", run=f"/function {NS}:event/start/bitwa")),
         przycisk("ZAKOŃCZ EVENT", f"/function {NS}:event/koniec", "red", "przerywa aktualny event", "Stop"),
         przycisk("TRYB BUDOWANIA", f"/function {NS}:admin/budowanie", "yellow", "wł/wył – lobby nie wymusza trybu przygody", "Przełącz"),
         tellraw("@s", t(" Przywołaj moba: ", "gray"), *[

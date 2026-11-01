@@ -14,6 +14,7 @@ scoreboard players set @s dz.cd_nagr -100000000
 scoreboard players set @s dz.cd_spawn -100000000
 scoreboard players set @s dz.cd_rtp -100000000
 scoreboard players set @s dz.cd_park -100000000
+scoreboard players set @s dz.cd_kit5 -100000000
 function dziobmc:rangi/domyslna
 execute if score #mapa dz.data matches 1 in minecraft:overworld run tp @s 0 151 18 180 0
 title @s times 10 80 20

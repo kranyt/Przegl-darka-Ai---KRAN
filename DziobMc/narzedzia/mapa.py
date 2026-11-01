@@ -208,6 +208,57 @@ def parkour():
     return out, meta
 
 
+def arena_pvp():
+    """Koloseum PvP na południu (środek 0 150 75, promień 18) + most."""
+    out = ["# === Most na arenę PvP ==="]
+    out += [f"fill -1 {Y} 27 1 {Y} 57 minecraft:stone_bricks",
+            f"fill 0 {Y} 27 0 {Y} 57 minecraft:chiseled_stone_bricks",
+            f"fill -2 {Y} 27 -2 {Y} 56 minecraft:mossy_stone_bricks",
+            f"fill 2 {Y} 27 2 {Y} 56 minecraft:mossy_stone_bricks",
+            f"fill -2 {Y + 1} 27 -2 {Y + 1} 56 minecraft:stone_brick_wall",
+            f"fill 2 {Y + 1} 27 2 {Y + 1} 56 minecraft:stone_brick_wall",
+            f"fill -1 {Y - 1} 27 1 {Y - 1} 56 minecraft:stone_brick_slab[type=top]"]
+    for z in range(30, 57, 6):
+        out += [f"setblock -2 {Y + 2} {z} minecraft:lantern", f"setblock 2 {Y + 2} {z} minecraft:lantern"]
+    out.append("# === Arena PvP ===")
+    cz, r = 75, 18
+    out += spans(lambda dx, dz: dist(dx, dz) <= r + 0.5, 0, cz, r + 1, Y, "minecraft:smooth_sandstone")
+    out += spans(lambda dx, dz: (dx + dz) % 4 == 0 and dist(dx, dz) <= r - 1, 0, cz, r, Y, "minecraft:cut_red_sandstone")
+    out += spans(lambda dx, dz: 3.5 < dist(dx, dz) <= 4.5, 0, cz, 5, Y, "minecraft:red_sandstone")
+    out += spans(lambda dx, dz: dist(dx, dz) <= 2.5, 0, cz, 3, Y, "minecraft:chiseled_red_sandstone")
+    sciana = lambda dx, dz: r - 0.5 < dist(dx, dz) <= r + 0.5 and not (abs(dx) <= 2 and dz < 0)
+    for dy, blok in [(1, "minecraft:cut_red_sandstone"), (2, "minecraft:cut_red_sandstone"),
+                     (3, "minecraft:red_sandstone_wall")]:
+        out += spans(sciana, 0, cz, r + 1, Y + dy, blok)
+    # trybuny
+    for i, rr_ in enumerate([r + 1.5, r + 2.5]):
+        out += spans(lambda dx, dz, rr_=rr_: rr_ - 0.5 < dist(dx, dz) <= rr_ + 0.5 and not (abs(dx) <= 3 and dz < 0),
+                     0, cz, r + 4, Y + 2 + i, "minecraft:smooth_red_sandstone")
+    # wieże z ogniem
+    for a in range(0, 360, 45):
+        if a == 270:
+            continue
+        x = round((r + 1) * math.cos(math.radians(a)))
+        z = cz + round((r + 1) * math.sin(math.radians(a)))
+        out += [f"fill {x} {Y + 1} {z} {x} {Y + 5} {z} minecraft:chiseled_sandstone",
+                f"setblock {x} {Y + 6} {z} minecraft:netherrack", f"setblock {x} {Y + 7} {z} minecraft:fire"]
+    # osłony / przeszkody
+    for x, z in [(-8, 68), (7, 69), (-7, 82), (8, 81), (0, 64), (0, 86), (-12, 75), (12, 75)]:
+        out += [f"fill {x} {Y + 1} {z} {x + 1} {Y + 2} {z + 1} minecraft:chiseled_stone_bricks",
+                f"setblock {x} {Y + 3} {z} minecraft:stone_brick_slab"]
+    for x, z in [(-4, 71), (4, 79), (-4, 79), (4, 71)]:
+        out.append(f"setblock {x} {Y + 1} {z} minecraft:hay_block")
+    out += [f"fill -3 {Y + 1} 57 -3 {Y + 6} 57 minecraft:chiseled_red_sandstone",
+            f"fill 3 {Y + 1} 57 3 {Y + 6} 57 minecraft:chiseled_red_sandstone",
+            f"fill -3 {Y + 7} 57 3 {Y + 7} 57 minecraft:cut_red_sandstone",
+            f"setblock 0 {Y + 8} 57 minecraft:red_banner"]
+    mats = ["minecraft:sandstone"] * 4 + ["minecraft:terracotta"] * 6 + ["minecraft:stone"] * 30
+    kraw = ["minecraft:red_terracotta", "minecraft:orange_terracotta", "minecraft:sandstone",
+            "minecraft:yellow_terracotta", "minecraft:gold_ore", "minecraft:red_sandstone"]
+    out += wyspa_spod(0, cz, r + 3, Y, 16, mats, kraw, 33)
+    return out
+
+
 # ------------------------------------------------------------------ build
 
 
@@ -217,12 +268,13 @@ def build():
     fn("mapa/etap/arena", "\n".join(most_i_arena()))
     pk, meta = parkour()
     fn("mapa/etap/parkour", "\n".join(pk))
+    fn("mapa/etap/arena_pvp", "\n".join(arena_pvp()))
 
     # -------------------------------------------------------- dekoracje / NPC
     dek = ["kill @e[tag=dz.map]"]
-    dek.append(text_display(0, 157.2, 0, [t("DziobMc", "gold", bold=True)], "dz.holo.tytul", 4.0))
-    dek.append(text_display(0, 156.3, 0, t("Dziob.fun", "yellow", bold=True), "dz.holo", 2.0))
-    dek.append(text_display(0, 155.7, 0, [t("★ ", "gold"), t("Wersje 1.16.4+ • Survival • Eventy", "white"), t(" ★", "gold")], "dz.holo", 1.0))
+    dek.append(text_display(0, 157.4, 0, [t("DziobMc", "gold", bold=True)], "dz.holo.tytul", 8.0))
+    dek.append(text_display(0, 156.2, 0, t("Dziob.fun", "yellow", bold=True), "dz.holo", 4.0))
+    dek.append(text_display(0, 155.7, 0, [t("★ ", "gold"), t("Wersje 1.16.4+ • Survival • PvP • Eventy", "white"), t(" ★", "gold")], "dz.holo", 2.0))
     npc = [
         ("sklep", 10, -10, "librarian", [t("⛃ SKLEP", "gold", bold=True), t("\nKliknij PPM", "gray")]),
         ("kit", 10, 10, "armorer", [t("⚔ KITY", "yellow", bold=True), t("\nKliknij PPM", "gray")]),
@@ -235,7 +287,7 @@ def build():
                    f"PersistenceRequired:1b,Rotation:[{yaw}f,0f],VillagerData:{{profession:\"minecraft:{prof}\",level:5,type:\"minecraft:plains\"}},"
                    f"Offers:{{Recipes:[]}}}}")
         dek.append(f"summon minecraft:interaction {x} {Y + 1} {z} {{Tags:[\"dz.map\",\"dz.int.{nid}\"],width:1.3f,height:2.3f,response:1b}}")
-        dek.append(text_display(x, Y + 3.4, z, napis, "dz.holo", 1.3))
+        dek.append(text_display(x, Y + 2.6, z, napis, "dz.holo", 2.2))
         jfile(f"data/{NS}/advancement/npc/{nid}.json", {
             "criteria": {"klik": {"trigger": "minecraft:player_interacted_with_entity", "conditions": {
                 "entity": [{"condition": "minecraft:entity_properties", "entity": "this",
@@ -247,10 +299,11 @@ def build():
             playsound minecraft:entity.villager.ambient master @s ~ ~ ~ 1 1
             function {NS}:{cel}
         """)
-    dek.append(text_display(20, Y + 8.2, 0, [t("✦ LOSOWY TELEPORT ✦", "light_purple", bold=True), t("\nWejdź do portalu, aby ruszyć w świat!", "gray")], "dz.holo", 1.4))
-    dek.append(text_display(0, Y + 6.5, -55, [t("⚔ ARENA BOSSA ⚔", "red", bold=True), t("\nTu pojawia się Król Dziobów", "gray")], "dz.holo", 1.6))
-    dek.append(text_display(-29, Y + 3, 0, [t("PARKOUR ➜", "aqua", bold=True), t("\nNagroda: 75 monet", "gray")], "dz.holo", 1.4))
-    dek.append(text_display(meta[0], meta[1], meta[2], [t("✔ META ✔", "green", bold=True), t("\nStań na szmaragdach!", "gray")], "dz.holo", 1.4))
+    dek.append(text_display(20, Y + 8.2, 0, [t("✦ LOSOWY TELEPORT ✦", "light_purple", bold=True), t("\nWejdź do portalu, aby ruszyć w świat!", "gray")], "dz.holo", 2.2))
+    dek.append(text_display(0, Y + 6.5, -55, [t("⚔ ARENA BOSSA ⚔", "red", bold=True), t("\nTu pojawia się Król Dziobów", "gray")], "dz.holo", 2.4))
+    dek.append(text_display(0, Y + 9.2, 57, [t("⚔ ARENA PvP ⚔", "red", bold=True), t("\nWalka z graczami • 25 monet za kill", "gray")], "dz.holo", 2.4))
+    dek.append(text_display(-29, Y + 3, 0, [t("PARKOUR ➜", "aqua", bold=True), t("\nNagroda: 75 monet", "gray")], "dz.holo", 2.4))
+    dek.append(text_display(meta[0], meta[1], meta[2], [t("✔ META ✔", "green", bold=True), t("\nStań na szmaragdach!", "gray")], "dz.holo", 2.4))
     dek.append(text_display(0, Y + 2.8, 14, [t("Witaj na ", "white"), t("DziobMc", "gold", bold=True), t("!\nKliknij NPC albo wpisz /trigger pomoc", "gray")], "dz.holo", 1.1))
     fn("mapa/dekoracje", "\n".join(dek))
 
@@ -278,6 +331,7 @@ def build():
         function {NS}:mapa/etap/plac
         function {NS}:mapa/etap/arena
         function {NS}:mapa/etap/parkour
+        function {NS}:mapa/etap/arena_pvp
         function {NS}:mapa/dekoracje
         setworldspawn 0 151 18
         scoreboard players set #mapa dz.data 1

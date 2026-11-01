@@ -6,7 +6,7 @@ TRIGGERY = ["pomoc", "spawn", "kit", "sklep", "nagroda", "staty", "discord",
             "event", "rtp", "warp", "rangi"]
 
 COOLDOWNY = ["dz.cd_kit1", "dz.cd_kit2", "dz.cd_kit3", "dz.cd_kit4",
-             "dz.cd_nagr", "dz.cd_spawn", "dz.cd_rtp", "dz.cd_park"]
+             "dz.cd_nagr", "dz.cd_spawn", "dz.cd_rtp", "dz.cd_park", "dz.cd_kit5"]
 
 STALE = [2, 3, 4, 5, 8, 10, 11, 15, 20, 60, 100, 1200]
 
@@ -54,6 +54,10 @@ def build():
         "scoreboard objectives add dz.czas dummy",
         "scoreboard objectives add dz.minuty dummy",
         "scoreboard objectives add dz.hunt dummy",
+        "scoreboard objectives add dz.zab playerKillCount",
+        "scoreboard objectives add dz.smierc deathCount",
+        "scoreboard objectives add dz.streak dummy",
+        "scoreboard objectives add dz.bitwa dummy",
         "scoreboard objectives add dz.sidebar dummy " + J([t("✦ ", "yellow"), t("DziobMc", "gold", bold=True), t(" ✦", "yellow")]),
     ]
     obj += [f"scoreboard objectives add {c} dummy" for c in COOLDOWNY]
@@ -191,6 +195,8 @@ def build():
         # Co sekundę dla każdego gracza
         scoreboard players add @s dz.czas 1
         execute if score @s dz.czas matches 300.. run function {NS}:gracz/wyplata
+        execute if score @s dz.zab matches 1.. run function {NS}:pvp/zabojstwo
+        execute if score @s dz.smierc matches 1.. run function {NS}:pvp/smierc
         function {NS}:gracz/hud
     """)
     fn("gracz/wyplata", f"""
@@ -201,8 +207,10 @@ def build():
         {tellraw("@s", t("⌚ Nagroda za aktywną grę (5 min):", "aqua"))}
         function {NS}:monety/dodaj
     """)
-    hud = [t("⛃ ", "gold"), sc("@s", "dz.coins", "yellow", True), t("   ⚔ ", "red"),
-           sc("@s", "dz.kills", "white"), t("   ✦ ", "dark_gray"), t("Dziob.fun", "gray")]
+    hud = [t("⛃ ", "gold"), sc("@s", "dz.coins", "yellow", True), t("   ⚔ Moby: ", "red"),
+           sc("@s", "dz.kills", "white"), t("   ☠ PvP: ", "dark_red"), sc("@s", "dz.pvp", "white"),
+           t("   🔥 ", "gold"), sc("@s", "dz.streak", "yellow")]
+    hud[-2]["text"] = "   ✸ Seria: "
     hud_hunt = [t("⚔ POLOWANIE: ", "red", bold=True), sc("@s", "dz.hunt", "yellow", True),
                 t("/10", "gold"), t("   ⛃ ", "gold"), sc("@s", "dz.coins", "yellow")]
     fn("gracz/hud", f"""
@@ -267,7 +275,15 @@ def build():
         execute in minecraft:overworld run tag @a[x=-110,y=140,z=-110,dx=220,dy=80,dz=220] add dz.lobby
         gamemode adventure @a[tag=dz.lobby,gamemode=survival,tag=!dz.build]
         gamemode survival @a[tag=!dz.lobby,gamemode=adventure,tag=!dz.build]
-        effect give @a[tag=dz.lobby] minecraft:saturation 2 0 true
+        # Strefy: arena PvP i arena bossa = walka; reszta lobby = bezpieczna (Resistance V)
+        tag @a remove dz.pvp_strefa
+        tag @a remove dz.boss_strefa
+        execute in minecraft:overworld run tag @a[x=-20,y=140,z=55,dx=40,dy=40,dz=40] add dz.pvp_strefa
+        execute in minecraft:overworld run tag @a[x=-21,y=140,z=-96,dx=42,dy=40,dz=42] add dz.boss_strefa
+        execute as @a[tag=dz.pvp_strefa,tag=!dz.pvp_bylo] at @s run function {NS}:pvp/wejscie
+        execute as @a[tag=!dz.pvp_strefa,tag=dz.pvp_bylo] run function {NS}:pvp/wyjscie
+        effect give @a[tag=dz.lobby,tag=!dz.pvp_strefa,tag=!dz.boss_strefa] minecraft:resistance 2 4 true
+        effect give @a[tag=dz.lobby,tag=!dz.pvp_strefa,tag=!dz.boss_strefa] minecraft:saturation 2 0 true
         # Wrogie moby nie mają wstępu do lobby
         execute in minecraft:overworld as @e[x=-110,y=128,z=-110,dx=220,dy=92,dz=220,type=#{NS}:wrogie,tag=!dz.event] at @s run function {NS}:util/usun
         # Portal losowego teleportu
