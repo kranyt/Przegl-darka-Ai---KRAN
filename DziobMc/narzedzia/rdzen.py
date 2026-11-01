@@ -240,10 +240,10 @@ def build():
         ("dz.total", None, [t(" ● ", "green"), t("Graczy łącznie", "white")]),
         ("dz.online", None, [t(" ● ", "green"), t("Online", "white")]),
         ("dz.l5", -1, t("  ")),
-        ("dz.l6", -2, [t(" ➤ ", "aqua"), t("/trigger pomoc", "aqua")]),
-        ("dz.l7", -3, [t(" ⛃ ", "gold"), t("Monety: lista TAB", "gray")]),
-        ("dz.l8", -4, t("   ")),
-        ("dz.l9", -5, [t("    Dziob.fun", "yellow", bold=True)]),
+        ("dz.l6", -3, [t(" ➤ ", "aqua"), t("/trigger pomoc", "aqua")]),
+        ("dz.l7", -4, [t(" ⛃ ", "gold"), t("Monety: lista TAB", "gray")]),
+        ("dz.l8", -5, t("   ")),
+        ("dz.l9", -6, [t("    Dziob.fun", "yellow", bold=True)]),
     ]
     s = ["scoreboard players reset * dz.sidebar"]
     for name, score, disp in linie:

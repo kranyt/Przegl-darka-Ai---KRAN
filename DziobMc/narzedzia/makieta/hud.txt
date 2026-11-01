@@ -1,0 +1,28 @@
+<div id="boss" class="s"><span class="gold">✦ Następny event za </span><span class="yellow">12</span><span class="yellow">m </span><span class="yellow">34</span><span class="yellow">s</span><span class="gray">  •  Dziob.fun</span><div id="bar"><i></i><b></b></div></div>
+<div id="side" class="s"><div class="t"><span><span class="yellow">✦ </span><span class="gold">DziobMc</span><span class="yellow"> ✦</span></span></div>
+<div></div><div><span><span class="gold"> ✦ </span><span class="gray">Serwer: </span><span class="yellow">DziobMc</span></span></div>
+<div><span><span class="gold"> ✦ </span><span class="gray">Wersje: </span><span class="white">1.16.4+</span></span></div><div></div>
+<div><span><span class="green"> ● </span><span class="white">Graczy łącznie</span></span><span class="yellow">57</span></div>
+<div><span><span class="green"> ● </span><span class="white">Online</span></span><span class="yellow">12</span></div><div></div>
+<div><span><span class="gold"> ★ </span><span class="gray">Event: </span><span class="white">wkrótce...</span></span></div>
+<div><span class="aqua"> ➤ /trigger pomoc</span></div>
+<div><span><span class="gold"> ⛃ </span><span class="gray">Monety: lista TAB</span></span></div><div></div>
+<div><span class="yellow">    Dziob.fun</span></div></div>
+<div id="chat" class="s">
+<div><span class="gold">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></div>
+<div><span class="yellow">        ✦ </span><span class="gold">DziobMc</span><span class="dgray"> » </span><span class="yellow">KOMENDY</span></div>
+<div><span class="gold">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></div>
+<div><span class="dgray"> ➤ </span><span class="green">[SPAWN]</span><span class="gray"> teleport na spawn</span></div>
+<div><span class="dgray"> ➤ </span><span class="dpurple">[LOSOWY TP]</span><span class="gray"> teleport w losowe miejsce świata</span></div>
+<div><span class="dgray"> ➤ </span><span class="aqua">[WARPY]</span><span class="gray"> arena bossa, parkour, spawn</span></div>
+<div><span class="dgray"> ➤ </span><span class="yellow">[KITY]</span><span class="gray"> darmowe zestawy przedmiotów</span></div>
+<div><span class="dgray"> ➤ </span><span class="gold">[SKLEP]</span><span class="gray"> kupuj przedmioty za monety ⛃</span></div>
+<div><span class="dgray"> ➤ </span><span class="lp">[NAGRODA]</span><span class="gray"> darmowe monety co godzinę</span></div>
+<div><span class="dgray"> ➤ </span><span class="red">[STATYSTYKI]</span><span class="gray"> twoje monety, kille, czas gry</span></div>
+<div><span class="dgray"> ➤ </span><span class="dred">[EVENTY]</span><span class="gray"> aktualny i następny event</span></div>
+<div><span class="gold">✦ </span><span class="yellow">Kuba_PL</span><span class="white"> dołączył pierwszy raz! </span><span class="gray">(gracz #57)</span></div>
+<div><span class="dgray">[</span><span class="gold">MVP</span><span class="dgray">] </span><span class="gold">Kuba_PL</span><span class="white">: siema, kiedy boss?</span></div>
+</div>
+<div id="act" class="s"><span class="gold">⛃ </span><span class="yellow">1250</span><span class="red">   ⚔ </span><span class="white">37</span><span class="dgray">   ✦ </span><span class="gray">Dziob.fun</span></div>
+<div id="hearts" class="s">❤❤❤❤❤❤❤❤❤❤</div>
+<div id="hot"><span class="sel">🗡</span><span>⛏</span><span>🪓</span><span>🍞</span><span>🔦</span><span></span><span></span><span></span><span></span></div>

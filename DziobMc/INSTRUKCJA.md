@@ -5,7 +5,16 @@
 Gotowy serwer survival z własną mapą lobby, custom mobami, bossem, eventami, scoreboardem,
 rangami, sklepem, kitami i komendami.
 
-![Podgląd mapy z góry](podglad-mapy.png)
+## 📸 Jak to wygląda
+
+> Zrzuty 1–3 to wizualizacje 3D dokładnie tych bloków, które stawia paczka (nie zrzuty z gry).
+> Zrzuty 4–5 to makiety interfejsu z tekstami 1:1 z paczki.
+
+![Spawn](screeny/2-spawn.png)
+![Cała mapa](screeny/1-cala-mapa.png)
+![Arena bossa](screeny/3-arena-bossa.png)
+![Interfejs gry](screeny/4-interfejs-gry.png)
+![TAB i powitanie](screeny/5-tab-i-powitanie.png)
 
 ---
 
