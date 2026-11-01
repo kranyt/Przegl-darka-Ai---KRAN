@@ -18,7 +18,7 @@ DziobMc-Serwer/
 |-- start.bat             <-- [4] Windows: kliknij 2x, żeby włączyć serwer
 |-- start.sh              <--     Linux/Mac:  ./start.sh
 |
-|-- DziobMc/              <-- świat (mapa). NIE RUSZAJ.
+|-- world/                <-- świat (mapa). NIE RUSZAJ.
 |   `-- datapacks/
 |       `-- DziobMc-Pack/      <-- cała paczka: moby, eventy, rangi, sklep...
 |

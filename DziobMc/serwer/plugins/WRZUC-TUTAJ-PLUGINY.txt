@@ -12,10 +12,17 @@ OBOWIĄZKOWE – dzięki nim wejdą gracze od 1.16.4 do najnowszej wersji:
   Pobierz najnowszą wersję każdego (plik .jar, wersja dla Paper)
   i wrzuć oba pliki .jar DO TEGO FOLDERU.
 
+ZALECANE NA SERWER PUBLICZNY:
+
+  3. CoreProtect   -> https://modrinth.com/plugin/coreprotect
+                      (zapisuje kto co zniszczył, /co rollback cofa grief)
+  +  AuthMeReloaded -> TYLKO jeśli online-mode=false (non-premium)!
+                      https://modrinth.com/plugin/authmereloaded
+
 OPCJONALNE (ładniejszy TAB i rangi z uprawnieniami):
 
-  3. TAB           -> https://modrinth.com/plugin/tab-was-taken
-  4. LuckPerms     -> https://luckperms.net/download
+  4. TAB           -> https://modrinth.com/plugin/tab-was-taken
+  5. LuckPerms     -> https://luckperms.net/download
 
   Konfiguracja do nich jest w folderze: dodatki-pluginy/
 

@@ -18,7 +18,7 @@ import rdzen, komendy, moby, eventy, mapa, serwer  # noqa: E401,E402
 
 ROOT = Path(__file__).resolve().parent.parent
 SERWER = ROOT / "serwer"
-DP = SERWER / "DziobMc" / "datapacks" / "DziobMc-Pack"
+DP = SERWER / "world" / "datapacks" / "DziobMc-Pack"
 
 
 def lint(files):
@@ -146,6 +146,13 @@ def main():
         for f in sorted(SERWER.rglob("*")):
             if f.is_file():
                 z.write(f, "DziobMc-Serwer/" + str(f.relative_to(SERWER)))
+    # Paczka na gotowy hosting: tylko to, co się wrzuca (bez jar/eula/start)
+    na_hosting = ["world", "plugins", "dodatki-pluginy", "server-icon.png", "NA-HOSTING-PUBLICZNY.txt"]
+    with zipfile.ZipFile(ROOT / "POBIERZ" / "DziobMc-NaHosting.zip", "w", zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(SERWER.rglob("*")):
+            rel = f.relative_to(SERWER)
+            if f.is_file() and rel.parts[0] in na_hosting:
+                z.write(f, str(rel))
     with zipfile.ZipFile(ROOT / "POBIERZ" / "DziobMc-Datapack.zip", "w", zipfile.ZIP_DEFLATED) as z:
         for f in sorted(DP.rglob("*")):
             if f.is_file():

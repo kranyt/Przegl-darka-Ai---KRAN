@@ -19,18 +19,18 @@ MOTD = (f"{S}6{S}l✦ DziobMc ✦ {S}r{S}e1.16.4-1.21+ {S}8| {S}fDziob.fun\\n"
 
 PROPERTIES = f"""#DziobMc - Dziob.fun
 motd={esc(MOTD)}
-level-name=DziobMc
+level-name=world
 server-port=25565
 max-players=100
 gamemode=survival
 difficulty=normal
 pvp=true
 online-mode=true
-enable-command-block=true
+enable-command-block=false
 spawn-protection=0
-allow-flight=true
-view-distance=10
-simulation-distance=8
+allow-flight=false
+view-distance=8
+simulation-distance=6
 spawn-monsters=true
 spawn-animals=true
 white-list=false
@@ -181,10 +181,17 @@ OBOWIĄZKOWE – dzięki nim wejdą gracze od 1.16.4 do najnowszej wersji:
   Pobierz najnowszą wersję każdego (plik .jar, wersja dla Paper)
   i wrzuć oba pliki .jar DO TEGO FOLDERU.
 
+ZALECANE NA SERWER PUBLICZNY:
+
+  3. CoreProtect   -> https://modrinth.com/plugin/coreprotect
+                      (zapisuje kto co zniszczył, /co rollback cofa grief)
+  +  AuthMeReloaded -> TYLKO jeśli online-mode=false (non-premium)!
+                      https://modrinth.com/plugin/authmereloaded
+
 OPCJONALNE (ładniejszy TAB i rangi z uprawnieniami):
 
-  3. TAB           -> https://modrinth.com/plugin/tab-was-taken
-  4. LuckPerms     -> https://luckperms.net/download
+  4. TAB           -> https://modrinth.com/plugin/tab-was-taken
+  5. LuckPerms     -> https://luckperms.net/download
 
   Konfiguracja do nich jest w folderze: dodatki-pluginy/
 
@@ -213,7 +220,7 @@ DziobMc-Serwer/
 |-- start.bat             <-- [4] Windows: kliknij 2x, żeby włączyć serwer
 |-- start.sh              <--     Linux/Mac:  ./start.sh
 |
-|-- DziobMc/              <-- świat (mapa). NIE RUSZAJ.
+|-- world/                <-- świat (mapa). NIE RUSZAJ.
 |   `-- datapacks/
 |       `-- DziobMc-Pack/      <-- cała paczka: moby, eventy, rangi, sklep...
 |
@@ -242,6 +249,93 @@ WERSJE GRACZY: 1.16.4 -> najnowsza (dzięki ViaVersion + ViaBackwards).
 Gracze na starszych wersjach (np. 1.16) mogą widzieć drobne różnice:
 numerki w scoreboardzie, napisy-hologramy wyglądają trochę inaczej,
 NPC trzeba zastąpić komendą /trigger (np. /trigger sklep).
+"""
+
+HOSTING_TXT = """==========================================================
+   DziobMc NA HOSTING (serwer publiczny)  –  IP: Dziob.fun
+==========================================================
+
+W tym ZIP-ie są tylko pliki do wrzucenia na hosting.
+Struktura folderów jest TAKA SAMA jak na serwerze, więc
+wrzucasz wszystko do głównego folderu serwera.
+
+  ZIP                                  ->  NA HOSTINGU
+  ---------------------------------------------------------
+  world/datapacks/DziobMc-Pack/        ->  world/datapacks/DziobMc-Pack/
+  server-icon.png                      ->  /  (główny folder)
+  plugins/  (instrukcja w środku)      ->  plugins/
+  dodatki-pluginy/  (opcjonalnie)      ->  nigdzie, to tylko konfiguracje do skopiowania
+
+UWAGA: jeśli twój świat NIE nazywa się "world" (sprawdź level-name
+w server.properties), wrzuć DziobMc-Pack do <nazwa_swiata>/datapacks/.
+
+----------------------------------------------------------
+KROK PO KROKU (panel hostingu: Pterodactyl, Aternos, itp.)
+----------------------------------------------------------
+ 1. WYŁĄCZ serwer w panelu.
+ 2. W panelu wybierz silnik/wersję:  Paper 1.21.4
+    (paczka działa na serwerze 1.21 – 1.21.4)
+ 3. Pluginy (panel -> Pluginy albo wrzuć .jar do plugins/):
+       - ViaVersion     (wpuszcza nowsze wersje niż 1.21.4)
+       - ViaBackwards   (wpuszcza starsze wersje, aż do 1.16.4)
+       - CoreProtect    (ZALECANE na publiczny: cofanie griefu)
+ 4. Wrzuć folder DziobMc-Pack do world/datapacks/
+    (Menedżer plików albo FTP, np. FileZilla). Folder, NIE zip!
+    Sprawdź, czy ścieżka to: world/datapacks/DziobMc-Pack/pack.mcmeta
+ 5. Wrzuć server-icon.png do głównego folderu.
+ 6. Ustaw w panelu / server.properties (lista niżej).
+ 7. WŁĄCZ serwer. Po ok. 10 sekundach mapa lobby zbuduje się sama
+    w niebie nad 0 150 0, a spawn świata zostanie tam przeniesiony.
+ 8. W KONSOLI panelu wpisz:
+       op TwojNick
+       execute as TwojNick run function dziobmc:rangi/ustaw/wlasciciel
+ 9. Domena: rekord A  Dziob.fun -> IP hostingu
+    (jeśli hosting dał port inny niż 25565, dodaj rekord SRV:
+     _minecraft._tcp.Dziob.fun  ->  port, cel: IP/adres hostingu)
+
+----------------------------------------------------------
+USTAWIENIA (server.properties albo zakładka "Ustawienia")
+----------------------------------------------------------
+  motd=  (gotowy MOTD jest w server.properties w DziobMc-Serwer.zip)
+  online-mode=true            <- patrz "PREMIUM / NON-PREMIUM" niżej
+  enforce-secure-profile=false
+  spawn-protection=0          (lobby chroni paczka – tryb przygody)
+  pvp=true
+  difficulty=normal
+  allow-flight=false
+  enable-command-block=false
+  view-distance=8
+  simulation-distance=6
+  white-list=false            (publiczny)
+
+----------------------------------------------------------
+BEZPIECZEŃSTWO – SERWER PUBLICZNY (WAŻNE!)
+----------------------------------------------------------
+ * PREMIUM / NON-PREMIUM:
+     online-mode=true  -> wejdą tylko gracze z kupionym Minecraftem.
+                          Bezpieczne, nikt nie podszyje się pod ciebie.
+     online-mode=false -> wejdą też gracze non-premium, ALE każdy może
+                          wpisać twój nick i dostać twojego OP-a!
+                          WTEDY KONIECZNIE zainstaluj plugin logowania:
+                          AuthMeReloaded albo LibreLogin
+                          (/register haslo haslo, /login haslo).
+ * OP-a dawaj tylko sobie. Rangi VIP/MVP itd. NIE dają OP-a
+   (to tylko prefiks, bonus monet i kity) – można je dawać bezpiecznie.
+ * Wszystkie komendy graczy to /trigger (np. /trigger sklep) – działają
+   bez OP-a i nie da się nimi nic zepsuć.
+ * Lobby jest chronione: gracze mają tam tryb przygody (nie niszczą
+   bloków), wrogie moby są usuwane, kto spadnie – wraca na spawn.
+ * Świat survival nie jest chroniony – dlatego CoreProtect
+   (/co inspect, /co rollback) do cofania griefu.
+ * Rób kopie zapasowe w panelu (Backups) – np. codziennie.
+ * Paczka na starym świecie: każdy gracz przy pierwszym wejściu po
+   instalacji dostanie 100 monet, kit Start i teleport na nowy spawn.
+   Mapa buduje się w niebie (Y 125–165 wokół 0,0) – jeśli masz tam
+   swoje budowle, zostaną nadpisane.
+
+----------------------------------------------------------
+PANEL ADMINA (w grze, jako OP):   /function dziobmc:admin/panel
+----------------------------------------------------------
 """
 
 
@@ -281,3 +375,4 @@ def build(out: Path):
     (out / "plugins").mkdir(exist_ok=True)
     (out / "plugins" / "WRZUC-TUTAJ-PLUGINY.txt").write_text(PLUGINY_TXT, encoding="utf-8")
     (out / "GDZIE-CO-DAC.txt").write_text(GDZIE_TXT, encoding="utf-8")
+    (out / "NA-HOSTING-PUBLICZNY.txt").write_text(HOSTING_TXT, encoding="utf-8")

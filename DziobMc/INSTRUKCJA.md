@@ -15,14 +15,40 @@ rangami, sklepem, kitami i komendami.
 DziobMc/
 ├── INSTRUKCJA.md          ← ten plik
 ├── POBIERZ/
-│   ├── DziobMc-Serwer.zip   ← 👉 TO POBIERZ: cały gotowy serwer
-│   └── DziobMc-Datapack.zip ← tylko paczka (jeśli masz już swój świat)
+│   ├── DziobMc-NaHosting.zip ← 👉 MASZ HOSTING? POBIERZ TO
+│   ├── DziobMc-Serwer.zip    ← cały serwer (na własny komputer/VPS)
+│   └── DziobMc-Datapack.zip  ← sama paczka
 ├── serwer/                ← to samo co w DziobMc-Serwer.zip (rozpakowane)
 ├── narzedzia/             ← generator w Pythonie (tylko gdy chcesz coś zmienić)
 └── podglad-mapy.png       ← podgląd mapy z góry
 ```
 
-## 📦 Gdzie co dać – instalacja krok po kroku
+## 🌍 Masz gotowy hosting? (serwer publiczny)
+
+Pobierz **`POBIERZ/DziobMc-NaHosting.zip`**. Foldery w nim są ułożone tak samo jak na serwerze:
+
+| Z ZIP-a | Gdzie na hostingu |
+|---|---|
+| `world/datapacks/DziobMc-Pack/` | `world/datapacks/DziobMc-Pack/` (wrzuć folder, nie zip!) |
+| `server-icon.png` | główny folder serwera |
+| `plugins/` | tu idą pluginy (lista w pliku w środku) |
+| `NA-HOSTING-PUBLICZNY.txt` | instrukcja, przeczytaj ją |
+
+1. Wyłącz serwer, a w panelu wybierz **Paper 1.21.4**.
+2. Zainstaluj pluginy **ViaVersion** i **ViaBackwards** (gracze od 1.16.4 w górę), a na serwer publiczny także **CoreProtect** (cofanie griefu).
+3. Wrzuć `DziobMc-Pack` do `world/datapacks/` przez menedżer plików albo FTP. Musi istnieć plik `world/datapacks/DziobMc-Pack/pack.mcmeta`.
+4. Włącz serwer. Mapa lobby zbuduje się sama.
+5. W konsoli: `op TwójNick` i `execute as TwójNick run function dziobmc:rangi/ustaw/wlasciciel`
+
+**Bezpieczeństwo serwera publicznego:**
+* `online-mode=true` wpuszcza tylko graczy premium i jest bezpieczne.
+* `online-mode=false` (non-premium) pozwala każdemu wejść na twój nick. **Musisz** wtedy mieć plugin logowania **AuthMeReloaded**.
+* Rangi VIP/MVP/… **nie dają OP-a** (dają prefiks, monety i kity), więc możesz je bezpiecznie rozdawać.
+* Gracze używają tylko `/trigger …`. Tymi komendami nie da się nic zepsuć.
+* Rób kopie zapasowe w panelu.
+* Mapa buduje się w niebie (Y 125–165 wokół 0,0). Jeśli masz tam budowle, zostaną nadpisane.
+
+## 📦 Własny serwer (komputer/VPS) – instalacja krok po kroku
 
 Po rozpakowaniu `DziobMc-Serwer.zip`:
 
@@ -33,7 +59,7 @@ DziobMc-Serwer/
 ├── eula.txt           ← [3] ZMIENIASZ: eula=false → eula=true
 ├── start.bat          ← [4] Windows: kliknij 2x
 ├── start.sh           ←     Linux/Mac: ./start.sh
-├── DziobMc/datapacks/ ← paczka DziobMc (już jest, nie ruszaj)
+├── world/datapacks/   ← paczka DziobMc (już jest, nie ruszaj)
 ├── server.properties  ← gotowe (MOTD, port 25565)
 ├── server-icon.png    ← gotowe
 ├── dodatki-pluginy/   ← opcjonalnie: TAB i LuckPerms
