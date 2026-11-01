@@ -1,5 +1,6 @@
 # Użycie: /execute as NICK run function dziobmc:rangi/ustaw/youtuber
-team join 4_youtuber @s
+scoreboard players set @s dz.rid 4
+function dziobmc:gracz/druzyna
 scoreboard players set @s dz.rank 3
 tag @s remove dz.staff
 tellraw @a [{"text":"✦ ","color":"gold"},{"selector":"@s"},{"text":" otrzymał rangę ","color":"yellow"},{"text":"Y","color":"white","bold":true},{"text":"T","color":"red","bold":true},{"text":"!","color":"yellow"}]

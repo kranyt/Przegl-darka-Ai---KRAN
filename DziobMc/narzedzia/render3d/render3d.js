@@ -23,6 +23,13 @@
     cut_red_sandstone: [189, 101, 31], red_sandstone: [184, 99, 31], chiseled_red_sandstone: [183, 96, 27],
     smooth_red_sandstone: [184, 100, 33], terracotta: [152, 94, 67], red_terracotta: [143, 61, 46],
     orange_terracotta: [161, 83, 37], yellow_terracotta: [186, 133, 35], hay_block: [180, 145, 30], red_banner: [160, 39, 34],
+    sand: [219, 207, 163], red_sand: [190, 102, 33], gravel: [131, 127, 126], clay: [160, 166, 179], snow_block: [249, 254, 254],
+    packed_ice: [141, 180, 250], blue_ice: [116, 167, 253], ice: [145, 183, 253], podzol: [91, 63, 24], coarse_dirt: [119, 85, 59],
+    mud: [60, 57, 60], calcite: [223, 224, 220], deepslate: [80, 80, 82], bedrock: [85, 85, 85],
+    white_terracotta: [209, 178, 161], light_gray_terracotta: [135, 107, 98], brown_terracotta: [77, 51, 35],
+    spruce_log: [58, 37, 16], spruce_leaves: [60, 95, 60], birch_log: [216, 215, 210], birch_leaves: [110, 150, 70],
+    jungle_log: [85, 67, 25], jungle_leaves: [48, 140, 20], acacia_log: [103, 96, 86], acacia_leaves: [110, 140, 30],
+    dark_oak_log: [60, 46, 26], dark_oak_leaves: [40, 95, 25], mangrove_log: [84, 66, 36], mangrove_leaves: [80, 130, 40],
     lantern: [255, 205, 110], soul_lantern: [110, 235, 240], chain: [60, 62, 70], soul_campfire: [80, 70, 60],
   };
   const ROSLINY = { short_grass: [100, 165, 55], poppy: [210, 30, 30], dandelion: [250, 225, 40], cornflower: [70, 100, 230],
@@ -316,19 +323,20 @@
     const gc = document.createElement('canvas'); gc.width = gc.height = 256; const gg = gc.getContext('2d'); const rr = R(77);
     for (let y = 0; y < 256; y += 4) for (let x = 0; x < 256; x += 4) { const v = rr(); gg.fillStyle = v < .06 ? '#3d6fd0' : v < .25 ? '#3f7d2a' : `rgb(${85 + rr() * 25 | 0},${145 + rr() * 30 | 0},${50 + rr() * 15 | 0})`; gg.fillRect(x, y, 4, 4); }
     const gt = new T.CanvasTexture(gc); gt.wrapS = gt.wrapT = T.RepeatWrapping; gt.repeat.set(40, 40); gt.magFilter = T.NearestFilter; gt.colorSpace = T.SRGBColorSpace;
-    const ziemia = new T.Mesh(new T.PlaneGeometry(6000, 6000), new T.MeshBasicMaterial({ map: gt })); ziemia.rotation.x = -Math.PI / 2; ziemia.position.y = 66; scene.add(ziemia);
+    const ziemia = new T.Mesh(new T.PlaneGeometry(6000, 6000), new T.MeshBasicMaterial({ map: gt })); ziemia.rotation.x = -Math.PI / 2; ziemia.position.y = 66; if (!K.bezZiemi) scene.add(ziemia);
+    if (K.morze) { const m = new T.Mesh(new T.PlaneGeometry(6000, 6000), new T.MeshBasicMaterial({ color: 0x2f5fd0 })); m.rotation.x = -Math.PI / 2; m.position.y = K.morze; scene.add(m); }
     // chmury
     const cm = new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .85 }); const rc = R(9);
-    for (let i = 0; i < 160; i++) { const w = 8 + rc() * 24, d = 8 + rc() * 24; const c = new T.Mesh(new T.BoxGeometry(w, 2, d), cm); c.position.set(-500 + rc() * 1000, 232, -500 + rc() * 1000); scene.add(c); }
+    for (let i = 0; i < (K.bezChmur ? 0 : 160); i++) { const w = 8 + rc() * 24, d = 8 + rc() * 24; const c = new T.Mesh(new T.BoxGeometry(w, 2, d), cm); c.position.set(-500 + rc() * 1000, 232, -500 + rc() * 1000); scene.add(c); }
     scene.add(new T.AmbientLight(0xffffff, 1.6)); const dl = new T.DirectionalLight(0xffffff, 1.4); dl.position.set(-3, 8, 4); scene.add(dl);
     budujSwiat(scene);
     // poświata latarni
     for (const [x, y, z, col] of swiatla) { const sp = new T.Sprite(new T.SpriteMaterial({ color: col, transparent: true, opacity: .35, blending: T.AdditiveBlending, depthWrite: false, map: glowTex() })); sp.position.set(x, y, z); sp.scale.set(2.2, 2.2, 1); scene.add(sp); }
     // promień beacona
     const beam = new T.Mesh(new T.BoxGeometry(.38, 260, .38), new T.MeshBasicMaterial({ color: 0xffa030, transparent: true, opacity: .75, blending: T.AdditiveBlending, depthWrite: false, fog: false }));
-    beam.position.set(.5, 152 + 130, .5); scene.add(beam);
+    beam.position.set(.5, 152 + 130, .5); if (!K.bezBeacona) scene.add(beam);
     const beam2 = new T.Mesh(new T.BoxGeometry(.75, 260, .75), new T.MeshBasicMaterial({ color: 0xff8a20, transparent: true, opacity: .2, blending: T.AdditiveBlending, depthWrite: false, fog: false }));
-    beam2.position.copy(beam.position); scene.add(beam2);
+    beam2.position.copy(beam.position); if (!K.bezBeacona) scene.add(beam2);
     // encje z mapy
     for (const e of window.SCENA.encje) {
       if (e.typ === 'villager') scene.add(wiesniak(e));

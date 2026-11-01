@@ -41,7 +41,7 @@ START_SH = """#!/bin/bash
 # Wrzuć tu plik server.jar = Paper 1.21.4 (wymaga Java 21)
 cd "$(dirname "$0")"
 while true; do
-  java -Xms2G -Xmx4G -XX:+UseG1GC -jar server.jar nogui
+  java -Xms3G -Xmx6G -XX:+UseG1GC -jar server.jar nogui
   echo "Serwer wyłączony. Restart za 5 sekund (Ctrl+C aby anulować)..."
   sleep 5
 done
@@ -51,7 +51,7 @@ START_BAT = """@echo off
 title DziobMc - Dziob.fun
 REM Wrzuc tu plik server.jar = Paper 1.21.4 (wymaga Java 21)
 :start
-java -Xms2G -Xmx4G -XX:+UseG1GC -jar server.jar nogui
+java -Xms3G -Xmx6G -XX:+UseG1GC -jar server.jar nogui
 echo Serwer wylaczony. Restart za 5 sekund...
 timeout /t 5
 goto start
@@ -170,6 +170,13 @@ PLUGINY_TXT = """==========================================================
   WRZUĆ TUTAJ PLUGINY (pliki .jar)
 ==========================================================
 
+JUŻ W ZESTAWIE (leży obok tego pliku):
+
+  * DziobEarth.jar – MAPA ZIEMI (Earth SMP). Sam tworzy świat "ziemia"
+                     z kontynentami, górami, rzekami i biomami.
+                     Skala w plugins/DziobEarth/config.yml (domyślnie 1:2000).
+                     Potrzebuje ok. 3-4 GB RAM dla serwera.
+
 OBOWIĄZKOWE – dzięki nim wejdą gracze od 1.16.4 do najnowszej wersji:
 
   1. ViaVersion    -> https://modrinth.com/plugin/viaversion
@@ -263,9 +270,9 @@ KAŻDY FOLDER JEST PODPISANY, GDZIE WRZUCIĆ JEGO ZAWARTOŚĆ:
          w server.properties - wrzuć do <nazwa_swiata>/datapacks/)
 
   [2 - WRZUC DO plugins]
-        tu nie ma plików .jar (trzeba je pobrać) - otwórz txt w środku,
-        pobierz pluginy z linków i wrzuć je do folderu plugins/
-        (albo zainstaluj je z listy pluginów w panelu hostingu)
+        DziobEarth.jar (mapa Ziemi) -> plugins/   (jest w folderze!)
+        + pobierz ViaVersion i ViaBackwards z linków w txt i też wrzuć
+          do plugins/ (albo zainstaluj z listy pluginów w panelu)
 
   [3 - WRZUC DO glownego folderu serwera]
         server-icon.png  ->  główny folder (tam, gdzie server.properties)
@@ -348,6 +355,9 @@ def build_hosting(na: Path, dp: Path, serwer_dir: Path):
     f2 = na / "2 - WRZUC DO plugins"
     f2.mkdir()
     (f2 / "POBIERZ PLUGINY - linki.txt").write_text(PLUGINY_TXT, encoding="utf-8")
+    jar = serwer_dir / "plugins" / "DziobEarth.jar"
+    if jar.exists():
+        shutil.copy(jar, f2 / "DziobEarth.jar")
     f3 = na / "3 - WRZUC DO glownego folderu serwera"
     f3.mkdir()
     shutil.copy(serwer_dir / "server-icon.png", f3 / "server-icon.png")
@@ -375,4 +385,10 @@ def build(out: Path):
     ikona(out / "server-icon.png")
     (out / "plugins").mkdir(exist_ok=True)
     (out / "plugins" / "WRZUC-TUTAJ-PLUGINY.txt").write_text(PLUGINY_TXT, encoding="utf-8")
+    jar = Path(__file__).resolve().parent.parent / "plugin-ziemia" / "build" / "DziobEarth.jar"
+    if jar.exists():
+        import shutil
+        shutil.copy(jar, out / "plugins" / "DziobEarth.jar")
+    else:
+        print("UWAGA: brak DziobEarth.jar – uruchom plugin-ziemia/zbuduj.sh")
     (out / "GDZIE-CO-DAC.txt").write_text(GDZIE_TXT, encoding="utf-8")

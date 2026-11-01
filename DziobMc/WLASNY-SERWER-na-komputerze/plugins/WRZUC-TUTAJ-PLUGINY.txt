@@ -2,6 +2,13 @@
   WRZUĆ TUTAJ PLUGINY (pliki .jar)
 ==========================================================
 
+JUŻ W ZESTAWIE (leży obok tego pliku):
+
+  * DziobEarth.jar – MAPA ZIEMI (Earth SMP). Sam tworzy świat "ziemia"
+                     z kontynentami, górami, rzekami i biomami.
+                     Skala w plugins/DziobEarth/config.yml (domyślnie 1:2000).
+                     Potrzebuje ok. 3-4 GB RAM dla serwera.
+
 OBOWIĄZKOWE – dzięki nim wejdą gracze od 1.16.4 do najnowszej wersji:
 
   1. ViaVersion    -> https://modrinth.com/plugin/viaversion

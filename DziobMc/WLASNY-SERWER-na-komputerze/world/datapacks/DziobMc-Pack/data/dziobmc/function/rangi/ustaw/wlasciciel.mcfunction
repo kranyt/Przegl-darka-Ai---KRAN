@@ -1,5 +1,6 @@
 # Użycie: /execute as NICK run function dziobmc:rangi/ustaw/wlasciciel
-team join 0_wlasciciel @s
+scoreboard players set @s dz.rid 0
+function dziobmc:gracz/druzyna
 scoreboard players set @s dz.rank 7
 tag @s add dz.staff
 tellraw @a [{"text":"✦ ","color":"gold"},{"selector":"@s"},{"text":" otrzymał rangę ","color":"yellow"},{"text":"WŁAŚCICIEL","color":"dark_red","bold":true},{"text":"!","color":"yellow"}]

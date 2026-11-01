@@ -5,4 +5,5 @@ function dziobmc:sidebar/odswiez
 function dziobmc:event/zegar
 function dziobmc:moby/sekunda
 function dziobmc:mapa/animacja
+function dziobmc:ziemia/sekunda
 execute as @a at @s run function dziobmc:gracz/sekunda

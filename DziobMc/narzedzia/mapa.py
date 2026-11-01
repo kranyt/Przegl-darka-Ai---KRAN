@@ -136,6 +136,9 @@ def plac():
         x, z = round(20.5 * math.cos(a)), round(20.5 * math.sin(a))
         feat = "minecraft:cherry" if i % 2 == 0 else "minecraft:fancy_oak"
         out += [f"fill {x} {Y + 1} {z} {x} {Y + 6} {z} minecraft:air", f"place feature {feat} {x} {Y + 1} {z}"]
+    # podest NPC "Państwa" przy spawnie
+    out += [f"fill -6 {Y} 14 -4 {Y} 16 minecraft:chiseled_quartz_block", f"setblock -5 {Y} 15 minecraft:diamond_block",
+            f"fill -6 {Y + 1} 14 -4 {Y + 2} 16 minecraft:air"]
     # portal RTP (wschód, x=20)
     out += [f"fill 20 {Y} -3 20 {Y} 3 minecraft:obsidian",
             f"fill 20 {Y + 1} -3 20 {Y + 6} -3 minecraft:crying_obsidian",
@@ -299,7 +302,10 @@ def build():
             playsound minecraft:entity.villager.ambient master @s ~ ~ ~ 1 1
             function {NS}:{cel}
         """)
-    dek.append(text_display(20, Y + 8.2, 0, [t("✦ LOSOWY TELEPORT ✦", "light_purple", bold=True), t("\nWejdź do portalu, aby ruszyć w świat!", "gray")], "dz.holo", 2.2))
+    dek.append(text_display(20, Y + 8.2, 0, [t("✪ MAPA ZIEMI ✪", "aqua", bold=True), t("\nWejdź do portalu – losowy ląd na Ziemi!", "gray")], "dz.holo", 2.2))
+    dek.append(f"summon minecraft:villager -5 {Y + 1} 15 {{Tags:[\"dz.map\",\"dz.npc\"],NoAI:1b,Invulnerable:1b,Silent:1b,PersistenceRequired:1b,Rotation:[-90f,0f],VillagerData:{{profession:\"minecraft:cartographer\",level:5,type:\"minecraft:jungle\"}},Offers:{{Recipes:[]}}}}")
+    dek.append(f"summon minecraft:interaction -5 {Y + 1} 15 {{Tags:[\"dz.map\",\"dz.int.panstwa\"],width:1.3f,height:2.3f,response:1b}}")
+    dek.append(text_display(-5, Y + 2.6, 15, [t("✪ PAŃSTWA", "aqua", bold=True), t("\nEarth SMP", "gray")], "dz.holo", 2.2))
     dek.append(text_display(0, Y + 6.5, -55, [t("⚔ ARENA BOSSA ⚔", "red", bold=True), t("\nTu pojawia się Król Dziobów", "gray")], "dz.holo", 2.4))
     dek.append(text_display(0, Y + 9.2, 57, [t("⚔ ARENA PvP ⚔", "red", bold=True), t("\nWalka z graczami • 25 monet za kill", "gray")], "dz.holo", 2.4))
     dek.append(text_display(-29, Y + 3, 0, [t("PARKOUR ➜", "aqua", bold=True), t("\nNagroda: 75 monet", "gray")], "dz.holo", 2.4))

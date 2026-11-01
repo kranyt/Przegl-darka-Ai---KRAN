@@ -1,5 +1,6 @@
 # Użycie: /execute as NICK run function dziobmc:rangi/ustaw/mvp
-team join 6_mvp @s
+scoreboard players set @s dz.rid 6
+function dziobmc:gracz/druzyna
 scoreboard players set @s dz.rank 2
 tag @s remove dz.staff
 tellraw @a [{"text":"✦ ","color":"gold"},{"selector":"@s"},{"text":" otrzymał rangę ","color":"yellow"},{"text":"MVP","color":"gold","bold":true},{"text":"!","color":"yellow"}]

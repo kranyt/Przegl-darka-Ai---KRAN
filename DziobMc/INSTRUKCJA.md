@@ -2,8 +2,22 @@
 
 **IP:** `Dziob.fun` • **Gracze mogą wchodzić z wersji 1.16.4 → najnowsza**
 
+**🌍 EARTH SMP**: survival na mapie całej Ziemi (kontynenty, góry, rzeki, biomy) z państwami, władcami i wojnami.
+Do tego lobby z PvP, bossami i eventami.
+
 Gotowy serwer survival z własną mapą lobby, custom mobami, bossem, eventami, scoreboardem,
 rangami, sklepem, kitami i komendami.
+
+## 🌍 Earth SMP – screeny mapy Ziemi
+
+> Render 3D terenu z prawdziwego kodu generatora DziobEarth (skala 1:2000). Drzewa są przybliżone, w grze stawia je Minecraft.
+
+![Mapa Ziemi z generatora](screeny/13-mapa-ziemi-z-generatora.png)
+![Japonia – Fuji i wiśnie](screeny/12-ziemia-japonia.png)
+![Alpy](screeny/7-ziemia-alpy.png)
+![Norwegia](screeny/9-ziemia-norwegia.png)
+![Egipt – Nil](screeny/10-ziemia-nil.png)
+![Himalaje](screeny/11-ziemia-himalaje.png)
 
 ## 📸 Jak to wygląda (widok z gry, 3D)
 
@@ -40,6 +54,7 @@ DziobMc/
 │   ├── DziobMc-Serwer.zip     ← cały serwer na własny komputer/VPS
 │   └── DziobMc-Datapack.zip   ← sama paczka
 ├── WLASNY-SERWER-na-komputerze/ ← rozpakowany DziobMc-Serwer.zip
+├── plugin-ziemia/             ← kod pluginu DziobEarth (mapa Ziemi) + dane
 ├── narzedzia/                 ← generator (tylko do zmian)
 ├── screeny/               ← screeny 3D
 └── INSTRUKCJA.md
@@ -62,7 +77,8 @@ DziobMc-NaHosting/
 
 1. Wyłącz serwer, a w panelu wybierz **Paper 1.21.4**.
 2. Wrzuć zawartość folderów 1–3 tam, gdzie mówi ich nazwa, i skopiuj ustawienia z folderu 4.
-3. Pluginy z folderu 2: **ViaVersion** i **ViaBackwards** (gracze od 1.16.4 w górę) oraz **CoreProtect** (cofanie griefu).
+3. Pluginy z folderu 2: **DziobEarth.jar** (mapa Ziemi, jest w folderze), a do tego pobierz **ViaVersion** i **ViaBackwards** (gracze od 1.16.4 w górę) oraz **CoreProtect** (cofanie griefu).
+   Serwer potrzebuje min. **3–4 GB RAM** (mapa Ziemi).
 4. Włącz serwer. Mapa lobby zbuduje się sama.
 5. W konsoli: `op TwójNick` i `execute as TwójNick run function dziobmc:rangi/ustaw/wlasciciel`
 
@@ -120,7 +136,59 @@ a **ViaVersion + ViaBackwards** tłumaczą grę dla każdego gracza. Efekt:
 
 ---
 
-## 🗺️ Mapa (latająca wyspa w niebie, Y=150)
+## 🌍 Earth SMP (mapa Ziemi)
+
+Plugin **DziobEarth** (`plugins/DziobEarth.jar`) sam tworzy przy starcie osobny świat **`ziemia`** z mapą całej Ziemi.
+Lobby (spawn) zostaje w zwykłym świecie, a z lobby wchodzisz na Ziemię przez portal, NPC „Państwa” albo komendy.
+
+**Jak powstaje mapa:**
+* wybrzeża z maski ląd/ocean o rozdzielczości **1 km**, z jeziorami i rzekami (Wisła, Odra, Nil, Amazonka…),
+* wysokości z reliefu **ETOPO1** (NOAA): Alpy, Himalaje, Andy i Tatry wyrastają tam, gdzie trzeba (Everest ok. Y 230),
+* biomy ze **zdjęcia satelitarnego NASA (Blue Marble)**: Sahara jest pustynią, Amazonia dżunglą, Syberia tajgą,
+  Australia czerwonymi badlandami, Japonia wiśniowym gajem, a Grenlandia i Antarktyda lądolodem,
+* drzewa, rudy, jaskinie, wioski, świątynie i moby dodaje sam Minecraft, jak w normalnym świecie.
+
+**Skala** (`plugins/DziobEarth/config.yml`, przed pierwszym startem):
+
+| skala | 1 kratka | wielkość świata | dla kogo |
+|---|---|---|---|
+| 1000 | 1 km | 40 000 × 20 000 | duży serwer |
+| **2000** (domyślna) | 2 km | 20 000 × 10 000 | **polecana** |
+| 4000 | 4 km | 10 000 × 5 000 | mały serwer |
+
+Jeśli zmienisz skalę, wpisz w grze tę samą skalę: `/function dziobmc:ziemia/skala/1000` (albo `/2000`, `/4000`, `/8000`).
+
+### Państwa (56 prawdziwych krajów)
+* `/trigger panstwo`: lista krajów pogrupowana po kontynentach. Kliknij nazwę, żeby dołączyć.
+* **Pierwszy gracz w kraju zostaje WŁADCĄ** ♛ (ogłoszenie, napis na ekranie i fajerwerki).
+* Prefiks kraju widać w TAB-ie i na czacie, obok rangi: `[VIP] [POL] Kuba_PL`.
+* **Skarbiec państwa:** każdy może wpłacać monety (`[WPŁAĆ 100]`), a wypłacać może tylko władca.
+* **Granice:** władca może je zamknąć. Wtedy nowi wysyłają prośbę, a władca klika `[PRZYJMIJ]`.
+* Jeśli władca odejdzie, **tron jest wolny** i każdy mieszkaniec może go przejąć.
+* **Chronione stolice:** w promieniu 64 kratek od stolicy obcy gracze nie mogą niszczyć bloków
+  (tryb przygody). Ochrona nie działa dla państwa, z którym trwa wojna.
+
+### Wojny ⚔
+* Władca: `/trigger wojna` pokazuje listę państw z przyciskiem `[WYPOWIEDZ WOJNĘ]`.
+* Wojna trwa **30 minut**. Każde zabicie gracza z wrogiego kraju to **+1 punkt**, a kto pierwszy zdobędzie **15**, wygrywa.
+* **Zwycięzca zabiera 30% skarbca przegranego**, dostaje +1 do wygranych wojen i fajerwerki.
+* Po wojnie obowiązuje **30 minut rozejmu**. Władca może też skapitulować.
+* **Ranking potęgi państw** pokazuje się co 15 s na scoreboardzie (mieszkańcy, skarbiec, wygrane wojny).
+
+### Komendy Earth SMP
+| Komenda | Działanie |
+|---|---|
+| `/trigger ziemia` | menu Earth SMP |
+| `/trigger panstwo` | wybór / zarządzanie państwem |
+| `/trigger stolica` | lot do stolicy swojego państwa albo lista stolic świata |
+| `/trigger rtp` (lub portal w lobby) | losowe miejsce **na lądzie** |
+| `/trigger gdzie` | szerokość i długość geograficzna oraz najbliższa stolica |
+| `/trigger wojna` | wojny (dla władców) |
+| `/trigger skarbiec set 500` | wpłata do skarbca (władca: `set -500` to wypłata) |
+
+![Polska – Warszawa](screeny/8-ziemia-polska.png)
+
+## 🗺️ Mapa lobby (latająca wyspa w niebie, Y=150)
 
 | Miejsce | Opis |
 |---|---|

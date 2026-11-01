@@ -1,5 +1,6 @@
 # Użycie: /execute as NICK run function dziobmc:rangi/ustaw/gracz
-team join 8_gracz @s
+scoreboard players set @s dz.rid 8
+function dziobmc:gracz/druzyna
 scoreboard players set @s dz.rank 0
 tag @s remove dz.staff
 tellraw @a [{"text":"✦ ","color":"gold"},{"selector":"@s"},{"text":" otrzymał rangę ","color":"yellow"},{"text":"GRACZ","color":"gray"},{"text":"!","color":"yellow"}]

@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import wspolne  # noqa: E402
-import rdzen, komendy, moby, eventy, mapa, serwer, pvp  # noqa: E401,E402
+import rdzen, komendy, moby, eventy, mapa, serwer, pvp, ziemia_smp  # noqa: E401,E402
 
 ROOT = Path(__file__).resolve().parent.parent
 SERWER = ROOT / "WLASNY-SERWER-na-komputerze"
@@ -33,6 +33,14 @@ def lint(files):
             obiekty.add(m.group(1))
             if len(m.group(1)) > 16:
                 bledy.append(f"za długa nazwa celu: {m.group(1)}")
+
+    makra = {f for f in funkcje if any(ln.startswith("$") for ln in files[f"data/dziobmc/function/{f}.mcfunction"].split("\n"))}
+    for p, txt in files.items():
+        for m in re.finditer(r"function dziobmc:([a-z0-9_/.]+)( with | \{)?", txt):
+            if m.group(1) in makra and not m.group(2):
+                bledy.append(f"{p}: makro {m.group(1)} wywołane bez argumentów")
+            if m.group(2) and m.group(1) in funkcje and m.group(1) not in makra:
+                bledy.append(f"{p}: {m.group(1)} wywołane z argumentami, a nie jest makrem")
 
     def sprawdz_ref(p, txt):
         for m in re.finditer(r"dziobmc:([a-z0-9_/.]+)", txt):
@@ -63,8 +71,16 @@ def lint(files):
         for nr, line in enumerate(txt.split("\n"), 1):
             if not line or line.startswith("#"):
                 continue
-            if line.startswith(" ") or line.startswith("$"):
-                bledy.append(f"{p}:{nr}: wcięcie/makro")
+            if line.startswith(" "):
+                bledy.append(f"{p}:{nr}: wcięcie")
+            makro = line.startswith("$")
+            if makro and "$(" not in line:
+                bledy.append(f"{p}:{nr}: linia makra bez zmiennej $(...)")
+            if makro:
+                # podstaw przykładowe wartości i sprawdź jak zwykłą linię
+                line = re.sub(r"\$\((n\w*)\)", '{"text":"X"}', line[1:])
+                line = re.sub(r"\$\(\w+\)", "7", line)
+                makro = False
             # nawiasy
             st, q = [], None
             for ch in line:
@@ -83,7 +99,7 @@ def lint(files):
             if st:
                 bledy.append(f"{p}:{nr}: niezamknięte nawiasy")
             # JSON w tellraw/title/bossbar/team prefix/display name
-            for pat in [r"tellraw \S+ (.*)$", r"title \S+ (?:title|subtitle|actionbar) (.*)$",
+            for pat in [] if makro else [r"tellraw \S+ (.*)$", r"title \S+ (?:title|subtitle|actionbar) (.*)$",
                         r"bossbar set \S+ name (.*)$", r"team modify \S+ prefix (.*)$",
                         r"display name \S+ \S+ (.*)$", r"objectives add \S+ \S+ (.*)$",
                         r"bossbar add \S+ (.*)$", r"numberformat \S+ \S+ styled (.*)$"]:
@@ -126,6 +142,8 @@ def main():
     eventy.build()
     mapa.build()
     pvp.build()
+    ziemia_smp.build()
+    ziemia_smp.build_tick()
 
     bledy = lint(wspolne.FILES)
     if bledy:

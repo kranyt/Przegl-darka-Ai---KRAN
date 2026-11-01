@@ -1,8 +1,9 @@
 # Strefa lobby: x/z -110..110, y 140..220 (świat zwykły)
 tag @a remove dz.lobby
 execute in minecraft:overworld run tag @a[x=-110,y=140,z=-110,dx=220,dy=80,dz=220] add dz.lobby
+function dziobmc:ziemia/strefy
 gamemode adventure @a[tag=dz.lobby,gamemode=survival,tag=!dz.build]
-gamemode survival @a[tag=!dz.lobby,gamemode=adventure,tag=!dz.build]
+gamemode survival @a[tag=!dz.lobby,tag=!dz.strefa_obca,gamemode=adventure,tag=!dz.build]
 # Strefy: arena PvP i arena bossa = walka; reszta lobby = bezpieczna (Resistance V)
 tag @a remove dz.pvp_strefa
 tag @a remove dz.boss_strefa
@@ -17,6 +18,6 @@ execute in minecraft:overworld as @e[x=-110,y=128,z=-110,dx=220,dy=92,dz=220,typ
 # Portal losowego teleportu
 execute in minecraft:overworld run particle minecraft:portal 20 153 0 0.2 1.3 1.6 0.6 50 force
 execute in minecraft:overworld run particle minecraft:end_rod 20 153 0 0.1 1.3 1.6 0.01 3 force
-execute in minecraft:overworld as @a[x=19,y=151,z=-2,dx=1,dy=3,dz=4,tag=!dz.build] at @s run function dziobmc:komendy/rtp_teleport
+execute in minecraft:overworld as @a[x=19,y=151,z=-2,dx=1,dy=3,dz=4,tag=!dz.build] at @s run function dziobmc:ziemia/rtp
 # Meta parkouru
 execute as @a[tag=dz.lobby] at @s if block ~ ~-1 ~ minecraft:emerald_block run function dziobmc:lobby/parkour_meta

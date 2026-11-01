@@ -11,9 +11,9 @@ KAŻDY FOLDER JEST PODPISANY, GDZIE WRZUCIĆ JEGO ZAWARTOŚĆ:
          w server.properties - wrzuć do <nazwa_swiata>/datapacks/)
 
   [2 - WRZUC DO plugins]
-        tu nie ma plików .jar (trzeba je pobrać) - otwórz txt w środku,
-        pobierz pluginy z linków i wrzuć je do folderu plugins/
-        (albo zainstaluj je z listy pluginów w panelu hostingu)
+        DziobEarth.jar (mapa Ziemi) -> plugins/   (jest w folderze!)
+        + pobierz ViaVersion i ViaBackwards z linków w txt i też wrzuć
+          do plugins/ (albo zainstaluj z listy pluginów w panelu)
 
   [3 - WRZUC DO glownego folderu serwera]
         server-icon.png  ->  główny folder (tam, gdzie server.properties)

@@ -2,6 +2,7 @@
 execute as @a[tag=!dz.joined] at @s run function dziobmc:gracz/pierwsze_wejscie
 execute as @a[scores={dz.leave=1..}] at @s run function dziobmc:gracz/powrot
 execute as @a[team=] run function dziobmc:rangi/domyslna
+function dziobmc:ziemia/tick
 # Komendy /trigger
 execute as @a[scores={pomoc=1..}] at @s run function dziobmc:komendy/pomoc
 execute as @a[scores={spawn=1..}] at @s run function dziobmc:komendy/spawn

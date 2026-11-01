@@ -1,5 +1,6 @@
 # Użycie: /execute as NICK run function dziobmc:rangi/ustaw/vip
-team join 7_vip @s
+scoreboard players set @s dz.rid 7
+function dziobmc:gracz/druzyna
 scoreboard players set @s dz.rank 1
 tag @s remove dz.staff
 tellraw @a [{"text":"✦ ","color":"gold"},{"selector":"@s"},{"text":" otrzymał rangę ","color":"yellow"},{"text":"VIP","color":"yellow","bold":true},{"text":"!","color":"yellow"}]

@@ -1,5 +1,6 @@
 # Użycie: /execute as NICK run function dziobmc:rangi/ustaw/admin
-team join 1_admin @s
+scoreboard players set @s dz.rid 1
+function dziobmc:gracz/druzyna
 scoreboard players set @s dz.rank 6
 tag @s add dz.staff
 tellraw @a [{"text":"✦ ","color":"gold"},{"selector":"@s"},{"text":" otrzymał rangę ","color":"yellow"},{"text":"ADMIN","color":"red","bold":true},{"text":"!","color":"yellow"}]

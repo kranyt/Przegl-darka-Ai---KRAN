@@ -1,0 +1,18 @@
+# ==========================================================
+#  DziobEarth – mapa Ziemi dla DziobMc (Earth SMP)
+# ==========================================================
+# Skala: 1 kratka = tyle metrów.
+#   1000 -> świat 40 000 x 20 000 kratek (duży, jak 1:1000)
+#   2000 -> świat 20 000 x 10 000 kratek (ZALECANE)
+#   4000 -> świat 10 000 x  5 000 kratek (mały serwer)
+# UWAGA: nie zmieniaj skali po wygenerowaniu świata!
+#        (i ustaw tę samą w grze: /function dziobmc:ziemia/skala/2000)
+skala: 2000
+
+# Plugin sam tworzy osobny świat z mapą Ziemi:
+utworz_swiat: true
+nazwa_swiata: ziemia
+
+# Spawn świata Ziemi (domyślnie Warszawa)
+spawn_szerokosc: 52.23
+spawn_dlugosc: 21.01

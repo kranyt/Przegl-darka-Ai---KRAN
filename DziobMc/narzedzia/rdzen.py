@@ -72,7 +72,7 @@ def build():
         "scoreboard objectives setdisplay below_name dz.hp",
         *stale,
         f"execute unless score #init dz.data matches 1 run function {NS}:init",
-        f"function {NS}:rangi/druzyny",
+        f"function {NS}:ziemia/init",
         f"function {NS}:sidebar/ustaw",
         "bossbar add dziobmc:event " + J(t("DziobMc", "gold")),
         "bossbar set dziobmc:event color yellow",
@@ -107,6 +107,7 @@ def build():
         f"execute as @a[tag=!dz.joined] at @s run function {NS}:gracz/pierwsze_wejscie",
         f"execute as @a[scores={{dz.leave=1..}}] at @s run function {NS}:gracz/powrot",
         f"execute as @a[team=] run function {NS}:rangi/domyslna",
+        f"function {NS}:ziemia/tick",
         "# Komendy /trigger",
     ]
     tick += [f"execute as @a[scores={{{tr}=1..}}] at @s run function {NS}:komendy/{tr}" for tr in TRIGGERY]
@@ -126,23 +127,16 @@ def build():
         function {NS}:event/zegar
         function {NS}:moby/sekunda
         function {NS}:mapa/animacja
+        function {NS}:ziemia/sekunda
         execute as @a at @s run function {NS}:gracz/sekunda
     """)
 
     # ---------------------------------------------------------------- rangi
-    druzyny = []
-    for rid, team, lvl, pre, col, staff in RANGI:
-        druzyny += [
-            f"team add {team}",
-            f"team modify {team} prefix {J(prefix(pre))}",
-            f"team modify {team} color {col}",
-            f"team modify {team} collisionRule never",
-            f"team modify {team} nametagVisibility always",
-            f"team modify {team} friendlyFire true",
-        ]
+    for ri, (rid, team, lvl, pre, col, staff) in enumerate(RANGI):
         fn(f"rangi/ustaw/{rid}", "\n".join([
             f"# Użycie: /execute as NICK run function {NS}:rangi/ustaw/{rid}",
-            f"team join {team} @s",
+            f"scoreboard players set @s dz.rid {ri}",
+            f"function {NS}:gracz/druzyna",
             f"scoreboard players set @s dz.rank {lvl}",
             "tag @s add dz.staff" if staff else "tag @s remove dz.staff",
             tellraw("@a", t("✦ ", "gold"), sel("@s"), t(" otrzymał rangę ", "yellow"), *pre, t("!", "yellow")),
@@ -152,10 +146,9 @@ def build():
             "execute at @s run playsound minecraft:ui.toast.challenge_complete master @s ~ ~ ~ 1 1",
             "execute at @s run " + firework_cmd(),
         ]))
-    fn("rangi/druzyny", "\n".join(druzyny))
-    fn("rangi/domyslna", """
-        team join 8_gracz @s
+    fn("rangi/domyslna", f"""
         scoreboard players add @s dz.rank 0
+        function {NS}:gracz/druzyna
     """)
 
     # ---------------------------------------------------------------- gracze
@@ -170,6 +163,8 @@ def build():
         scoreboard players set @s dz.czas 0
         scoreboard players set @s dz.minuty 0
         {cds}
+        function {NS}:gracz/nadaj_id
+        scoreboard players set @s dz.kraj 0
         function {NS}:rangi/domyslna
         execute if score #mapa dz.data matches 1 in minecraft:overworld run tp @s {SPAWN}
         title @s times 10 80 20
@@ -181,6 +176,7 @@ def build():
         playsound minecraft:ui.toast.challenge_complete master @s ~ ~ ~ 1 1
         {firework_cmd()}
         function {NS}:komendy/menu_pomoc
+        {tellraw("@s", t("✪ Wybierz swoje państwo na mapie Ziemi: ", "aqua", bold=True), t("[WYBIERZ PAŃSTWO]", "gold", bold=True, run="/trigger panstwo set 1"))}
     """)
     fn("gracz/powrot", f"""
         scoreboard players set @s dz.leave 0
@@ -273,8 +269,9 @@ def build():
         # Strefa lobby: x/z -110..110, y 140..220 (świat zwykły)
         tag @a remove dz.lobby
         execute in minecraft:overworld run tag @a[x=-110,y=140,z=-110,dx=220,dy=80,dz=220] add dz.lobby
+        function {NS}:ziemia/strefy
         gamemode adventure @a[tag=dz.lobby,gamemode=survival,tag=!dz.build]
-        gamemode survival @a[tag=!dz.lobby,gamemode=adventure,tag=!dz.build]
+        gamemode survival @a[tag=!dz.lobby,tag=!dz.strefa_obca,gamemode=adventure,tag=!dz.build]
         # Strefy: arena PvP i arena bossa = walka; reszta lobby = bezpieczna (Resistance V)
         tag @a remove dz.pvp_strefa
         tag @a remove dz.boss_strefa
@@ -289,7 +286,7 @@ def build():
         # Portal losowego teleportu
         execute in minecraft:overworld run particle minecraft:portal 20 153 0 0.2 1.3 1.6 0.6 50 force
         execute in minecraft:overworld run particle minecraft:end_rod 20 153 0 0.1 1.3 1.6 0.01 3 force
-        execute in minecraft:overworld as @a[x=19,y=151,z=-2,dx=1,dy=3,dz=4,tag=!dz.build] at @s run function {NS}:komendy/rtp_teleport
+        execute in minecraft:overworld as @a[x=19,y=151,z=-2,dx=1,dy=3,dz=4,tag=!dz.build] at @s run function {NS}:ziemia/rtp
         # Meta parkouru
         execute as @a[tag=dz.lobby] at @s if block ~ ~-1 ~ minecraft:emerald_block run function {NS}:lobby/parkour_meta
     """)

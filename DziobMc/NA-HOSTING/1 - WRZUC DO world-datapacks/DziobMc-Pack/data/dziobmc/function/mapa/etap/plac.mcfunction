@@ -464,6 +464,9 @@ fill 10 151 -18 10 156 -18 minecraft:air
 place feature minecraft:cherry 10 151 -18
 fill 18 151 -10 18 156 -10 minecraft:air
 place feature minecraft:fancy_oak 18 151 -10
+fill -6 150 14 -4 150 16 minecraft:chiseled_quartz_block
+setblock -5 150 15 minecraft:diamond_block
+fill -6 151 14 -4 152 16 minecraft:air
 fill 20 150 -3 20 150 3 minecraft:obsidian
 fill 20 151 -3 20 156 -3 minecraft:crying_obsidian
 fill 20 151 3 20 156 3 minecraft:crying_obsidian

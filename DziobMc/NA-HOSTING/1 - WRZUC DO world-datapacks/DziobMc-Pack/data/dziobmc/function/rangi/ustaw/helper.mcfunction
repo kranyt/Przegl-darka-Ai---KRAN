@@ -1,5 +1,6 @@
 # Użycie: /execute as NICK run function dziobmc:rangi/ustaw/helper
-team join 3_helper @s
+scoreboard players set @s dz.rid 3
+function dziobmc:gracz/druzyna
 scoreboard players set @s dz.rank 4
 tag @s add dz.staff
 tellraw @a [{"text":"✦ ","color":"gold"},{"selector":"@s"},{"text":" otrzymał rangę ","color":"yellow"},{"text":"HELPER","color":"aqua","bold":true},{"text":"!","color":"yellow"}]

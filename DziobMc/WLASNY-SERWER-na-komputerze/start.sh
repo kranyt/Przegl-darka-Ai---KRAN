@@ -3,7 +3,7 @@
 # Wrzuć tu plik server.jar = Paper 1.21.4 (wymaga Java 21)
 cd "$(dirname "$0")"
 while true; do
-  java -Xms2G -Xmx4G -XX:+UseG1GC -jar server.jar nogui
+  java -Xms3G -Xmx6G -XX:+UseG1GC -jar server.jar nogui
   echo "Serwer wyłączony. Restart za 5 sekund (Ctrl+C aby anulować)..."
   sleep 5
 done

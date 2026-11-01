@@ -15,6 +15,8 @@ scoreboard players set @s dz.cd_spawn -100000000
 scoreboard players set @s dz.cd_rtp -100000000
 scoreboard players set @s dz.cd_park -100000000
 scoreboard players set @s dz.cd_kit5 -100000000
+function dziobmc:gracz/nadaj_id
+scoreboard players set @s dz.kraj 0
 function dziobmc:rangi/domyslna
 execute if score #mapa dz.data matches 1 in minecraft:overworld run tp @s 0 151 18 180 0
 title @s times 10 80 20
@@ -26,3 +28,4 @@ function dziobmc:kity/daj/start
 playsound minecraft:ui.toast.challenge_complete master @s ~ ~ ~ 1 1
 summon minecraft:firework_rocket ~ ~1 ~ {LifeTime:18,FireworksItem:{id:"minecraft:firework_rocket",count:1,components:{"minecraft:fireworks":{flight_duration:1b,explosions:[{shape:"large_ball",colors:[I;16766720,16744192],has_trail:true,has_twinkle:true}]}}}}
 function dziobmc:komendy/menu_pomoc
+tellraw @s [{"text":"✪ Wybierz swoje państwo na mapie Ziemi: ","color":"aqua","bold":true},{"text":"[WYBIERZ PAŃSTWO]","color":"gold","bold":true,"clickEvent":{"action":"run_command","value":"/trigger panstwo set 1"}}]

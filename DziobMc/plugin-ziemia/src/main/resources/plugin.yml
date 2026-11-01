@@ -1,0 +1,7 @@
+name: DziobEarth
+version: 1.0.0
+main: pl.dziobmc.ziemia.DziobEarth
+api-version: '1.21'
+description: Mapa Ziemi (Earth SMP) dla serwera DziobMc - Dziob.fun
+author: DziobMc
+website: https://dziob.fun

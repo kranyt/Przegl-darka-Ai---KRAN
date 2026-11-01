@@ -94,7 +94,9 @@ def build():
     """)
     fn("komendy/menu_pomoc", "\n".join(naglowek("KOMENDY") + [
         przycisk("SPAWN", "/trigger spawn", "green", "teleport na spawn", "/trigger spawn"),
-        przycisk("LOSOWY TP", "/trigger rtp", "dark_purple", "teleport w losowe miejsce świata", "/trigger rtp"),
+        przycisk("ZIEMIA", "/trigger ziemia", "aqua", "Earth SMP: mapa Ziemi, stolice, gdzie jestem", "/trigger ziemia"),
+        przycisk("PAŃSTWA", "/trigger panstwo", "gold", "dołącz do państwa / zostań władcą", "/trigger panstwo"),
+        przycisk("LOSOWY TP", "/trigger rtp", "dark_purple", "losowe miejsce na lądzie (mapa Ziemi)", "/trigger rtp"),
         przycisk("WARPY", "/trigger warp", "aqua", "arena PvP, arena bossa, parkour, spawn", "/trigger warp"),
         przycisk("KITY", "/trigger kit", "yellow", "darmowe zestawy przedmiotów", "/trigger kit"),
         przycisk("SKLEP", "/trigger sklep", "gold", "kupuj przedmioty za monety ⛃", "/trigger sklep"),
@@ -119,7 +121,7 @@ def build():
     # ------------------------------------------------------------ rtp
     fn("komendy/rtp", f"""
         scoreboard players set @s rtp 0
-        function {NS}:komendy/rtp_teleport
+        function {NS}:ziemia/rtp
     """)
     fn("komendy/rtp_teleport", f"""
         {cooldown("dz.cd_rtp", 1200)}
@@ -150,7 +152,8 @@ def build():
         przycisk("ARENA BOSSA", "/trigger warp set 12", "red", "tu walczy się z Królem Dziobów", "Teleportuj"),
         przycisk("PARKOUR", "/trigger warp set 13", "aqua", "ukończ go i zgarnij 75 monet!", "Teleportuj"),
         przycisk("ARENA PvP", "/trigger warp set 14", "dark_red", "walcz z graczami – 25 monet za kill!", "Teleportuj"),
-        przycisk("LOSOWY TP", "/trigger rtp", "dark_purple", "dziki świat survival", "Teleportuj"),
+        przycisk("LOSOWY TP", "/trigger rtp", "dark_purple", "losowy ląd na mapie Ziemi", "Teleportuj"),
+        przycisk("STOLICE", "/trigger stolica set 1", "aqua", "stolica twojego państwa / lista stolic", "Teleportuj"),
     ] + stopka()))
 
     # ------------------------------------------------------------ kity

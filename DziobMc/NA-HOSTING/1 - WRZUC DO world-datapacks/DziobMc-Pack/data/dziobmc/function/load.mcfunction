@@ -51,7 +51,7 @@ scoreboard players set #60 dz.data 60
 scoreboard players set #100 dz.data 100
 scoreboard players set #1200 dz.data 1200
 execute unless score #init dz.data matches 1 run function dziobmc:init
-function dziobmc:rangi/druzyny
+function dziobmc:ziemia/init
 function dziobmc:sidebar/ustaw
 bossbar add dziobmc:event {"text":"DziobMc","color":"gold"}
 bossbar set dziobmc:event color yellow

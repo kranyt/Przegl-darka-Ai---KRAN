@@ -1,0 +1,22 @@
+{
+  "criteria": {
+    "klik": {
+      "trigger": "minecraft:player_interacted_with_entity",
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "minecraft:interaction",
+              "nbt": "{Tags:[\"dz.int.panstwa\"]}"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "function": "dziobmc:npc/panstwa"
+  }
+}
