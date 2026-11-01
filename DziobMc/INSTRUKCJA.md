@@ -13,30 +13,34 @@ rangami, sklepem, kitami i komendami.
 
 ```
 DziobMc/
-├── INSTRUKCJA.md          ← ten plik
+├── NA-HOSTING/                ← 👉 MASZ HOSTING? TO JEST DLA CIEBIE
 ├── POBIERZ/
-│   ├── DziobMc-NaHosting.zip ← 👉 MASZ HOSTING? POBIERZ TO
-│   ├── DziobMc-Serwer.zip    ← cały serwer (na własny komputer/VPS)
-│   └── DziobMc-Datapack.zip  ← sama paczka
-├── serwer/                ← to samo co w DziobMc-Serwer.zip (rozpakowane)
-├── narzedzia/             ← generator w Pythonie (tylko gdy chcesz coś zmienić)
-└── podglad-mapy.png       ← podgląd mapy z góry
+│   ├── DziobMc-NaHosting.zip  ← to samo co NA-HOSTING/, w jednym pliku
+│   ├── DziobMc-Serwer.zip     ← cały serwer na własny komputer/VPS
+│   └── DziobMc-Datapack.zip   ← sama paczka
+├── WLASNY-SERWER-na-komputerze/ ← rozpakowany DziobMc-Serwer.zip
+├── narzedzia/                 ← generator (tylko do zmian)
+└── INSTRUKCJA.md, podglad-mapy.png
 ```
 
 ## 🌍 Masz gotowy hosting? (serwer publiczny)
 
-Pobierz **`POBIERZ/DziobMc-NaHosting.zip`**. Foldery w nim są ułożone tak samo jak na serwerze:
+Pobierz **`POBIERZ/DziobMc-NaHosting.zip`**. Każdy folder w środku jest podpisany miejscem, do którego trzeba go wrzucić:
 
-| Z ZIP-a | Gdzie na hostingu |
-|---|---|
-| `world/datapacks/DziobMc-Pack/` | `world/datapacks/DziobMc-Pack/` (wrzuć folder, nie zip!) |
-| `server-icon.png` | główny folder serwera |
-| `plugins/` | tu idą pluginy (lista w pliku w środku) |
-| `NA-HOSTING-PUBLICZNY.txt` | instrukcja, przeczytaj ją |
+```
+DziobMc-NaHosting/
+├── 00 - PRZECZYTAJ MNIE.txt
+├── 1 - WRZUC DO world-datapacks/          → zawartość do  world/datapacks/
+│   └── DziobMc-Pack/                          (na hostingu: world/datapacks/DziobMc-Pack/pack.mcmeta)
+├── 2 - WRZUC DO plugins/                  → linki do pluginów; pobrane .jar wrzuć do  plugins/
+├── 3 - WRZUC DO glownego folderu serwera/ → server-icon.png do głównego folderu
+├── 4 - SKOPIUJ DO server.properties/      → linijki do skopiowania (MOTD itd.)
+└── 5 - OPCJONALNIE plugins-TAB i LuckPerms/
+```
 
 1. Wyłącz serwer, a w panelu wybierz **Paper 1.21.4**.
-2. Zainstaluj pluginy **ViaVersion** i **ViaBackwards** (gracze od 1.16.4 w górę), a na serwer publiczny także **CoreProtect** (cofanie griefu).
-3. Wrzuć `DziobMc-Pack` do `world/datapacks/` przez menedżer plików albo FTP. Musi istnieć plik `world/datapacks/DziobMc-Pack/pack.mcmeta`.
+2. Wrzuć zawartość folderów 1–3 tam, gdzie mówi ich nazwa, i skopiuj ustawienia z folderu 4.
+3. Pluginy z folderu 2: **ViaVersion** i **ViaBackwards** (gracze od 1.16.4 w górę) oraz **CoreProtect** (cofanie griefu).
 4. Włącz serwer. Mapa lobby zbuduje się sama.
 5. W konsoli: `op TwójNick` i `execute as TwójNick run function dziobmc:rangi/ustaw/wlasciciel`
 

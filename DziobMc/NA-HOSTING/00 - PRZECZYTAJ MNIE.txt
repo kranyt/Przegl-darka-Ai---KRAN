@@ -1,0 +1,58 @@
+==========================================================
+   DziobMc NA HOSTING (serwer publiczny)  –  IP: Dziob.fun
+==========================================================
+
+KAŻDY FOLDER JEST PODPISANY, GDZIE WRZUCIĆ JEGO ZAWARTOŚĆ:
+
+  [1 - WRZUC DO world-datapacks]
+        zawartość (folder DziobMc-Pack)  ->  world/datapacks/
+        na hostingu ma być:  world/datapacks/DziobMc-Pack/pack.mcmeta
+        (jeśli świat nie nazywa się "world" - sprawdź level-name
+         w server.properties - wrzuć do <nazwa_swiata>/datapacks/)
+
+  [2 - WRZUC DO plugins]
+        tu nie ma plików .jar (trzeba je pobrać) - otwórz txt w środku,
+        pobierz pluginy z linków i wrzuć je do folderu plugins/
+        (albo zainstaluj je z listy pluginów w panelu hostingu)
+
+  [3 - WRZUC DO glownego folderu serwera]
+        server-icon.png  ->  główny folder (tam, gdzie server.properties)
+
+  [4 - SKOPIUJ DO server.properties]
+        otwórz txt i skopiuj linijki do server.properties
+        (albo ustaw je w zakładce "Ustawienia" w panelu)
+
+  [5 - OPCJONALNIE plugins-TAB i LuckPerms]
+        tylko jeśli instalujesz plugin TAB / LuckPerms
+
+----------------------------------------------------------
+KROK PO KROKU
+----------------------------------------------------------
+ 1. WYŁĄCZ serwer w panelu.
+ 2. W panelu wybierz silnik/wersję:  Paper 1.21.4
+ 3. Folder 1, 2, 3, 4 – jak wyżej.
+ 4. WŁĄCZ serwer. Po ok. 10 sekundach mapa lobby zbuduje się sama
+    w niebie nad 0 150 0, a spawn świata zostanie tam przeniesiony.
+ 5. W KONSOLI panelu wpisz:
+       op TwojNick
+       execute as TwojNick run function dziobmc:rangi/ustaw/wlasciciel
+ 6. Domena: rekord A  Dziob.fun -> IP hostingu
+    (jeśli hosting dał port inny niż 25565, dodaj rekord SRV:
+     _minecraft._tcp.Dziob.fun  ->  port, cel: adres hostingu)
+ 7. W grze (jako OP):  /function dziobmc:admin/panel
+
+----------------------------------------------------------
+BEZPIECZEŃSTWO – SERWER PUBLICZNY (WAŻNE!)
+----------------------------------------------------------
+ * online-mode=true  -> wchodzą tylko gracze premium. Bezpieczne.
+   online-mode=false -> wchodzą też non-premium, ALE każdy może wejść
+                        na twój nick i mieć twojego OP-a!
+                        WTEDY KONIECZNIE plugin AuthMeReloaded.
+ * OP-a dawaj tylko sobie. Rangi VIP/MVP itd. NIE dają OP-a.
+ * Gracze mają tylko komendy /trigger - nic nimi nie zepsują.
+ * Lobby jest chronione (tryb przygody). Świat survival - nie,
+   dlatego CoreProtect (/co rollback cofa grief).
+ * Włącz w panelu automatyczne kopie zapasowe.
+ * Mapa buduje się w niebie (Y 125–165 wokół 0,0) - jeśli masz tam
+   budowle, zostaną nadpisane. Gracze, którzy już grali, przy
+   pierwszym wejściu po instalacji dostaną 100 monet i kit Start.

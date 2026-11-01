@@ -1,0 +1,31 @@
+{
+  "pack": {
+    "pack_format": 48,
+    "supported_formats": [
+      48,
+      61
+    ],
+    "description": [
+      {
+        "text": "DziobMc ",
+        "color": "gold",
+        "bold": true
+      },
+      {
+        "text": "• Dziob.fun",
+        "color": "yellow"
+      }
+    ]
+  },
+  "overlays": {
+    "entries": [
+      {
+        "formats": [
+          57,
+          61
+        ],
+        "directory": "ov_1_21_2"
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+# ======================================================
+#  Skopiuj te linijki do server.properties
+#  (zamień istniejące linijki o tej samej nazwie).
+#  NIE zmieniaj server-port – ten ustawia hosting!
+# ======================================================
+motd=\u00A76\u00A7l\u2726 DziobMc \u2726 \u00A7r\u00A7e1.16.4-1.21+ \u00A78| \u00A7fDziob.fun\n\u00A7a\u2694 Custom Moby \u00A78\u2022 \u00A7cEventy \u00A78\u2022 \u00A7dRangi \u00A78\u2022 \u00A76Sklep
+max-players=100
+gamemode=survival
+difficulty=normal
+pvp=true
+online-mode=true
+enable-command-block=false
+spawn-protection=0
+allow-flight=false
+view-distance=8
+simulation-distance=6
+spawn-monsters=true
+spawn-animals=true
+white-list=false
+enforce-secure-profile=false

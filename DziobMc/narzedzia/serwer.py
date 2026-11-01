@@ -20,7 +20,6 @@ MOTD = (f"{S}6{S}l✦ DziobMc ✦ {S}r{S}e1.16.4-1.21+ {S}8| {S}fDziob.fun\\n"
 PROPERTIES = f"""#DziobMc - Dziob.fun
 motd={esc(MOTD)}
 level-name=world
-server-port=25565
 max-players=100
 gamemode=survival
 difficulty=normal
@@ -255,87 +254,60 @@ HOSTING_TXT = """==========================================================
    DziobMc NA HOSTING (serwer publiczny)  –  IP: Dziob.fun
 ==========================================================
 
-W tym ZIP-ie są tylko pliki do wrzucenia na hosting.
-Struktura folderów jest TAKA SAMA jak na serwerze, więc
-wrzucasz wszystko do głównego folderu serwera.
+KAŻDY FOLDER JEST PODPISANY, GDZIE WRZUCIĆ JEGO ZAWARTOŚĆ:
 
-  ZIP                                  ->  NA HOSTINGU
-  ---------------------------------------------------------
-  world/datapacks/DziobMc-Pack/        ->  world/datapacks/DziobMc-Pack/
-  server-icon.png                      ->  /  (główny folder)
-  plugins/  (instrukcja w środku)      ->  plugins/
-  dodatki-pluginy/  (opcjonalnie)      ->  nigdzie, to tylko konfiguracje do skopiowania
+  [1 - WRZUC DO world-datapacks]
+        zawartość (folder DziobMc-Pack)  ->  world/datapacks/
+        na hostingu ma być:  world/datapacks/DziobMc-Pack/pack.mcmeta
+        (jeśli świat nie nazywa się "world" - sprawdź level-name
+         w server.properties - wrzuć do <nazwa_swiata>/datapacks/)
 
-UWAGA: jeśli twój świat NIE nazywa się "world" (sprawdź level-name
-w server.properties), wrzuć DziobMc-Pack do <nazwa_swiata>/datapacks/.
+  [2 - WRZUC DO plugins]
+        tu nie ma plików .jar (trzeba je pobrać) - otwórz txt w środku,
+        pobierz pluginy z linków i wrzuć je do folderu plugins/
+        (albo zainstaluj je z listy pluginów w panelu hostingu)
+
+  [3 - WRZUC DO glownego folderu serwera]
+        server-icon.png  ->  główny folder (tam, gdzie server.properties)
+
+  [4 - SKOPIUJ DO server.properties]
+        otwórz txt i skopiuj linijki do server.properties
+        (albo ustaw je w zakładce "Ustawienia" w panelu)
+
+  [5 - OPCJONALNIE plugins-TAB i LuckPerms]
+        tylko jeśli instalujesz plugin TAB / LuckPerms
 
 ----------------------------------------------------------
-KROK PO KROKU (panel hostingu: Pterodactyl, Aternos, itp.)
+KROK PO KROKU
 ----------------------------------------------------------
  1. WYŁĄCZ serwer w panelu.
  2. W panelu wybierz silnik/wersję:  Paper 1.21.4
-    (paczka działa na serwerze 1.21 – 1.21.4)
- 3. Pluginy (panel -> Pluginy albo wrzuć .jar do plugins/):
-       - ViaVersion     (wpuszcza nowsze wersje niż 1.21.4)
-       - ViaBackwards   (wpuszcza starsze wersje, aż do 1.16.4)
-       - CoreProtect    (ZALECANE na publiczny: cofanie griefu)
- 4. Wrzuć folder DziobMc-Pack do world/datapacks/
-    (Menedżer plików albo FTP, np. FileZilla). Folder, NIE zip!
-    Sprawdź, czy ścieżka to: world/datapacks/DziobMc-Pack/pack.mcmeta
- 5. Wrzuć server-icon.png do głównego folderu.
- 6. Ustaw w panelu / server.properties (lista niżej).
- 7. WŁĄCZ serwer. Po ok. 10 sekundach mapa lobby zbuduje się sama
+ 3. Folder 1, 2, 3, 4 – jak wyżej.
+ 4. WŁĄCZ serwer. Po ok. 10 sekundach mapa lobby zbuduje się sama
     w niebie nad 0 150 0, a spawn świata zostanie tam przeniesiony.
- 8. W KONSOLI panelu wpisz:
+ 5. W KONSOLI panelu wpisz:
        op TwojNick
        execute as TwojNick run function dziobmc:rangi/ustaw/wlasciciel
- 9. Domena: rekord A  Dziob.fun -> IP hostingu
+ 6. Domena: rekord A  Dziob.fun -> IP hostingu
     (jeśli hosting dał port inny niż 25565, dodaj rekord SRV:
-     _minecraft._tcp.Dziob.fun  ->  port, cel: IP/adres hostingu)
-
-----------------------------------------------------------
-USTAWIENIA (server.properties albo zakładka "Ustawienia")
-----------------------------------------------------------
-  motd=  (gotowy MOTD jest w server.properties w DziobMc-Serwer.zip)
-  online-mode=true            <- patrz "PREMIUM / NON-PREMIUM" niżej
-  enforce-secure-profile=false
-  spawn-protection=0          (lobby chroni paczka – tryb przygody)
-  pvp=true
-  difficulty=normal
-  allow-flight=false
-  enable-command-block=false
-  view-distance=8
-  simulation-distance=6
-  white-list=false            (publiczny)
+     _minecraft._tcp.Dziob.fun  ->  port, cel: adres hostingu)
+ 7. W grze (jako OP):  /function dziobmc:admin/panel
 
 ----------------------------------------------------------
 BEZPIECZEŃSTWO – SERWER PUBLICZNY (WAŻNE!)
 ----------------------------------------------------------
- * PREMIUM / NON-PREMIUM:
-     online-mode=true  -> wejdą tylko gracze z kupionym Minecraftem.
-                          Bezpieczne, nikt nie podszyje się pod ciebie.
-     online-mode=false -> wejdą też gracze non-premium, ALE każdy może
-                          wpisać twój nick i dostać twojego OP-a!
-                          WTEDY KONIECZNIE zainstaluj plugin logowania:
-                          AuthMeReloaded albo LibreLogin
-                          (/register haslo haslo, /login haslo).
- * OP-a dawaj tylko sobie. Rangi VIP/MVP itd. NIE dają OP-a
-   (to tylko prefiks, bonus monet i kity) – można je dawać bezpiecznie.
- * Wszystkie komendy graczy to /trigger (np. /trigger sklep) – działają
-   bez OP-a i nie da się nimi nic zepsuć.
- * Lobby jest chronione: gracze mają tam tryb przygody (nie niszczą
-   bloków), wrogie moby są usuwane, kto spadnie – wraca na spawn.
- * Świat survival nie jest chroniony – dlatego CoreProtect
-   (/co inspect, /co rollback) do cofania griefu.
- * Rób kopie zapasowe w panelu (Backups) – np. codziennie.
- * Paczka na starym świecie: każdy gracz przy pierwszym wejściu po
-   instalacji dostanie 100 monet, kit Start i teleport na nowy spawn.
-   Mapa buduje się w niebie (Y 125–165 wokół 0,0) – jeśli masz tam
-   swoje budowle, zostaną nadpisane.
-
-----------------------------------------------------------
-PANEL ADMINA (w grze, jako OP):   /function dziobmc:admin/panel
-----------------------------------------------------------
+ * online-mode=true  -> wchodzą tylko gracze premium. Bezpieczne.
+   online-mode=false -> wchodzą też non-premium, ALE każdy może wejść
+                        na twój nick i mieć twojego OP-a!
+                        WTEDY KONIECZNIE plugin AuthMeReloaded.
+ * OP-a dawaj tylko sobie. Rangi VIP/MVP itd. NIE dają OP-a.
+ * Gracze mają tylko komendy /trigger - nic nimi nie zepsują.
+ * Lobby jest chronione (tryb przygody). Świat survival - nie,
+   dlatego CoreProtect (/co rollback cofa grief).
+ * Włącz w panelu automatyczne kopie zapasowe.
+ * Mapa buduje się w niebie (Y 125–165 wokół 0,0) - jeśli masz tam
+   budowle, zostaną nadpisane. Gracze, którzy już grali, przy
+   pierwszym wejściu po instalacji dostaną 100 monet i kit Start.
 """
 
 
@@ -357,6 +329,35 @@ def ikona(path: Path):
     img.save(path)
 
 
+USTAWIENIA_INFO = """# ======================================================
+#  Skopiuj te linijki do server.properties
+#  (zamień istniejące linijki o tej samej nazwie).
+#  NIE zmieniaj server-port – ten ustawia hosting!
+# ======================================================
+"""
+
+
+def build_hosting(na: Path, dp: Path, serwer_dir: Path):
+    """Folder NA-HOSTING z podfolderami nazwanymi jak miejsce docelowe."""
+    import shutil
+    if na.exists():
+        shutil.rmtree(na)
+    na.mkdir(parents=True)
+    (na / "00 - PRZECZYTAJ MNIE.txt").write_text(HOSTING_TXT, encoding="utf-8")
+    shutil.copytree(dp, na / "1 - WRZUC DO world-datapacks" / dp.name)
+    f2 = na / "2 - WRZUC DO plugins"
+    f2.mkdir()
+    (f2 / "POBIERZ PLUGINY - linki.txt").write_text(PLUGINY_TXT, encoding="utf-8")
+    f3 = na / "3 - WRZUC DO glownego folderu serwera"
+    f3.mkdir()
+    shutil.copy(serwer_dir / "server-icon.png", f3 / "server-icon.png")
+    f4 = na / "4 - SKOPIUJ DO server.properties"
+    f4.mkdir()
+    linie = [ln for ln in PROPERTIES.splitlines() if ln and not ln.startswith("#") and not ln.startswith("level-name")]
+    (f4 / "skopiuj te linijki.txt").write_text(USTAWIENIA_INFO + "\n".join(linie) + "\n", encoding="utf-8")
+    shutil.copytree(serwer_dir / "dodatki-pluginy", na / "5 - OPCJONALNIE plugins-TAB i LuckPerms")
+
+
 def build(out: Path):
     out.mkdir(parents=True, exist_ok=True)
     (out / "server.properties").write_text(PROPERTIES, encoding="latin-1")
@@ -375,4 +376,3 @@ def build(out: Path):
     (out / "plugins").mkdir(exist_ok=True)
     (out / "plugins" / "WRZUC-TUTAJ-PLUGINY.txt").write_text(PLUGINY_TXT, encoding="utf-8")
     (out / "GDZIE-CO-DAC.txt").write_text(GDZIE_TXT, encoding="utf-8")
-    (out / "NA-HOSTING-PUBLICZNY.txt").write_text(HOSTING_TXT, encoding="utf-8")

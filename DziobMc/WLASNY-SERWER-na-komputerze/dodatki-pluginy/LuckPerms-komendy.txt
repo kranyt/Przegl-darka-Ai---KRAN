@@ -1,0 +1,43 @@
+# ==========================================================
+#  DziobMc – rangi w LuckPerms (opcjonalnie, dla Paper/Spigot)
+#  Wklej te komendy po kolei w konsoli serwera.
+#  UWAGA: datapack ma własne rangi (drużyny) – działają też bez pluginów.
+# ==========================================================
+lp creategroup vip
+lp creategroup mvp
+lp creategroup legenda
+lp creategroup youtuber
+lp creategroup helper
+lp creategroup moderator
+lp creategroup admin
+lp creategroup wlasciciel
+
+lp group vip parent add default
+lp group mvp parent add vip
+lp group legenda parent add mvp
+lp group youtuber parent add mvp
+lp group helper parent add default
+lp group moderator parent add helper
+lp group admin parent add moderator
+lp group wlasciciel parent add admin
+
+lp group default meta setprefix 10 "&8[&7GRACZ&8] &7"
+lp group vip meta setprefix 20 "&8[&e&lVIP&8] &e"
+lp group mvp meta setprefix 30 "&8[&6&lMVP&8] &6"
+lp group legenda meta setprefix 40 "&8[&d&lLEGENDA&8] &d"
+lp group youtuber meta setprefix 40 "&8[&f&lY&c&lT&8] &f"
+lp group helper meta setprefix 50 "&8[&b&lHELPER&8] &b"
+lp group moderator meta setprefix 60 "&8[&2&lMOD&8] &a"
+lp group admin meta setprefix 70 "&8[&c&lADMIN&8] &c"
+lp group wlasciciel meta setprefix 80 "&8[&4&lWŁAŚCICIEL&8] &c"
+
+# Uprawnienia przykładowe
+lp group helper permission set minecraft.command.kick true
+lp group moderator permission set minecraft.command.ban true
+lp group admin permission set minecraft.command.gamemode true
+lp group admin permission set minecraft.command.function true
+lp group wlasciciel permission set * true
+
+# Nadanie rangi graczowi (plugin + datapack):
+#   lp user NICK parent set vip
+#   execute as NICK run function dziobmc:rangi/ustaw/vip

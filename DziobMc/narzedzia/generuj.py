@@ -17,7 +17,7 @@ import wspolne  # noqa: E402
 import rdzen, komendy, moby, eventy, mapa, serwer  # noqa: E401,E402
 
 ROOT = Path(__file__).resolve().parent.parent
-SERWER = ROOT / "serwer"
+SERWER = ROOT / "WLASNY-SERWER-na-komputerze"
 DP = SERWER / "world" / "datapacks" / "DziobMc-Pack"
 
 
@@ -146,13 +146,13 @@ def main():
         for f in sorted(SERWER.rglob("*")):
             if f.is_file():
                 z.write(f, "DziobMc-Serwer/" + str(f.relative_to(SERWER)))
-    # Paczka na gotowy hosting: tylko to, co się wrzuca (bez jar/eula/start)
-    na_hosting = ["world", "plugins", "dodatki-pluginy", "server-icon.png", "NA-HOSTING-PUBLICZNY.txt"]
+    # Paczka na gotowy hosting: foldery podpisane miejscem docelowym
+    NA = ROOT / "NA-HOSTING"
+    serwer.build_hosting(NA, DP, SERWER)
     with zipfile.ZipFile(ROOT / "POBIERZ" / "DziobMc-NaHosting.zip", "w", zipfile.ZIP_DEFLATED) as z:
-        for f in sorted(SERWER.rglob("*")):
-            rel = f.relative_to(SERWER)
-            if f.is_file() and rel.parts[0] in na_hosting:
-                z.write(f, str(rel))
+        for f in sorted(NA.rglob("*")):
+            if f.is_file():
+                z.write(f, "DziobMc-NaHosting/" + str(f.relative_to(NA)))
     with zipfile.ZipFile(ROOT / "POBIERZ" / "DziobMc-Datapack.zip", "w", zipfile.ZIP_DEFLATED) as z:
         for f in sorted(DP.rglob("*")):
             if f.is_file():

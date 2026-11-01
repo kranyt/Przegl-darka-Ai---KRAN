@@ -1,0 +1,31 @@
+# ==========================================================
+#  DziobMc – fragment konfiguracji pluginu TAB (NEZNAMY)
+#  Skopiuj sekcje do plugins/TAB/config.yml (zastąp istniejące)
+#  https://github.com/NEZNAMY/TAB
+# ==========================================================
+header-footer:
+  enabled: true
+  header:
+  - ""
+  - "&6&l✦ &e&lD&6&lz&e&li&6&lo&e&lb&6&lM&e&lc &6&l✦"
+  - "&7Najbardziej epicki serwer survival!"
+  - "&8&m                                        "
+  - ""
+  footer:
+  - ""
+  - "&8&m                                        "
+  - "&7Online: &a%online%&7/&a%maxplayers%  &8|  &7Ping: &a%ping%ms"
+  - "&7Ranga: %luckperms-prefix%"
+  - "&6⛃ &eSklep z rangami: &6&lDziob.fun"
+  - "&9Discord: &bdiscord.gg/TWOJ-LINK"
+  - ""
+
+# Prefiksy rang w TAB i nad głową – bierze je z LuckPerms
+scoreboard-teams:
+  enabled: true
+  sorting-types:
+  - "GROUPS:wlasciciel,admin,moderator,helper,youtuber,legenda,mvp,vip,default"
+  - "PLACEHOLDER_A_TO_Z:%player%"
+
+tablist-name-formatting:
+  enabled: true
