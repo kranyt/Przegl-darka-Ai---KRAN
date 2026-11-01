@@ -80,6 +80,9 @@ def tag_kraju(k):
     return [t("[", "dark_gray"), t(k[2], k[3], bold=True), t("] ", "dark_gray")]
 
 
+LIN = t("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "aqua", bold=True)
+
+
 def build():
     # ---------------------------------------------------------------- obiekty i dane
     dz = ["# Earth SMP – inicjalizacja"]
@@ -92,13 +95,7 @@ def build():
            "scoreboard players set #40075200 dz.data 40075200", "scoreboard players set #30 dz.data 30",
            "scoreboard players set #500 dz.data 500", "scoreboard players set #1000 dz.data 1000",
            "scoreboard players set #m1 dz.data -1"]
-    for k in KRAJE:
-        dz.append(f"scoreboard players add #k{k[0]} dz.k_czl 0")
-        for o in ["dz.k_skarb", "dz.k_wl", "dz.k_zamk", "dz.k_wrog", "dz.k_pkt", "dz.k_wczas", "dz.k_wygr", "dz.k_pokoj"]:
-            dz.append(f"scoreboard players add #k{k[0]} {o} 0")
-        dz.append(f"data modify storage dziobmc:kraje n.k{k[0]} set value {snbt_text(nazwa(k))}")
-        dz.append(f"scoreboard players display name k{k[2]} dz.ranking {J([t(k[2] + ' ', 'dark_gray'), nazwa(k, False)])}")
-    dz += [f"function {NS}:ziemia/przelicz", f"function {NS}:ziemia/druzyny"]
+    dz += [f"function {NS}:kraje/init", f"function {NS}:ziemia/przelicz"]
     fn("ziemia/init", "\n".join(dz))
 
     # współrzędne stolic dla bieżącej skali
@@ -140,209 +137,18 @@ def build():
             {tellraw("@s", t(f"✔ Skala mapy Ziemi ustawiona na 1:{s}", "green", bold=True))}
         """)
 
-    # ---------------------------------------------------------------- drużyny: ranga × państwo (prefiksy w TAB i czacie)
-    dr = ["# Drużyny r<ranga>k<państwo> – kolejność w TAB: najpierw ranga"]
-    for ri, (rid, team, lvl, pre, col, staff) in enumerate(RANGI):
-        for k in [None] + KRAJE:
-            kid = 0 if k is None else k[0]
-            name = f"r{ri}k{kid}"
-            px = prefix(pre) + ([] if k is None else tag_kraju(k))
-            dr += [f"team add {name}", f"team modify {name} prefix {J(px)}", f"team modify {name} color {col}",
-                   f"team modify {name} collisionRule never", f"team modify {name} friendlyFire true"]
-    # migracja ze starych drużyn rang
-    for ri, (rid, team, *_r) in enumerate(RANGI):
-        dr.append(f"scoreboard players set @a[team={team}] dz.rid {ri}")
-        dr.append(f"team remove {team}")
-    fn("ziemia/druzyny", "\n".join(dr))
-    fn("gracz/druzyna", f"""
-        # Wpisuje gracza do drużyny r<ranga>k<państwo>
-        execute unless score @s dz.rid matches 0.. run scoreboard players set @s dz.rid {len(RANGI) - 1}
-        scoreboard players add @s dz.kraj 0
-        execute store result storage dziobmc:tmp d.r int 1 run scoreboard players get @s dz.rid
-        execute store result storage dziobmc:tmp d.k int 1 run scoreboard players get @s dz.kraj
-        function {NS}:gracz/druzyna_m with storage dziobmc:tmp d
-    """)
-    fn("gracz/druzyna_m", "$team join r$(r)k$(k) @s")
-
     # ---------------------------------------------------------------- ID gracza (do próśb o dołączenie)
     fn("gracz/nadaj_id", """
         scoreboard players add #nast_id dz.data 1
         scoreboard players operation @s dz.id = #nast_id dz.data
     """)
 
-    # ---------------------------------------------------------------- menu /trigger panstwo
-    LIN = t("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "aqua", bold=True)
-    menu_brak = [tellraw("@s", LIN), tellraw("@s", t("   ✪ ", "aqua"), t("WYBIERZ PAŃSTWO", "gold", bold=True), t("  (kliknij nazwę, aby dołączyć)", "gray")), tellraw("@s", LIN)]
-    for kont in KONTYNENTY:
-        czesci = [t(f" {kont}: ", "yellow", bold=True)]
-        for k in [k for k in KRAJE if k[7] == kont]:
-            czesci += [t(k[1], k[3], run=f"/trigger panstwo set {100 + k[0]}",
-                         hover=[t(k[1], k[3], bold=True), t(f"\nStolica: {k[4]}\nKliknij, aby dołączyć", "gray")]), t(" • ", "dark_gray")]
-        menu_brak.append(tellraw("@s", *czesci[:-1]))
-    menu_brak += [tellraw("@s", t(" Pierwszy gracz w państwie zostaje jego ", "gray"), t("WŁADCĄ", "gold", bold=True), t("!", "gray")),
-                  tellraw("@s", t(" ➤ ", "dark_gray"), t("[RANKING PAŃSTW]", "yellow", bold=True, run="/trigger panstwo set 2"), t("  "),
-                          t("[LOSOWY TP NA ZIEMI]", "green", bold=True, run="/trigger ziemia set 11")),
-                  tellraw("@s", LIN)]
-    fn("kraje/menu_wybor", "\n".join(menu_brak))
-
-    for k in KRAJE:
-        i = k[0]
-        fn(f"kraje/info/{i}", "\n".join([
-            tellraw("@s", LIN),
-            tellraw("@s", t("   ✪ ", "aqua"), nazwa(k), t(f"  •  stolica: {k4(k)}", "gray")),
-            tellraw("@s", LIN),
-            tellraw("@s", t(" Mieszkańcy: ", "gray"), sc(f"#k{i}", "dz.k_czl", "white", True), t("   Skarbiec: ", "gray"), sc(f"#k{i}", "dz.k_skarb", "gold", True), t(" ⛃   Wygrane wojny: ", "gray"), sc(f"#k{i}", "dz.k_wygr", "red", True)),
-            f"execute if score #k{i} dz.k_wrog matches 1.. run " + tellraw("@s", t(" ⚔ WOJNA! ", "dark_red", bold=True), t("Punkty: ", "gray"), sc(f"#k{i}", "dz.k_pkt", "yellow", True), t("  (do 15)   Zostało: ", "gray"), sc(f"#k{i}", "dz.k_wczas", "white"), t(" s", "gray")),
-            f"execute if score #k{i} dz.k_zamk matches 1 run " + tellraw("@s", t(" Granice: ", "gray"), t("ZAMKNIĘTE", "red", bold=True), t(" (nowi wysyłają prośby)", "gray")),
-            f"execute unless score #k{i} dz.k_zamk matches 1 run " + tellraw("@s", t(" Granice: ", "gray"), t("OTWARTE", "green", bold=True)),
-            tellraw("@s", t(" ➤ ", "dark_gray"), t("[STOLICA]", "green", bold=True, run="/trigger stolica set 1", hover=t("Teleport do stolicy")), t(" "),
-                    t("[WPŁAĆ 100]", "gold", bold=True, run="/trigger skarbiec set 100"), t(" "),
-                    t("[WPŁAĆ 1000]", "gold", bold=True, run="/trigger skarbiec set 1000"), t(" "),
-                    t("[RANKING]", "yellow", bold=True, run="/trigger panstwo set 2"), t(" "),
-                    t("[OPUŚĆ]", "red", run="/trigger panstwo set 999", hover=t("Opuść państwo", "red"))),
-            "execute if entity @s[tag=dz.wladca] run " + tellraw("@s", t(" ♛ Władca: ", "gold", bold=True),
-                                                                  t("[GRANICE OTWÓRZ/ZAMKNIJ]", "aqua", run="/trigger panstwo set 997"), t(" "),
-                                                                  t("[WOJNA]", "dark_red", bold=True, run="/trigger wojna set 1"), t(" "),
-                                                                  t("[WYPŁAĆ 500]", "yellow", run="/trigger skarbiec set -500"), t(" "),
-                                                                  t("[KAPITULACJA]", "gray", run="/trigger wojna set 999")),
-            f"execute if score #k{i} dz.k_wl matches 0 run " + tellraw("@s", t(" Tron jest wolny! ", "gold"), t("[PRZEJMIJ WŁADZĘ]", "gold", bold=True, run="/trigger panstwo set 998")),
-            tellraw("@s", LIN),
-        ]))
-
-    rank_menu = [tellraw("@s", LIN), tellraw("@s", t("   ✪ ", "aqua"), t("RANKING PAŃSTW", "gold", bold=True), t("  (mieszkańcy / skarbiec / wygrane wojny)", "gray")), tellraw("@s", LIN)]
-    for k in KRAJE:
-        i = k[0]
-        rank_menu.append(f"execute if score #k{i} dz.k_czl matches 1.. run " + tellraw("@s", t(" • ", "dark_gray"), nazwa(k), t("  👥 ", "gray"), sc(f"#k{i}", "dz.k_czl", "white"), t("  ⛃ ", "gold"), sc(f"#k{i}", "dz.k_skarb", "yellow"), t("  ⚔ ", "red"), sc(f"#k{i}", "dz.k_wygr", "white")).replace("👥", "☺"))
-    rank_menu += [tellraw("@s", t(" Ranking potęgi pokazuje się też co chwilę na scoreboardzie.", "gray", italic=True)), tellraw("@s", LIN)]
-    fn("kraje/ranking", "\n".join(rank_menu))
-
-    pan = ["# /trigger panstwo",
-           f"execute if score @s panstwo matches 2 run function {NS}:kraje/ranking",
-           f"execute if score @s panstwo matches 1 unless score @s dz.kraj matches 1.. run function {NS}:kraje/menu_wybor",
-           f"execute if score @s panstwo matches 997 if entity @s[tag=dz.wladca] run function {NS}:kraje/granice",
-           f"execute if score @s panstwo matches 998 if score @s dz.kraj matches 1.. run function {NS}:kraje/przejmij",
-           f"execute if score @s panstwo matches 999 if score @s dz.kraj matches 1.. run function {NS}:kraje/opusc"]
-    for k in KRAJE:
-        i = k[0]
-        pan.append(f"execute if score @s panstwo matches 1 if score @s dz.kraj matches {i} run function {NS}:kraje/info/{i}")
-        pan.append(f"execute if score @s panstwo matches {100 + i} run function {NS}:kraje/dolacz/{i}")
-    pan.append("scoreboard players set @s panstwo 0")
-    fn("komendy/panstwo", "\n".join(pan))
-
-    # ---------------------------------------------------------------- dołączanie / opuszczanie (per państwo)
-    disp_wejdz, disp_wyjdz, disp_przejmij, disp_granice, disp_wplata, disp_wyplata = [], [], [], [], [], []
-    for k in KRAJE:
-        i = k[0]
-        fn(f"kraje/dolacz/{i}", f"""
-            execute if score @s dz.kraj matches 1.. run return run {tellraw("@s", t("✖ Najpierw opuść swoje państwo: ", "red"), t("[OPUŚĆ]", "red", bold=True, run="/trigger panstwo set 999"))}
-            execute if score #k{i} dz.k_zamk matches 1 if score #k{i} dz.k_wl matches 1 run return run function {NS}:kraje/prosba/{i}
-            function {NS}:kraje/wejdz/{i}
-        """)
-        fn(f"kraje/wejdz/{i}", f"""
-            scoreboard players set @s dz.kraj {i}
-            scoreboard players set @s dz.prosba 0
-            scoreboard players add #k{i} dz.k_czl 1
-            execute unless score #k{i} dz.k_wl matches 1 run return run function {NS}:kraje/wladca/{i}
-            {tellraw("@a", t("✪ ", "aqua"), sel("@s"), t(" dołączył do państwa ", "gray"), nazwa(k), t("!", "gray"))}
-            function {NS}:gracz/druzyna
-            playsound minecraft:block.note_block.chime master @s ~ ~ ~ 1 1.4
-            function {NS}:kraje/info/{i}
-        """)
-        fn(f"kraje/wladca/{i}", f"""
-            scoreboard players set #k{i} dz.k_wl 1
-            tag @s add dz.wladca
-            function {NS}:gracz/druzyna
-            title @a times 10 60 20
-            title @a title {J(nazwa(k))}
-            title @a subtitle {J([sel("@s"), t(" zostaje władcą!", "gold")])}
-            {tellraw("@a", t("♛ ", "gold"), sel("@s"), t(" zakłada państwo ", "yellow"), nazwa(k), t(" i zostaje jego ", "yellow"), t("WŁADCĄ", "gold", bold=True), t("!", "yellow"))}
-            execute as @a at @s run playsound minecraft:ui.toast.challenge_complete master @s ~ ~ ~ 0.7 1
-            {firework_cmd()}
-            function {NS}:kraje/info/{i}
-        """)
-        fn(f"kraje/prosba/{i}", f"""
-            scoreboard players set @s dz.prosba {i}
-            execute unless score @s dz.id matches 1.. run function {NS}:gracz/nadaj_id
-            {tellraw("@s", t("✉ Granice państwa ", "gray"), nazwa(k), t(" są zamknięte – wysłano prośbę do władcy.", "gray"))}
-            execute store result storage dziobmc:tmp p.id int 1 run scoreboard players get @s dz.id
-            data modify storage dziobmc:tmp p.k set value {i}
-            function {NS}:kraje/prosba_m with storage dziobmc:tmp p
-        """)
-        disp_wejdz.append(f"execute if score @s dz.prosba matches {i} run function {NS}:kraje/wejdz/{i}")
-        fn(f"kraje/wyjdz/{i}", f"""
-            scoreboard players remove #k{i} dz.k_czl 1
-            execute if score #k{i} dz.k_czl matches ..-1 run scoreboard players set #k{i} dz.k_czl 0
-            {tellraw("@a", t("✪ ", "aqua"), sel("@s"), t(" opuścił państwo ", "gray"), nazwa(k))}
-            execute if entity @s[tag=dz.wladca] run scoreboard players set #k{i} dz.k_wl 0
-            execute if entity @s[tag=dz.wladca] run {tellraw("@a", t("♛ Tron państwa ", "gold"), nazwa(k), t(" jest wolny! Mieszkańcy mogą go przejąć.", "gold"))}
-        """)
-        disp_wyjdz.append(f"execute if score @s dz.kraj matches {i} run function {NS}:kraje/wyjdz/{i}")
-        fn(f"kraje/przejmij/{i}", f"""
-            execute if score #k{i} dz.k_wl matches 1 run return run {tellraw("@s", t("✖ To państwo ma już władcę.", "red"))}
-            function {NS}:kraje/wladca/{i}
-        """)
-        disp_przejmij.append(f"execute if score @s dz.kraj matches {i} run function {NS}:kraje/przejmij/{i}")
-        fn(f"kraje/granice/{i}", f"""
-            execute if score #k{i} dz.k_zamk matches 1 run return run function {NS}:kraje/granice_otworz/{i}
-            scoreboard players set #k{i} dz.k_zamk 1
-            {tellraw("@s", t("✔ Granice państwa zamknięte – nowi gracze muszą wysłać prośbę.", "yellow"))}
-        """)
-        fn(f"kraje/granice_otworz/{i}", f"""
-            scoreboard players set #k{i} dz.k_zamk 0
-            {tellraw("@s", t("✔ Granice państwa otwarte – każdy może dołączyć.", "green"))}
-        """)
-        disp_granice.append(f"execute if score @s dz.kraj matches {i} run function {NS}:kraje/granice/{i}")
-        fn(f"kraje/wplata/{i}", f"""
-            scoreboard players operation @s dz.coins -= #v dz.data
-            scoreboard players operation #k{i} dz.k_skarb += #v dz.data
-            {tellraw("@a[scores={dz.kraj=" + str(i) + "}]", t("⛃ ", "gold"), sel("@s"), t(" wpłacił ", "gray"), sc("#v", "dz.data", "gold", True), t(" monet do skarbca. Stan: ", "gray"), sc(f"#k{i}", "dz.k_skarb", "yellow", True))}
-        """)
-        disp_wplata.append(f"execute if score @s dz.kraj matches {i} run function {NS}:kraje/wplata/{i}")
-        fn(f"kraje/wyplata/{i}", f"""
-            execute if score #k{i} dz.k_skarb < #v dz.data run return run {tellraw("@s", t("✖ W skarbcu jest za mało monet.", "red"))}
-            scoreboard players operation #k{i} dz.k_skarb -= #v dz.data
-            scoreboard players operation @s dz.coins += #v dz.data
-            {tellraw("@a[scores={dz.kraj=" + str(i) + "}]", t("⛃ Władca ", "gold"), sel("@s"), t(" wypłacił ", "gray"), sc("#v", "dz.data", "gold", True), t(" monet ze skarbca.", "gray"))}
-        """)
-        disp_wyplata.append(f"execute if score @s dz.kraj matches {i} run function {NS}:kraje/wyplata/{i}")
-
-    fn("kraje/prosba_m", f"""
-        $tellraw @a[tag=dz.wladca,scores={{dz.kraj=$(k)}}] [{{"text":"✉ ","color":"aqua"}},{{"selector":"@s"}},{{"text":" prosi o dołączenie do państwa. ","color":"gray"}},{{"text":"[PRZYJMIJ]","color":"green","bold":true,"clickEvent":{{"action":"run_command","value":"/trigger przyjmij set $(id)"}}}}]
-        $execute as @a[tag=dz.wladca,scores={{dz.kraj=$(k)}}] at @s run playsound minecraft:block.note_block.bell master @s ~ ~ ~ 1 1.2
-    """)
-    fn("kraje/opusc", "\n".join(disp_wyjdz + [
-        "tag @s remove dz.wladca", "scoreboard players set @s dz.kraj 0", f"function {NS}:gracz/druzyna"]))
-    fn("kraje/przejmij", "\n".join(disp_przejmij))
-    fn("kraje/granice", "\n".join(disp_granice))
-    fn("kraje/wejdz_prosba", "\n".join(disp_wejdz))
-    fn("komendy/przyjmij", f"""
-        # Władca przyjmuje gracza o podanym ID
-        execute unless entity @s[tag=dz.wladca] run return run function {NS}:komendy/przyjmij_reset
-        scoreboard players operation #v dz.data = @s przyjmij
-        scoreboard players operation #lk dz.data = @s dz.kraj
-        execute as @a[scores={{dz.prosba=1..}}] if score @s dz.id = #v dz.data if score @s dz.prosba = #lk dz.data at @s run function {NS}:kraje/wejdz_prosba
-        scoreboard players set @s przyjmij 0
-    """)
-    fn("komendy/przyjmij_reset", "scoreboard players set @s przyjmij 0")
-    fn("komendy/skarbiec", f"""
-        scoreboard players operation #v dz.data = @s skarbiec
-        scoreboard players set @s skarbiec 0
-        execute unless score @s dz.kraj matches 1.. run return run {tellraw("@s", t("✖ Nie należysz do żadnego państwa.", "red"))}
-        execute if score #v dz.data matches 2.. unless score @s dz.coins >= #v dz.data run return run {tellraw("@s", t("✖ Masz za mało monet.", "red"))}
-        execute if score #v dz.data matches 2.. run return run function {NS}:kraje/skarbiec_wplata
-        execute if score #v dz.data matches ..-1 unless entity @s[tag=dz.wladca] run return run {tellraw("@s", t("✖ Tylko władca może wypłacać ze skarbca.", "red"))}
-        execute if score #v dz.data matches ..-1 run scoreboard players operation #v dz.data *= #m1 dz.data
-        execute if score #v dz.data matches 1.. run function {NS}:kraje/skarbiec_wyplata
-    """)
-    fn("kraje/skarbiec_wplata", "\n".join(disp_wplata))
-    fn("kraje/skarbiec_wyplata", "\n".join(disp_wyplata))
-
     # ---------------------------------------------------------------- stolice i teleporty
     st = ["# /trigger stolica: 1 = własna stolica (lub lista), 100+N = stolica państwa N",
-          f"execute if score @s stolica matches 1 unless score @s dz.kraj matches 1.. run function {NS}:kraje/menu_stolice"]
+          f"execute if score @s stolica matches 1 unless score @s dz.kid matches 1.. run function {NS}:kraje/menu_stolice",
+          f"execute if score @s stolica matches 1 if score @s dz.kid matches 1.. run function {NS}:kraje/tp_wlasna"]
     for k in KRAJE:
         i = k[0]
-        st.append(f"execute if score @s stolica matches 1 if score @s dz.kraj matches {i} run function {NS}:kraje/tp/{i}")
         st.append(f"execute if score @s stolica matches {100 + i} run function {NS}:kraje/tp/{i}")
         fn(f"kraje/tp/{i}", f"""
             {cooldown("dz.cd_stol", 600)}
@@ -505,185 +311,6 @@ def build():
         tellraw("@s", t(" ➤ ", "dark_gray"), t("[WOJNY]", "dark_red", bold=True, run="/trigger wojna set 1"), t(" wojny między państwami (dla władców)", "gray")),
         tellraw("@s", LIN),
     ]))
-
-    # ---------------------------------------------------------------- wojny
-    wm = [f"execute unless entity @s[tag=dz.wladca] run return run " + tellraw("@s", t("✖ Tylko władca państwa może wypowiadać wojny.", "red")),
-          tellraw("@s", LIN), tellraw("@s", t("   ⚔ ", "dark_red"), t("WYPOWIEDZ WOJNĘ", "red", bold=True), t("  (tylko państwom z mieszkańcami)", "gray")), tellraw("@s", LIN),
-          tellraw("@s", t(" Wojna trwa 30 min. Punkt = zabicie wroga. Do 15 pkt. Zwycięzca bierze 30% skarbca wroga!", "gray"))]
-    for k in KRAJE:
-        i = k[0]
-        wm.append(f"execute if score #k{i} dz.k_czl matches 1.. unless score @s dz.kraj matches {i} run " + tellraw("@s", t(" ⚔ ", "dark_red"), nazwa(k), t("  👥 ".replace("👥", "☺"), "gray"), sc(f"#k{i}", "dz.k_czl", "white"), t("  "), t("[WYPOWIEDZ WOJNĘ]", "red", bold=True, run=f"/trigger wojna set {100 + i}")))
-    wm.append(tellraw("@s", LIN))
-    fn("wojna/menu", "\n".join(wm))
-    wd = [f"execute if score @s wojna matches 1 run function {NS}:wojna/menu",
-          f"execute if score @s wojna matches 999 if entity @s[tag=dz.wladca] run function {NS}:wojna/kapitulacja"]
-    for k in KRAJE:
-        wd.append(f"execute if score @s wojna matches {100 + k[0]} if entity @s[tag=dz.wladca] run function {NS}:wojna/wypowiedz_b {{b:{k[0]}}}")
-    wd.append("scoreboard players set @s wojna 0")
-    fn("komendy/wojna", "\n".join(wd))
-    fn("wojna/wypowiedz_b", f"""
-        $data modify storage dziobmc:tmp w.b set value $(b)
-        execute store result storage dziobmc:tmp w.a int 1 run scoreboard players get @s dz.kraj
-        function {NS}:wojna/nazwy with storage dziobmc:tmp w
-        function {NS}:wojna/wypowiedz with storage dziobmc:tmp w
-    """)
-    fn("wojna/nazwy", """
-        $data modify storage dziobmc:tmp w.na set from storage dziobmc:kraje n.k$(a)
-        $data modify storage dziobmc:tmp w.nb set from storage dziobmc:kraje n.k$(b)
-    """)
-    fn("wojna/wypowiedz", f"""
-        $execute if score #k$(a) dz.k_wrog matches 1.. run return run tellraw @s {{"text":"✖ Twoje państwo już prowadzi wojnę.","color":"red"}}
-        $execute if score #k$(b) dz.k_wrog matches 1.. run return run tellraw @s {{"text":"✖ To państwo prowadzi już inną wojnę.","color":"red"}}
-        $execute if score #k$(a) dz.k_pokoj matches 1.. run return run tellraw @s {{"text":"✖ Trwa rozejm po ostatniej wojnie (30 min).","color":"red"}}
-        $execute unless score #k$(b) dz.k_czl matches 1.. run return run tellraw @s {{"text":"✖ To państwo nie ma mieszkańców.","color":"red"}}
-        $scoreboard players set #k$(a) dz.k_wrog $(b)
-        $scoreboard players set #k$(b) dz.k_wrog $(a)
-        $scoreboard players set #k$(a) dz.k_pkt 0
-        $scoreboard players set #k$(b) dz.k_pkt 0
-        $scoreboard players set #k$(a) dz.k_wczas 1800
-        $scoreboard players set #k$(b) dz.k_wczas 1800
-        title @a times 10 70 20
-        title @a title [{{"text":"⚔ WOJNA! ⚔","color":"dark_red","bold":true}}]
-        $title @a subtitle [$(na),{{"text":" wypowiada wojnę ","color":"gray"}},$(nb)]
-        $tellraw @a [{{"text":"⚔ ","color":"dark_red"}},$(na),{{"text":" wypowiada wojnę państwu ","color":"gray"}},$(nb),{{"text":"! 30 minut, do 15 punktów. Zwycięzca bierze 30% skarbca wroga!","color":"gray"}}]
-        execute as @a at @s run playsound minecraft:event.raid.horn master @s ~ ~ ~ 1 1
-    """)
-    # punkty za zabicie wroga – advancement per państwo ofiary
-    for k in KRAJE:
-        i = k[0]
-        jfile(f"data/{NS}/advancement/wojna/zab{i}.json", {
-            "criteria": {"zabicie": {"trigger": "minecraft:player_killed_entity", "conditions": {"entity": [
-                {"condition": "minecraft:entity_properties", "entity": "this", "predicate": {"type": "minecraft:player"}},
-                {"condition": "minecraft:entity_scores", "entity": "this", "scores": {"dz.kraj": i}}]}}},
-            "rewards": {"function": f"{NS}:wojna/zab/{i}"}})
-        fn(f"wojna/zab/{i}", f"""
-            advancement revoke @s only {NS}:wojna/zab{i}
-            execute unless score @s dz.kraj matches 1.. run return 0
-            execute store result storage dziobmc:tmp z.a int 1 run scoreboard players get @s dz.kraj
-            data modify storage dziobmc:tmp z.b set value {i}
-            function {NS}:wojna/punkt with storage dziobmc:tmp z
-        """)
-    fn("wojna/punkt", f"""
-        $execute unless score #k$(a) dz.k_wrog matches $(b) run return 0
-        $scoreboard players add #k$(a) dz.k_pkt 1
-        $tellraw @a[scores={{dz.kraj=$(a)}}] [{{"text":"⚔ +1 punkt wojenny! Wynik: ","color":"gold"}},{{"score":{{"name":"#k$(a)","objective":"dz.k_pkt"}},"color":"green","bold":true}},{{"text":" : ","color":"gray"}},{{"score":{{"name":"#k$(b)","objective":"dz.k_pkt"}},"color":"red","bold":true}}]
-        $tellraw @a[scores={{dz.kraj=$(b)}}] [{{"text":"⚔ Wróg zdobywa punkt! Wynik: ","color":"red"}},{{"score":{{"name":"#k$(b)","objective":"dz.k_pkt"}},"color":"green","bold":true}},{{"text":" : ","color":"gray"}},{{"score":{{"name":"#k$(a)","objective":"dz.k_pkt"}},"color":"red","bold":true}}]
-        $execute if score #k$(a) dz.k_pkt matches 15.. run function {NS}:wojna/koniec {{a:$(a),b:$(b)}}
-    """)
-    # zegar wojny
-    tk = []
-    for k in KRAJE:
-        i = k[0]
-        tk.append(f"execute if score #k{i} dz.k_wrog matches 1.. run function {NS}:wojna/tik/{i}")
-        tk.append(f"execute if score #k{i} dz.k_pokoj matches 1.. run scoreboard players remove #k{i} dz.k_pokoj 1")
-        fn(f"wojna/tik/{i}", f"""
-            scoreboard players remove #k{i} dz.k_wczas 1
-            execute if score #k{i} dz.k_wczas matches ..0 store result storage dziobmc:tmp k.b int 1 run scoreboard players get #k{i} dz.k_wrog
-            execute if score #k{i} dz.k_wczas matches ..0 run data modify storage dziobmc:tmp k.a set value {i}
-            execute if score #k{i} dz.k_wczas matches ..0 run function {NS}:wojna/koniec with storage dziobmc:tmp k
-        """)
-    fn("wojna/sekunda", "\n".join(tk))
-    fn("wojna/koniec", f"""
-        # a, b – państwa w wojnie. Zwycięża to z większą liczbą punktów.
-        $execute store result score #pa dz.data run scoreboard players get #k$(a) dz.k_pkt
-        $execute store result score #pb dz.data run scoreboard players get #k$(b) dz.k_pkt
-        $data modify storage dziobmc:tmp e1 set value {{w:$(a),l:$(b)}}
-        $data modify storage dziobmc:tmp e2 set value {{w:$(b),l:$(a)}}
-        function {NS}:wojna/e_nazwy
-        execute if score #pa dz.data > #pb dz.data run function {NS}:wojna/wygrana with storage dziobmc:tmp e1
-        execute if score #pb dz.data > #pa dz.data run function {NS}:wojna/wygrana with storage dziobmc:tmp e2
-        execute if score #pa dz.data = #pb dz.data run function {NS}:wojna/remis with storage dziobmc:tmp e1
-        $function {NS}:wojna/reset {{a:$(a),b:$(b)}}
-    """)
-    fn("wojna/e_nazwy", f"""
-        function {NS}:wojna/e_nazwy_m with storage dziobmc:tmp e1
-    """)
-    fn("wojna/e_nazwy_m", """
-        $data modify storage dziobmc:tmp e1.nw set from storage dziobmc:kraje n.k$(w)
-        $data modify storage dziobmc:tmp e1.nl set from storage dziobmc:kraje n.k$(l)
-        $data modify storage dziobmc:tmp e2.nw set from storage dziobmc:kraje n.k$(l)
-        $data modify storage dziobmc:tmp e2.nl set from storage dziobmc:kraje n.k$(w)
-    """)
-    fn("wojna/wygrana", f"""
-        $scoreboard players operation #lup dz.data = #k$(l) dz.k_skarb
-        scoreboard players operation #lup dz.data *= #3 dz.data
-        scoreboard players operation #lup dz.data /= #10 dz.data
-        $scoreboard players operation #k$(l) dz.k_skarb -= #lup dz.data
-        $scoreboard players operation #k$(w) dz.k_skarb += #lup dz.data
-        $scoreboard players add #k$(w) dz.k_wygr 1
-        title @a times 10 80 20
-        $title @a title [$(nw)]
-        $title @a subtitle [{{"text":"wygrywa wojnę z ","color":"gold"}},$(nl),{{"text":"!","color":"gold"}}]
-        $tellraw @a [{{"text":"♛ ","color":"gold"}},$(nw),{{"text":" WYGRYWA WOJNĘ z ","color":"gold","bold":true}},$(nl),{{"text":" i zdobywa ","color":"gray"}},{{"score":{{"name":"#lup","objective":"dz.data"}},"color":"yellow","bold":true}},{{"text":" monet ze skarbca wroga!","color":"gray"}}]
-        $execute as @a[scores={{dz.kraj=$(w)}}] at @s run {firework_cmd()}
-        execute as @a at @s run playsound minecraft:ui.toast.challenge_complete master @s ~ ~ ~ 1 1
-    """)
-    fn("wojna/remis", """
-        $tellraw @a [{"text":"⚔ Wojna ","color":"gray"},$(nw),{"text":" – ","color":"gray"},$(nl),{"text":" kończy się REMISEM.","color":"yellow","bold":true}]
-    """)
-    fn("wojna/reset", """
-        $scoreboard players set #k$(a) dz.k_wrog 0
-        $scoreboard players set #k$(b) dz.k_wrog 0
-        $scoreboard players set #k$(a) dz.k_wczas 0
-        $scoreboard players set #k$(b) dz.k_wczas 0
-        $scoreboard players set #k$(a) dz.k_pokoj 1800
-        $scoreboard players set #k$(b) dz.k_pokoj 1800
-    """)
-    fn("wojna/kapitulacja", f"""
-        execute store result storage dziobmc:tmp c.l int 1 run scoreboard players get @s dz.kraj
-        function {NS}:wojna/kapitulacja_m with storage dziobmc:tmp c
-    """)
-    fn("wojna/kapitulacja_m", f"""
-        $execute unless score #k$(l) dz.k_wrog matches 1.. run return run tellraw @s {{"text":"✖ Twoje państwo nie prowadzi wojny.","color":"red"}}
-        $execute store result storage dziobmc:tmp c.w int 1 run scoreboard players get #k$(l) dz.k_wrog
-        tellraw @a [{{"text":"🏳 ","color":"white"}},{{"text":"Państwo kapituluje!","color":"gray"}}]
-        function {NS}:wojna/kapitulacja_m2 with storage dziobmc:tmp c
-    """.replace("🏳", "⚑"))
-    fn("wojna/kapitulacja_m2", f"""
-        $scoreboard players set #k$(w) dz.k_pkt 15
-        $scoreboard players set #k$(l) dz.k_pkt 0
-        $function {NS}:wojna/koniec {{a:$(w),b:$(l)}}
-    """)
-
-    # ---------------------------------------------------------------- strefy stolic (co sekundę)
-    sf = ["# Kto należy do jakiej wojny",
-          "scoreboard players set @a dz.mojwrog 0"]
-    for k in KRAJE:
-        sf.append(f"execute as @a[scores={{dz.kraj={k[0]}}}] run scoreboard players operation @s dz.mojwrog = #k{k[0]} dz.k_wrog")
-    sf += ["tag @a remove dz.strefa_obca"]
-    for k in KRAJE:
-        sf.append(f"function {NS}:ziemia/strefa_m with storage dziobmc:kraje s.k{k[0]}")
-    sf += ["gamemode adventure @a[tag=dz.strefa_obca,gamemode=survival,tag=!dz.build]",
-           "execute as @a[tag=dz.strefa_obca,tag=!dz.strefa_bylo] run " + tellraw("@s", t("⛨ Wchodzisz do chronionej stolicy obcego państwa – nie możesz tu niszczyć bloków.", "gold")),
-           "tag @a[tag=dz.strefa_obca] add dz.strefa_bylo",
-           "gamemode survival @a[tag=!dz.strefa_obca,tag=dz.strefa_bylo,tag=!dz.lobby,gamemode=adventure,tag=!dz.build]",
-           "tag @a[tag=!dz.strefa_obca] remove dz.strefa_bylo"]
-    fn("ziemia/strefy", "\n".join(sf))
-    fn("ziemia/strefa_m", f"""
-        $execute in {SWIAT} as @a[x=$(x0),y=-64,z=$(z0),dx={2 * STREFA},dy=400,dz={2 * STREFA}] unless score @s dz.kraj matches $(i) unless score @s dz.mojwrog matches $(i) run tag @s add dz.strefa_obca
-    """)
-
-    # ---------------------------------------------------------------- ranking (sidebar) co 10 s
-    rk = []
-    for k in KRAJE:
-        i = k[0]
-        rk += [f"scoreboard players operation #p dz.data = #k{i} dz.k_czl", "scoreboard players operation #p dz.data *= #100 dz.data",
-               f"scoreboard players operation #q dz.data = #k{i} dz.k_skarb", "scoreboard players operation #q dz.data /= #10 dz.data",
-               "scoreboard players operation #p dz.data += #q dz.data",
-               f"scoreboard players operation #q dz.data = #k{i} dz.k_wygr", "scoreboard players operation #q dz.data *= #500 dz.data",
-               "scoreboard players operation #p dz.data += #q dz.data",
-               f"execute if score #k{i} dz.k_czl matches 1.. run scoreboard players operation k{k[2]} dz.ranking = #p dz.data",
-               f"execute if score #k{i} dz.k_czl matches 1.. run scoreboard players display name k{k[2]} dz.ranking {J([t(k[2] + ' ', 'dark_gray'), nazwa(k, False)])}",
-               f"execute unless score #k{i} dz.k_czl matches 1.. run scoreboard players reset k{k[2]} dz.ranking"]
-    rk += ["scoreboard players set #ile_kr dz.data 0"]
-    for k in KRAJE:
-        rk.append(f"execute if score #k{k[0]} dz.k_czl matches 1.. run scoreboard players add #ile_kr dz.data 1")
-    rk += ["scoreboard players add #sb dz.data 1",
-           "execute if score #sb dz.data matches 2.. run scoreboard players set #sb dz.data 0",
-           "execute if score #sb dz.data matches 1 if score #ile_kr dz.data matches 1.. run scoreboard objectives setdisplay sidebar dz.ranking",
-           "execute unless score #sb dz.data matches 1 run scoreboard objectives setdisplay sidebar dz.sidebar",
-           "execute unless score #ile_kr dz.data matches 1.. run scoreboard objectives setdisplay sidebar dz.sidebar"]
-    fn("ziemia/ranking", "\n".join(rk))
 
     # ---------------------------------------------------------------- pętla Earth SMP (co sekundę)
     fn("ziemia/sekunda", f"""

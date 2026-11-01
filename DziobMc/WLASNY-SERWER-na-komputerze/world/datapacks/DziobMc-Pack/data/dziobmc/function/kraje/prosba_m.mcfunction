@@ -1,2 +1,2 @@
-$tellraw @a[tag=dz.wladca,scores={dz.kraj=$(k)}] [{"text":"✉ ","color":"aqua"},{"selector":"@s"},{"text":" prosi o dołączenie do państwa. ","color":"gray"},{"text":"[PRZYJMIJ]","color":"green","bold":true,"clickEvent":{"action":"run_command","value":"/trigger przyjmij set $(id)"}}]
-$execute as @a[tag=dz.wladca,scores={dz.kraj=$(k)}] at @s run playsound minecraft:block.note_block.bell master @s ~ ~ ~ 1 1.2
+$tellraw @a[tag=dz.wladca,scores={dz.kid=$(id)}] [{"text":"✉ ","color":"aqua"},{"selector":"@s"},{"text":" prosi o dołączenie do państwa. ","color":"gray"},{"text":"[PRZYJMIJ]","color":"green","bold":true,"clickEvent":{"action":"run_command","value":"/trigger przyjmij set $(pid)"}}]
+$execute as @a[tag=dz.wladca,scores={dz.kid=$(id)}] at @s run playsound minecraft:block.note_block.bell master @s ~ ~ ~ 1 1.2

@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import wspolne  # noqa: E402
-import rdzen, komendy, moby, eventy, mapa, serwer, pvp, ziemia_smp, kaiju  # noqa: E401,E402
+import rdzen, komendy, moby, eventy, mapa, serwer, pvp, ziemia_smp, panstwa, kaiju  # noqa: E401,E402
 
 ROOT = Path(__file__).resolve().parent.parent
 SERWER = ROOT / "WLASNY-SERWER-na-komputerze"
@@ -78,7 +78,8 @@ def lint(files):
                 bledy.append(f"{p}:{nr}: linia makra bez zmiennej $(...)")
             if makro:
                 # podstaw przykładowe wartości i sprawdź jak zwykłą linię
-                line = re.sub(r"\$\((n\w*)\)", '{"text":"X"}', line[1:])
+                line = re.sub(r'"[^"]*"', lambda m: re.sub(r"\$\(\w+\)", "X", m.group(0)), line[1:])
+                line = re.sub(r"\$\((n\w*)\)", '{"text":"X"}', line)
                 line = re.sub(r"\$\(\w+\)", "7", line)
                 makro = False
             # nawiasy
@@ -144,6 +145,7 @@ def main():
     pvp.build()
     ziemia_smp.build()
     ziemia_smp.build_tick()
+    panstwa.build()
     kaiju.build()
 
     bledy = lint(wspolne.FILES)

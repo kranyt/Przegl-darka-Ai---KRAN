@@ -1,3 +1,4 @@
+$execute unless data storage dziobmc:kraje lista[{id:$(b)}] run return 0
 $execute if score #k$(a) dz.k_wrog matches 1.. run return run tellraw @s {"text":"✖ Twoje państwo już prowadzi wojnę.","color":"red"}
 $execute if score #k$(b) dz.k_wrog matches 1.. run return run tellraw @s {"text":"✖ To państwo prowadzi już inną wojnę.","color":"red"}
 $execute if score #k$(a) dz.k_pokoj matches 1.. run return run tellraw @s {"text":"✖ Trwa rozejm po ostatniej wojnie (30 min).","color":"red"}

@@ -1,0 +1,1 @@
+$tellraw @s [{"text":" ➤ ","color":"dark_gray"},{"text":"[ZAŁÓŻ PAŃSTWO: $(nazwa)$(nn)]","color":"gold","bold":true,"clickEvent":{"action":"run_command","value":"/trigger panstwo set $(zal)"},"hoverEvent":{"action":"show_text","contents":"Zostaniesz władcą nowego państwa!"}}]

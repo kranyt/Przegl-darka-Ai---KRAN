@@ -158,18 +158,22 @@ Lobby (spawn) zostaje w zwykłym świecie, a z lobby wchodzisz na Ziemię przez 
 
 Jeśli zmienisz skalę, wpisz w grze tę samą skalę: `/function dziobmc:ziemia/skala/1000` (albo `/2000`, `/4000`, `/8000`).
 
-### Państwa (56 prawdziwych krajów)
-* `/trigger panstwo`: lista krajów pogrupowana po kontynentach. Kliknij nazwę, żeby dołączyć.
-* **Pierwszy gracz w kraju zostaje WŁADCĄ** ♛ (ogłoszenie, napis na ekranie i fajerwerki).
-* Prefiks kraju widać w TAB-ie i na czacie, obok rangi: `[VIP] [POL] Kuba_PL`.
-* **Skarbiec państwa:** każdy może wpłacać monety (`[WPŁAĆ 100]`), a wypłacać może tylko władca.
+### Państwa – bez limitu (Polska, Polska2, Polska3…)
+* `/trigger panstwo` pokazuje 56 krajów pogrupowanych po kontynentach. Kliknij kraj, np. **Polska**:
+  * zobaczysz listę państw tego kraju (**Polska**, **Polska2**, **Polska3**…) z liczbą mieszkańców, skarbcem i przyciskiem `[DOŁĄCZ]`,
+  * na dole jest przycisk **`[ZAŁÓŻ PAŃSTWO: Polska2]`**. Każdy może założyć kolejne państwo danego kraju, a liczba państw jest bez limitu.
+* **Kto zakłada państwo, zostaje jego WŁADCĄ** ♛ (ogłoszenie, napis na ekranie i fajerwerki).
+* Prefiks widać w TAB-ie i na czacie: `[VIP] [POL2] Kuba_PL`.
+* **Stolica:** pierwsza „Polska” ma stolicę w Warszawie. Polska2, Polska3 itd. mają stolicę tam, gdzie stał założyciel na mapie Ziemi.
+  Władca może ją przenieść przyciskiem `[STOLICA TUTAJ]` (raz na godzinę).
+* **Skarbiec państwa:** każdy może wpłacać, a wypłacać może tylko władca.
 * **Granice:** władca może je zamknąć. Wtedy nowi wysyłają prośbę, a władca klika `[PRZYJMIJ]`.
-* Jeśli władca odejdzie, **tron jest wolny** i każdy mieszkaniec może go przejąć.
-* **Chronione stolice:** w promieniu 64 kratek od stolicy obcy gracze nie mogą niszczyć bloków
-  (tryb przygody). Ochrona nie działa dla państwa, z którym trwa wojna.
+* Jeśli władca odejdzie, tron jest wolny i każdy mieszkaniec może go przejąć.
+* Gdy z państwa wyjdą wszyscy, **państwo się rozwiązuje**, a jego numer może zająć kolejne nowe państwo.
+* **Chronione stolice:** w promieniu 64 kratek obcy gracze nie mogą niszczyć bloków. Ochrona nie działa, gdy trwa wojna z tym państwem.
 
 ### Wojny ⚔
-* Władca: `/trigger wojna` pokazuje listę państw z przyciskiem `[WYPOWIEDZ WOJNĘ]`.
+* Władca: `/trigger wojna` pokazuje listę wszystkich państw (także Polska kontra Polska2) z przyciskiem `[WYPOWIEDZ WOJNĘ]`.
 * Wojna trwa **30 minut**. Każde zabicie gracza z wrogiego kraju to **+1 punkt**, a kto pierwszy zdobędzie **15**, wygrywa.
 * **Zwycięzca zabiera 30% skarbca przegranego**, dostaje +1 do wygranych wojen i fajerwerki.
 * Po wojnie obowiązuje **30 minut rozejmu**. Władca może też skapitulować.

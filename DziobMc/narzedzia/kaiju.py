@@ -225,7 +225,7 @@ def build():
             "criteria": {"zabicie": {"trigger": "minecraft:player_killed_entity", "conditions": {"entity": [
                 {"condition": "minecraft:entity_properties", "entity": "this", "predicate": {"nbt": "{Tags:[\"" + tag_b + "\"]}"}}]}}},
             "rewards": {"function": f"{NS}:kaiju/pokonany/{kid}"}})
-        wplata = "\n".join(f"execute if score @s dz.kraj matches {k[0]} run scoreboard players add #k{k[0]} dz.k_skarb 2000" for k in KRAJE)
+        wplata = f"scoreboard players set #v dz.data 2000\nfunction {NS}:kraje/do_skarbca"
         fn(f"kaiju/pokonany/{kid}", f"""
             advancement revoke @s only {NS}:kaiju/{kid}
             scoreboard players set #kaiju_zabity dz.data 1
