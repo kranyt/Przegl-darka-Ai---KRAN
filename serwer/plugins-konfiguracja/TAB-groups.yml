@@ -1,0 +1,28 @@
+# DziobMc – plugins/TAB/groups.yml
+_DEFAULT_:
+  tabprefix: "&8[&7GRACZ&8] &7"
+  tagprefix: "&8[&7GRACZ&8] &7"
+wlasciciel:
+  tabprefix: "&8[&4&lWŁAŚCICIEL&8] &c"
+  tagprefix: "&8[&4&lWŁAŚCICIEL&8] &c"
+admin:
+  tabprefix: "&8[&c&lADMIN&8] &c"
+  tagprefix: "&8[&c&lADMIN&8] &c"
+moderator:
+  tabprefix: "&8[&2&lMOD&8] &a"
+  tagprefix: "&8[&2&lMOD&8] &a"
+helper:
+  tabprefix: "&8[&b&lHELPER&8] &b"
+  tagprefix: "&8[&b&lHELPER&8] &b"
+youtuber:
+  tabprefix: "&8[&f&lY&c&lT&8] &f"
+  tagprefix: "&8[&f&lY&c&lT&8] &f"
+legenda:
+  tabprefix: "&8[&d&lLEGENDA&8] &d"
+  tagprefix: "&8[&d&lLEGENDA&8] &d"
+mvp:
+  tabprefix: "&8[&6&lMVP&8] &6"
+  tagprefix: "&8[&6&lMVP&8] &6"
+vip:
+  tabprefix: "&8[&e&lVIP&8] &e"
+  tagprefix: "&8[&e&lVIP&8] &e"

@@ -1,0 +1,4 @@
+execute in minecraft:overworld if loaded -112 0 -112 if loaded -112 0 -56 if loaded -112 0 0 if loaded -112 0 56 if loaded -112 0 112 if loaded -56 0 -112 if loaded -56 0 -56 if loaded -56 0 0 if loaded -56 0 56 if loaded -56 0 112 if loaded 0 0 -112 if loaded 0 0 -56 if loaded 0 0 0 if loaded 0 0 56 if loaded 0 0 112 if loaded 56 0 -112 if loaded 56 0 -56 if loaded 56 0 0 if loaded 56 0 56 if loaded 56 0 112 if loaded 112 0 -112 if loaded 112 0 -56 if loaded 112 0 0 if loaded 112 0 56 if loaded 112 0 112 run return run function dziobmc:mapa/buduj
+scoreboard players add #proby dz.data 1
+execute if score #proby dz.data matches 60.. run return run tellraw @a {"text":"✖ Nie udało się załadować terenu. Spróbuj ponownie: /function dziobmc:mapa/zbuduj","color":"red"}
+schedule function dziobmc:mapa/czekaj 20t replace
