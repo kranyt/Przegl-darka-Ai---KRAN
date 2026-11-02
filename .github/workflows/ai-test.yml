@@ -1,0 +1,29 @@
+name: Test mózgu AI DziobSi
+on:
+  workflow_dispatch:
+  push:
+    branches: [ccr-b750805c-pi5q7j]
+    paths: ['llm.js', 'app.js', 'tests/**', '.github/workflows/ai-test.yml']
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Playwright
+        run: |
+          npm i --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Test (model + pytania)
+        run: |
+          python3 -m http.server 8080 >/dev/null 2>&1 &
+          sleep 2
+          node tests/ai-test.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-test-screenshot
+          path: ai-test.png

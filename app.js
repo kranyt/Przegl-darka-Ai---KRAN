@@ -9,6 +9,9 @@
   };
   const fmt = n => n.toLocaleString('pl-PL');
 
+  const FOOTER = 'Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦';
+  // komendy słownikowe – zawsze obsługuje je dokładny mózg słownikowy
+  const TOOL = /^(sprawd[zź]|przeanalizuj|analizuj|rozbierz|rym|s[lł]owa (na|zaczyn|ko[nń]cz)|losuj|losowe|wylosuj|policz|oblicz|kt[oó]ra (jest )?godzina|jaka (jest )?data|ile (znasz|masz) s[lł][oó]w|czy \S+ (jest|to) (s[lł]owem|s[lł]owo|poprawne)|pomoc$|co umiesz|znasz s[lł]owo)/;
   let history = store.get('history', []);   // [{role:'user'|'model', text, blocked?}]
   let busy = false;
 
@@ -62,7 +65,7 @@
       d.innerHTML = esc(text).replace(/\n/g, '<br>') + (blocked ? '<span class="note">🚫 Niecenzuralne – brak odpowiedzi</span>' : '');
     } else {
       d.className = 'msg bot';
-      d.innerHTML = `<img class="av" src="icons/icon.svg" alt=""><div class="body">${md(text)}</div>`;
+      d.innerHTML = `<img class="av" src="icons/icon.svg" alt=""><div class="body">${md(text)}${text ? `<p class="footer">${FOOTER}</p>` : ''}</div>`;
     }
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
@@ -77,11 +80,17 @@
   function renderHello() {
     const d = document.createElement('div');
     d.className = 'hello';
-    d.innerHTML = `<img src="icons/icon.svg" alt=""><h1>${greeting()}! <br>W czym <em>pomóc</em>?</h1><div class="chips"></div>`;
+    d.innerHTML = `<img src="icons/icon.svg" alt=""><h1>${greeting()}! <br>W czym <em>pomóc</em>?</h1><div class="chips"></div>` +
+      `<div class="ai-offer glass" hidden><b>🧠 Włącz pełne AI DziobSi</b><span>Rozumie każde pytanie i sam układa odpowiedzi. Pobiera się raz (~1 GB), potem działa bez internetu.</span>` +
+      `<div class="bar" hidden><i></i></div><button class="btn primary" type="button">Pobierz mózg AI</button></div>`;
+    const offer = d.querySelector('.ai-offer');
+    offer.querySelector('button').onclick = () => window.DziobLLM && DziobLLM.load();
+    aiViews.push({ el: offer, kind: 'offer' });
     const chips = d.querySelector('.chips');
-    ['przeanalizuj dziobolot', 'zrób grę', 'rymy do kot', 'napisz pętlę w python', 'opowiedz dowcip']
+    ['lubisz mnie?', 'opowiedz mi coś ciekawego', 'zrób grę', 'rymy do kot', 'przeanalizuj dziobolot']
       .forEach(q => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip glass'; b.textContent = q; b.onclick = () => send(q); chips.appendChild(b); });
     box.appendChild(d);
+    if (window.DziobLLM) updateAI(DziobLLM.info());
   }
 
   function render() {
@@ -90,11 +99,39 @@
     history.forEach(m => addBubble(m.role, m.text, m.blocked));
   }
 
-  function think(text) {
+  // podpowiedzi ze słownika 500 000 słów dla modelu (literówki w wiadomości)
+  function withHints(text) {
+    if (!Brain.ready) return text;
+    const tokens = [...new Set(text.toLowerCase().match(/[a-ząćęłńóśźż]{3,}/g) || [])];
+    const hints = [];
+    for (const w of tokens) {
+      if (Brain.has(w)) continue;
+      const s = Brain.suggest(w, 1)[0];
+      if (s) hints.push(`„${w}” = prawdopodobnie „${s}”`);
+      if (hints.length >= 3) break;
+    }
+    return hints.length ? `${text}\n\n(Słownik DziobSi: ${hints.join('; ')})` : text;
+  }
+  const cleanup = t => t.replace(/\s*(je[sś]li|gdyby[sś]?)\s+(masz|b[eę]dziesz mia[lł]).{0,40}pyta\S*.*$/is, '').trim();
+
+  async function think(text, typing) {
     if (window.DziobCode && DziobCode.wants(text)) {
       const c = DziobCode.make(text);
       return `${c.title} 👇\n\`\`\`${c.lang}\n${c.code}\n\`\`\``;
     }
+    const llm = window.DziobLLM;
+    const lower = text.toLowerCase().trim();
+    if (llm && llm.ready && store.get('useAI', true) && !TOOL.test(lower) && !/^[\d\s+\-*/().,^%x×:]+$/.test(lower)) {
+      const body = typing.querySelector('.body');
+      try {
+        const out = await llm.chat(history.slice(0, -1), withHints(text), t => {
+          body.innerHTML = md(cleanup(t)); box.scrollTop = box.scrollHeight;
+        });
+        const clean = cleanup(out);
+        if (clean) return clean;
+      } catch (e) { console.error(e); }
+    }
+    await new Promise(r => setTimeout(r, 300));
     return Brain.reply(text);
   }
 
@@ -121,8 +158,7 @@
     let reply;
     try {
       if (!Brain.ready) await brainReady;
-      await new Promise(r => setTimeout(r, 300));
-      reply = think(text);
+      reply = await think(text, typing);
     } catch (e) {
       reply = 'Ups: ' + e.message;
     }
@@ -227,12 +263,56 @@
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 
+  /* ---------- mózg AI (model w telefonie) ---------- */
+  const aiViews = [];
+  function updateAI(info) {
+    const pct = Math.round((info.progress || 0) * 100);
+    const label = {
+      none: 'nie pobrany', installed: 'wczytywanie…', downloading: `pobieranie ${pct}%`,
+      loading: 'uruchamianie…', ready: 'gotowy ✓', error: /fetch|network/i.test(info.error) ? 'brak połączenia z internetem' : 'błąd: ' + info.error,
+    }[info.state];
+    $('#aiState').textContent = label;
+    const btn = $('#btnAI');
+    btn.hidden = !['none', 'error'].includes(info.state) && info.state !== 'ready';
+    btn.textContent = info.state === 'ready' ? 'Usuń model' : info.state === 'error' ? 'Spróbuj ponownie' : 'Pobierz (~1 GB)';
+    btn.classList.toggle('primary', info.state !== 'ready');
+    btn.classList.toggle('danger', info.state === 'ready');
+    const busyNow = ['downloading', 'loading', 'installed'].includes(info.state);
+    for (const bar of document.querySelectorAll('.bar')) {
+      bar.hidden = !busyNow;
+      bar.classList.toggle('indeterminate', info.state !== 'downloading');
+      bar.querySelector('i').style.width = (info.state === 'downloading' ? pct : 100) + '%';
+    }
+    for (const v of aiViews) {
+      if (v.kind !== 'offer' || !v.el.isConnected) continue;
+      v.el.hidden = info.state === 'ready' || info.state === 'installed' || info.state === 'loading';
+      const b = v.el.querySelector('button');
+      b.hidden = busyNow;
+      b.textContent = info.state === 'error' ? 'Spróbuj ponownie' : 'Pobierz mózg AI';
+      const sp = v.el.querySelector('span');
+      if (info.state === 'error') sp.textContent = /fetch|network/i.test(info.error) ? 'Nie udało się pobrać – sprawdź internet (najlepiej Wi‑Fi) i spróbuj ponownie.' : 'Nie udało się: ' + info.error;
+      else if (info.state === 'downloading') sp.textContent = `Pobieranie… ${pct}% – nie zamykaj aplikacji.`;
+    }
+    if (Brain.ready) status.textContent = info.state === 'downloading' ? `⬇ ${pct}%` : info.state === 'ready' ? 'AI ✓' : '';
+  }
+  $('#btnAI').addEventListener('click', () => {
+    const llm = window.DziobLLM; if (!llm) return;
+    if (llm.ready) { if (confirm('Usunąć mózg AI z telefonu? (zwolni ~1 GB)')) llm.remove(); }
+    else llm.load();
+  });
+  const aiToggle = $('#aiToggle');
+  aiToggle.checked = store.get('useAI', true);
+  aiToggle.addEventListener('change', () => store.set('useAI', aiToggle.checked));
+  function hookAI() { if (window.DziobLLM && !hookAI.done) { hookAI.done = true; DziobLLM.onChange(updateAI); } }
+  window.addEventListener('dziobllm', hookAI);
+
   /* ---------- start ---------- */
-  render();
   const status = $('#status');
+  render();
+  hookAI();
   const brainReady = Brain.load(n => { status.textContent = Math.round(n / 5000) + '%'; })
     .then(n => {
-      status.textContent = '';
+      status.textContent = window.DziobLLM && DziobLLM.ready ? 'AI ✓' : '';
       $('#dictCount').textContent = fmt(n);
       doSearch();
     })

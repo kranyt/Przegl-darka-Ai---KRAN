@@ -226,3 +226,16 @@ body:not(.on-chat) .composer { display: none; }
 [hidden] { display: none !important; }
 .top.glass { background: var(--glass-strong); }
 .codeblock pre { max-height: 300px; }
+
+/* ---------- mózg AI ---------- */
+.msg .footer { margin: 8px 0 0; font-family: var(--sans); font-size: 13px; color: var(--muted); }
+.ai-offer { display: flex; flex-direction: column; gap: 8px; text-align: left; border-radius: 20px; padding: 16px; margin: 4px auto 0; max-width: 420px; font-size: 14px; }
+.ai-offer[hidden] { display: none; }
+.ai-offer b { font-family: var(--serif); font-size: 17px; }
+.ai-offer span { color: var(--muted); }
+.ai-offer .btn { align-self: flex-start; }
+.bar { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 4px 0 8px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: inherit; transition: width .3s; }
+.bar.indeterminate i { width: 40% !important; animation: indet 1.2s ease-in-out infinite; }
+@keyframes indet { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+.setting small { display: block; font-size: 12px; margin-top: 2px; }

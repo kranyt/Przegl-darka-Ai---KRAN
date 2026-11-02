@@ -3,6 +3,12 @@
 Aplikacja AI na telefon (PWA) ze słownikiem **500 000 polskich słów**.
 
 ## Co potrafi
+- **Mózg AI w telefonie** (`llm.js`) – polski model językowy **Bielik 1.5B** (SpeakLeash, Q4_K_M ~973 MB)
+  uruchamiany lokalnie przez [wllama](https://github.com/ngxson/wllama) (llama.cpp w WebAssembly).
+  Czyta wiadomość i sam układa odpowiedź; gdy użytkownik nie pyta – po prostu rozmawia.
+  Pobiera się raz (Ustawienia → Mózg AI), potem działa bez internetu. Słownik 500 000 słów
+  podpowiada modelowi poprawki literówek. Bez pobranego modelu działa mózg na regułach.
+- Każda odpowiedź kończy się: *„Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦”*
 - **Wygląd** – ciepły, spokojny styl (kremowy / grafitowy, szeryfowa czcionka odpowiedzi)
   z efektem **Liquid Glass** (szklane, rozmyte panele i pływający pasek zakładek);
   motyw jasny, ciemny lub automatyczny.

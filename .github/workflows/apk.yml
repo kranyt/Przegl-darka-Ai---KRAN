@@ -18,17 +18,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Sprawdź dostępność modelu AI (informacyjnie)
-        continue-on-error: true
-        run: |
-          curl -s 'https://huggingface.co/api/models?search=Bielik&limit=100' | python3 -c "import sys,json; [print('MODEL', m['id']) for m in json.load(sys.stdin) if 'gguf' in m['id'].lower()]" || true
-          for r in speakleash/Bielik-1.5B-v3.0-Instruct-GGUF speakleash/Bielik-1.5B-v3.0-Instruct-GGUF-Q4_K_M second-state/Bielik-1.5B-v3.0-Instruct-GGUF bartowski/Bielik-1.5B-v3.0-Instruct-GGUF; do
-            echo "== $r"; curl -s "https://huggingface.co/api/models/$r/tree/main" | python3 -c "import sys,json
-          try:
-            d=json.load(sys.stdin)
-            [print(f.get('path'), f.get('size')) for f in d if str(f.get('path','')).endswith('.gguf')] if isinstance(d,list) else print(d)
-          except Exception as e: print('ERR',e)"
-          done
       - name: Zależności i pliki aplikacji
         run: |
           npm ci

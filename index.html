@@ -92,6 +92,19 @@
         <h2 class="serif page-title">Ustawienia</h2>
         <div class="card glass">
           <div class="setting">
+            <span>Mózg AI <small class="muted" id="aiState">…</small></span>
+            <button class="btn primary" id="btnAI">Pobierz (~1 GB)</button>
+          </div>
+          <div class="bar" hidden><i></i></div>
+          <label class="setting">
+            <span>Używaj mózgu AI</span>
+            <input type="checkbox" id="aiToggle" class="switch">
+          </label>
+          <p class="muted">Polski model językowy Bielik działa w całości na Twoim telefonie: czyta wiadomość i sam układa odpowiedź.
+            Pobiera się raz, potem działa bez internetu. Komendy słownikowe (sprawdź, rymy, policz…) obsługuje słownik 500 000 słów.</p>
+        </div>
+        <div class="card glass">
+          <div class="setting">
             <span>Motyw</span>
             <div class="seg" id="themeSeg">
               <button data-t="auto">Auto</button>
@@ -142,5 +155,6 @@
   <script src="talk.js"></script>
   <script src="code.js"></script>
   <script src="app.js"></script>
+  <script type="module" src="llm.js"></script>
 </body>
 </html>
