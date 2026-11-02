@@ -3,8 +3,12 @@
 Aplikacja AI na telefon (PWA) ze słownikiem **500 000 polskich słów**.
 
 ## Co potrafi
-- **Czat AI** – offline odpowiada wbudowany „mózg” DziobSi; po dodaniu klucza
-  Gemini (⚙️ Ustawienia) odpowiada na każde pytanie jak pełne AI (Gemini).
+- **Samodzielne AI** – odpowiada wyłącznie własny „mózg” DziobSi, bez internetu
+  i bez wspomagania innymi AI.
+- **Analiza nieznanych słów** – część mowy, budowa, przedrostki, złożenia,
+  rdzeń i rodzina wyrazów, podpowiedzi literówek, werdykt.
+- **Blokada wulgaryzmów** – na wiadomości z niecenzuralnymi słowami DziobSi nie odpowiada
+  (wykrywa też zapisy typu `k.u.r.w.a`, `chuuuj`, `kórwa`); słownik jest z nich oczyszczony.
 - **500 000 słów** (`data/slowa.txt`) – posortowane od najczęściej używanych:
   sprawdzanie pisowni i podpowiedzi poprawek, rymy, słowa na / kończące się na…,
   losowe słowa.
@@ -12,7 +16,15 @@ Aplikacja AI na telefon (PWA) ze słownikiem **500 000 polskich słów**.
 - Kalkulator, godzina, data.
 - Działa **offline** i instaluje się na ekranie głównym telefonu (Android i iPhone).
 
-## Jak zainstalować na telefonie
+## APK (Android)
+Workflow `.github/workflows/apk.yml` buduje **DziobSi.apk** przy każdym pushu
+(projekt Capacitor w `android/`). Plik pobierzesz z zakładki **Releases**
+(albo z artefaktów w zakładce Actions). Na telefonie: pobierz → otwórz → zainstaluj
+(zezwól na instalację z nieznanych źródeł).
+
+Lokalnie (z Android SDK): `npm ci && npm run build && npx cap sync android && cd android && ./gradlew assembleDebug`.
+
+## Wersja przeglądarkowa (PWA)
 1. Włącz GitHub Pages: *Settings → Pages → Source: GitHub Actions*.
    Workflow `.github/workflows/pages.yml` opublikuje aplikację.
 2. Otwórz adres strony na telefonie

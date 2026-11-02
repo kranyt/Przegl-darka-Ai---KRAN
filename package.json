@@ -1,0 +1,16 @@
+{
+  "name": "dziobsi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DziobSi – Dziob Inteligence: asystent AI ze słownikiem 500 000 słów",
+  "scripts": {
+    "build": "node scripts/build-www.js"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}

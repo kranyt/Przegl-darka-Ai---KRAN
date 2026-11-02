@@ -111,3 +111,5 @@ input[type=text], input[type=password], input[type=search] {
 .results li small { color: var(--muted); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .chips button { border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 999px; padding: 6px 10px; font-size: 13px; }
+.msg.me.blocked { background: var(--muted); opacity: .75; }
+.msg.me.blocked .src { color: #fff; }

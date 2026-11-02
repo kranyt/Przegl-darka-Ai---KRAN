@@ -8,11 +8,6 @@
     set(k, v) { try { localStorage.setItem('dziobsi:' + k, JSON.stringify(v)); } catch (e) { /* brak pamięci */ } },
   };
 
-  const SYSTEM_PROMPT =
-    'Jesteś DziobSi (Dziob Inteligence) – przyjazny, pomocny asystent AI w aplikacji na telefon. ' +
-    'Twoim symbolem jest ptasi dziób 🐦. Odpowiadasz domyślnie po polsku, zwięźle i konkretnie. ' +
-    'Masz wbudowany słownik 500 000 polskich słów.';
-
   let history = store.get('history', []);   // [{role:'user'|'model', text, src}]
   let busy = false;
 
@@ -39,10 +34,11 @@
   /* ---------- czat ---------- */
   const box = $('#messages');
 
-  function addBubble(role, text, src) {
+  function addBubble(role, text, src, blocked) {
     const d = document.createElement('div');
-    d.className = 'msg ' + (role === 'user' ? 'me' : 'bot');
-    d.innerHTML = md(text) + (src ? `<span class="src">${esc(src)}</span>` : '');
+    d.className = 'msg ' + (role === 'user' ? 'me' : 'bot') + (blocked ? ' blocked' : '');
+    d.innerHTML = md(text) + (src ? `<span class="src">${esc(src)}</span>` : '') +
+      (blocked ? '<span class="src">🚫 Niecenzuralne – DziobSi nie odpowiada</span>' : '');
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
     return d;
@@ -52,7 +48,7 @@
     const d = addBubble('model', 'Cześć! 🐦 Jestem **DziobSi** – *Dziob Inteligence*.\nMam w głowie **500 000 słów**. O co chcesz zapytać?');
     const chips = document.createElement('div');
     chips.className = 'chips';
-    ['pomoc', 'losowe słowo', 'rymy do dziób', 'sprawdź słowo inteligencja', 'policz 123*45']
+    ['pomoc', 'przeanalizuj dziobolot', 'rymy do dziób', 'losowe słowo', 'opowiedz dowcip']
       .forEach(q => { const b = document.createElement('button'); b.type = 'button'; b.textContent = q; b.onclick = () => send(q); chips.appendChild(b); });
     d.appendChild(chips);
   }
@@ -60,54 +56,37 @@
   function render() {
     box.innerHTML = '';
     welcome();
-    history.forEach(m => addBubble(m.role, m.text, m.src));
-  }
-
-  async function askGemini(key, model) {
-    const contents = history.slice(-20).map(m => ({ role: m.role, parts: [{ text: m.text }] }));
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }, contents }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error((data.error && data.error.message) || ('HTTP ' + res.status));
-    const parts = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
-    const text = (parts || []).map(p => p.text || '').join('').trim();
-    if (!text) throw new Error('Pusta odpowiedź modelu');
-    return text;
+    history.forEach(m => addBubble(m.role, m.text, m.src, m.blocked));
   }
 
   async function send(text) {
     text = (text || '').trim();
     if (!text || busy) return;
     busy = true; $('#btnSend').disabled = true;
+    // Wulgaryzmy: DziobSi nie odpowiada
+    if (window.Brain && Brain.isVulgar(text)) {
+      history.push({ role: 'user', text, blocked: true });
+      store.set('history', history);
+      addBubble('user', text, null, true);
+      busy = false; $('#btnSend').disabled = false;
+      return;
+    }
+
     history.push({ role: 'user', text });
     addBubble('user', text);
 
     const typing = addBubble('model', '');
     typing.innerHTML = '<span class="typing"><span></span><span></span><span></span></span>';
 
-    const key = store.get('apiKey', '');
-    const useOnline = store.get('useOnline', true);
-    let reply, src;
+    let reply;
     try {
-      if (key && useOnline && navigator.onLine !== false) {
-        try {
-          reply = await askGemini(key, store.get('model', '') || 'gemini-2.5-flash');
-          src = '🌐 DziobSi Online';
-        } catch (e) {
-          reply = Brain.reply(text) + `\n\n⚠️ AI online niedostępne: ${e.message}`;
-          src = '🐦 DziobSi Offline';
-        }
-      } else {
-        if (!Brain.ready) await brainReady;
-        reply = Brain.reply(text);
-        src = '🐦 DziobSi Offline · 500 000 słów';
-      }
+      if (!Brain.ready) await brainReady;
+      await new Promise(r => setTimeout(r, 350)); // chwila „myślenia”
+      reply = Brain.reply(text);
     } catch (e) {
       reply = 'Ups, coś poszło nie tak: ' + e.message;
     }
+    const src = '🐦 DziobSi · 500 000 słów';
     typing.remove();
     history.push({ role: 'model', text: reply, src });
     if (history.length > 200) history = history.slice(-200);
@@ -149,16 +128,6 @@
   setMode('prefix');
 
   /* ---------- ustawienia ---------- */
-  $('#apiKey').value = store.get('apiKey', '');
-  $('#model').value = store.get('model', '');
-  $('#useOnline').checked = store.get('useOnline', true);
-  $('#btnSave').addEventListener('click', () => {
-    store.set('apiKey', $('#apiKey').value.trim());
-    store.set('model', $('#model').value.trim());
-    store.set('useOnline', $('#useOnline').checked);
-    $('#saveInfo').textContent = '✅ Zapisano.';
-    setTimeout(() => { $('#saveInfo').textContent = ''; }, 2000);
-  });
   $('#btnClear').addEventListener('click', () => {
     if (!confirm('Wyczyścić całą rozmowę?')) return;
     history = []; store.set('history', history); render();

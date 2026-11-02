@@ -1,0 +1,8 @@
+{
+  "appId": "pl.dziob.dziobsi",
+  "appName": "DziobSi",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0f0d1f"
+  }
+}

@@ -1,0 +1,49 @@
+name: Budowanie APK DziobSi
+on:
+  push:
+    branches: [main, ccr-b750805c-pi5q7j]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+      - name: Zależności i pliki aplikacji
+        run: |
+          npm ci
+          npm run build
+          npx cap sync android
+      - name: Budowanie APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+      - name: Nazwa pliku
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk DziobSi.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DziobSi-apk
+          path: DziobSi.apk
+      - name: Wydanie (Releases) – do pobrania na telefon
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: DziobSi APK (wersja ${{ github.run_number }})
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          files: DziobSi.apk
+          body: |
+            🐦 **DziobSi – Dziob Inteligence**
+            Pobierz **DziobSi.apk** na telefonie z Androidem i zainstaluj
+            (zezwól na instalację z nieznanych źródeł, jeśli telefon zapyta).
