@@ -215,6 +215,8 @@
         return this.random(n).map(w => '**' + w + '**').join(', ');
       }
 
+      if (window.Talk) { const d = window.Talk.define(t); if (d) return d; }
+
       if ((m = t.match(/(?:przeanalizuj|analizuj|analiza|rozbierz|co (?:to )?(?:jest|znaczy|oznacza)) (?:s[lł]owo |s[lł]owa )?(\S+)$/)))
         return this.analyze(m[1], true);
 
@@ -249,6 +251,8 @@
         }
       }
 
+      if (window.Talk) { const ans = window.Talk.answer(raw, this); if (ans) return ans; }
+
       const tokens = raw.toLowerCase().match(/[a-ząćęłńóśźżqvx]+/g) || [];
       if (!tokens.length) return pick(['🐦?', 'Hmm? Napisz „pomoc”.']);
       if (tokens.length === 1) return this.analyze(tokens[0]);
@@ -256,7 +260,7 @@
       const unknown = [...new Set(tokens.filter(w => !this.rank.has(w)))];
       if (unknown.length) return unknown.slice(0, 2).map(w => this.analyze(w)).join('\n');
       if (/\?$/.test(raw.trim())) return pick(['Dobre pytanie! 🤔 Zapytaj mnie o słowo, rym albo kod.', 'Hmm, tego nie policzę 🐦 Spróbuj „pomoc”.']);
-      return pick(['Rozumiem 🐦', 'Jasne! Co dalej?', 'Okej 👍 Coś jeszcze?', 'Mhm, słucham dalej 🐦']);
+      return pick(['Opowiedz mi więcej! 🐦', 'Ciekawe! A co dalej?', 'Aha! A jak się z tym czujesz?', 'Brzmi ciekawie 🐦 Mów dalej!']);
     },
   };
 

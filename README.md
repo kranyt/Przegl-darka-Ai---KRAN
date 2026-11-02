@@ -7,6 +7,9 @@ Aplikacja AI na telefon (PWA) ze słownikiem **500 000 polskich słów**.
   z efektem **Liquid Glass** (szklane, rozmyte panele i pływający pasek zakładek);
   motyw jasny, ciemny lub automatyczny.
 - **Krótkie odpowiedzi** – DziobSi odpowiada zwięźle.
+- **Rozmowa** (`talk.js`) – odpowiada na pytania o siebie („lubisz mnie?” → „Tak, bardzo cię lubię! 💛”),
+  pytania tak/nie z odmianą czasownika (lubisz → lubię, możesz → mogę), uczucia, ulubione rzeczy,
+  stolice, ciekawostki, krótkie definicje; zapamiętuje imię użytkownika.
 - **DziobSi Code** – opisz, co zbudować („gra”, „kalkulator”, „lista zadań”, „zegar”, „strona”…),
   a DziobSi wstawi kod do edytora z podglądem na żywo. W czacie: „napisz pętlę w python”,
   „zrób grę” – kod z przyciskami *Kopiuj* i *Otwórz w Code*.
