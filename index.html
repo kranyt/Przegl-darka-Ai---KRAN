@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="DziobSi">
+  <meta name="description" content="DziobSi (Dziob Inteligence) – asystent AI ze słownikiem 500 000 słów.">
+  <title>DziobSi</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <img src="icons/icon.svg" alt="" class="logo">
+    <div class="title">
+      <h1>DziobSi</h1>
+      <p id="status">Ładowanie mózgu… (0 / 500 000 słów)</p>
+    </div>
+    <button id="btnInstall" class="pill" hidden>Zainstaluj</button>
+  </header>
+
+  <main>
+    <!-- CZAT -->
+    <section id="tab-chat" class="tab active">
+      <div id="messages" class="messages" aria-live="polite"></div>
+      <form id="chatForm" class="composer">
+        <textarea id="input" rows="1" placeholder="Napisz do DziobSi…" autocomplete="off"></textarea>
+        <button type="submit" id="btnSend" aria-label="Wyślij">➤</button>
+      </form>
+    </section>
+
+    <!-- SŁOWNIK -->
+    <section id="tab-dict" class="tab">
+      <div class="card">
+        <h2>Słownik DziobSi</h2>
+        <p class="muted"><b id="dictCount">500 000</b> polskich słów, posortowanych od najczęściej używanych.</p>
+        <input id="dictSearch" type="search" placeholder="Szukaj słowa (np. dziób, kot*, *ość)…" autocomplete="off">
+        <div class="row">
+          <button class="pill" data-mode="prefix">Zaczyna się na</button>
+          <button class="pill" data-mode="suffix">Kończy się na</button>
+          <button class="pill" data-mode="contains">Zawiera</button>
+          <button class="pill" id="btnRandom">🎲 Losowe</button>
+        </div>
+        <p id="dictInfo" class="muted"></p>
+        <ol id="dictResults" class="results"></ol>
+      </div>
+    </section>
+
+    <!-- USTAWIENIA -->
+    <section id="tab-settings" class="tab">
+      <div class="card">
+        <h2>Ustawienia</h2>
+        <p class="muted">DziobSi działa od razu offline (wbudowany mózg + 500 000 słów).
+          Żeby odpowiadał jak pełne AI na każde pytanie, wklej darmowy klucz Gemini API
+          z <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
+          Klucz zostaje tylko na Twoim telefonie.</p>
+        <label>Klucz Gemini API
+          <input id="apiKey" type="password" placeholder="AIza…" autocomplete="off">
+        </label>
+        <label>Model
+          <input id="model" type="text" placeholder="gemini-2.5-flash">
+        </label>
+        <label class="check"><input id="useOnline" type="checkbox" checked> Używaj AI online, gdy jest klucz</label>
+        <div class="row">
+          <button id="btnSave" class="pill primary">Zapisz</button>
+          <button id="btnClear" class="pill danger">Wyczyść czat</button>
+        </div>
+        <p id="saveInfo" class="muted"></p>
+      </div>
+      <div class="card">
+        <h2>O aplikacji</h2>
+        <p><b>DziobSi</b> – <i>Dziob Inteligence</i>. Asystent AI na telefon ze słownikiem
+          <b>500 000</b> słów. Zainstaluj: w przeglądarce telefonu wybierz
+          „Dodaj do ekranu głównego” / „Zainstaluj aplikację”.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <button data-tab="chat" class="active"><span>💬</span>Czat</button>
+    <button data-tab="dict"><span>📖</span>Słownik</button>
+    <button data-tab="settings"><span>⚙️</span>Ustawienia</button>
+  </nav>
+
+  <script src="brain.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
