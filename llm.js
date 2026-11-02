@@ -22,12 +22,13 @@ let wllama = null;
 const has = () => { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } };
 let state = has() ? 'installed' : 'none'; // none | installed | downloading | loading | ready | error
 let progress = 0;
+let noCache = false; // true = model działa, ale nie zmieścił się w pamięci (pobierze się znowu po restarcie)
 let error = '';
 const listeners = new Set();
 const emit = () => listeners.forEach(fn => { try { fn(api.info()); } catch (e) { /* nic */ } });
 
 const api = {
-  info: () => ({ state, progress, error, ready: state === 'ready' }),
+  info: () => ({ state, progress, error, noCache, ready: state === 'ready' }),
   onChange(fn) { listeners.add(fn); fn(api.info()); return () => listeners.delete(fn); },
   get ready() { return state === 'ready'; },
 
@@ -37,15 +38,26 @@ const api = {
     state = wasInstalled ? 'loading' : 'downloading'; progress = 0; error = ''; emit();
     try {
       wllama = new Wllama({ default: new URL('./vendor/wllama/wllama.wasm', import.meta.url).href }, { logger: LoggerWithoutDebug });
-      await wllama.loadModelFromHF(MODEL, {
+      try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) { /* nic */ }
+      const opts = {
         n_ctx: 2048,
         progressCallback: ({ loaded, total }) => {
           progress = total ? loaded / total : 0;
           if (progress >= 0.999) state = 'loading';
           emit();
         },
-      });
-      try { localStorage.setItem(KEY, '1'); } catch (e) { /* brak */ }
+      };
+      try {
+        await wllama.loadModelFromHF(MODEL, opts);
+      } catch (e) {
+        // za mało miejsca na zapis – uruchom model bez zapisywania w pamięci telefonu
+        if (!/quota|storage|space/i.test(String(e && e.message))) throw e;
+        console.warn('Brak miejsca na zapis modelu – wczytuję bez zapisu', e);
+        state = 'downloading'; progress = 0; emit();
+        await wllama.loadModelFromHF(MODEL, { ...opts, useCache: false });
+        noCache = true;
+      }
+      if (!noCache) { try { localStorage.setItem(KEY, '1'); } catch (e) { /* brak */ } }
       state = 'ready'; progress = 1; emit();
     } catch (e) {
       state = 'error'; error = (e && e.message) || String(e); emit();
