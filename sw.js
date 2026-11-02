@@ -1,7 +1,7 @@
 /* DziobSi – service worker: działanie offline */
-const CACHE = 'dziobsi-v2';
+const CACHE = 'dziobsi-v3';
 const ASSETS = [
-  './', 'index.html', 'style.css', 'brain.js', 'app.js', 'manifest.webmanifest',
+  './', 'index.html', 'style.css', 'brain.js', 'code.js', 'app.js', 'manifest.webmanifest',
   'data/slowa.txt', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
 

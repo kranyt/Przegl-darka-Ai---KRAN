@@ -33,16 +33,16 @@
   const PREFIXES = ['współ', 'przeciw', 'anty', 'super', 'mega', 'ultra', 'przed', 'prze', 'przy', 'naj', 'nad', 'pod', 'roz', 'bez', 'nie',
     'wy', 'za', 'na', 'po', 'od', 'do', 'ob', 'pra', 'wz', 'ws', 'u', 's', 'z', 'w', 'o'];
   const SUFFIX_RULES = [
-    [/ość$/, 'rzeczownik oznaczający cechę (jak „radość”, „szybkość”)'],
-    [/(anie|enie|cie)$/, 'rzeczownik odczasownikowy – nazwa czynności (jak „pisanie”, „myślenie”)'],
-    [/(acja|izm|logia|grafia|ista|istka|ometr|ika)$/, 'rzeczownik, najpewniej wyraz zapożyczony (jak „informacja”, „biologia”)'],
-    [/(ować|ywać|iwać|ać|eć|ić|yć|ąć|ść|źć|c)$/, 'czasownik w bezokoliczniku (jak „dziobać”, „robić”)'],
-    [/(łem|łam|łeś|łaś|liśmy|łyśmy|liście|li|ły|ło|ła|ł)$/, 'czasownik w czasie przeszłym (jak „dziobał”, „zrobiła”)'],
-    [/(iejszy|ejszy|szy)$/, 'przymiotnik w stopniu wyższym (jak „ładniejszy”)'],
-    [/(owy|owa|owe|ny|na|ne|ski|ska|skie|cki|cka|ckie|czny|czna|liwy|liwa|isty|ista|asty)$/, 'przymiotnik (jak „dziobowy”, „ładny”)'],
-    [/(eczek|eczka|uszek|uszka|eńko|ątko|iczek|yczek|ek|ka|ko)$/, 'rzeczownik, możliwe zdrobnienie (jak „dziobek”, „kotek”)'],
-    [/(arz|acz|nik|ciel|ec|ak)$/, 'rzeczownik, możliwa nazwa osoby lub wykonawcy (jak „piekarz”, „nauczyciel”)'],
-    [/(nie|wie|o)$/, 'możliwy przysłówek (jak „ładnie”, „szybko”)'],
+    [/ość$/, 'rzeczownik (cecha)'],
+    [/(anie|enie|cie)$/, 'rzeczownik (czynność)'],
+    [/(acja|izm|logia|grafia|ista|istka|ometr|ika)$/, 'rzeczownik'],
+    [/(ować|ywać|iwać|ać|eć|ić|yć|ąć|ść|źć)$/, 'czasownik'],
+    [/(łem|łam|łeś|łaś|liśmy|łyśmy|liście|li|ły|ło|ła|ł)$/, 'czasownik (czas przeszły)'],
+    [/(iejszy|ejszy|szy)$/, 'przymiotnik (stopień wyższy)'],
+    [/(owy|owa|owe|ny|na|ne|ski|ska|skie|cki|cka|ckie|czny|czna|liwy|liwa|isty|asty)$/, 'przymiotnik'],
+    [/(eczek|eczka|uszek|uszka|eńko|ątko|iczek|yczek|ek|ka|ko)$/, 'rzeczownik (zdrobnienie)'],
+    [/(arz|acz|nik|ciel|ec|ak)$/, 'rzeczownik (osoba lub rzecz)'],
+    [/(nie|wie)$/, 'przysłówek'],
   ];
 
   const Brain = {
@@ -138,147 +138,105 @@
         .slice(0, limit);
     },
 
-    /* Analiza słowa – szczególnie takiego, którego DziobSi nie zna */
-    analyze(word) {
+    /* Krótka analiza słowa – zawsze coś powie, nigdy „nie znam” */
+    analyze(word, detailed) {
       const w = norm(word);
-      const fmt = n => n.toLocaleString('pl-PL');
-      const lines = [];
       const r = this.rankOf(w);
-
-      lines.push(r ? `🔎 **Analiza słowa „${w}”** – znam je ✅ (miejsce #${fmt(r)} z ${fmt(this.words.length)})`
-                   : `🔎 **Analiza nieznanego słowa „${w}”** – nie ma go w moich ${fmt(this.words.length)} słowach, więc je rozbieram na części:`);
-
-      // budowa
-      const syl = (w.match(VOWELS) || []).length;
-      const vow = (w.match(/[aąeęioóuy]/g) || []).length;
-      lines.push(`• Budowa: ${pl(w.length, 'litera', 'litery', 'liter')}, ${pl(vow, 'samogłoska', 'samogłoski', 'samogłosek')}, ${pl(w.length - vow, 'spółgłoska', 'spółgłoski', 'spółgłosek')}, ok. ${pl(syl, 'sylaba', 'sylaby', 'sylab')}.`);
-
-      // pochodzenie
-      if (/[ąćęłńóśźż]/.test(w)) lines.push('• Pochodzenie: ma polskie znaki – to raczej polskie słowo.');
-      else if (/[qvx]|th|sh|ee|oo|ph|ck$|w$/.test(w)) lines.push('• Pochodzenie: litery typu q/v/x/th/sh sugerują wyraz obcy (np. angielski) albo nazwę własną.');
-
-      // część mowy
       const rule = SUFFIX_RULES.find(([re]) => re.test(w));
-      if (rule) lines.push(`• Część mowy (zgaduję po końcówce „${w.match(rule[0])[0]}”): ${rule[1]}.`);
+      let pos = rule ? rule[1] : '';
+      let parts = '';
 
-      if (/^naj.+szy$/.test(w)) lines.push('• Przedrostek „naj-” + „-szy” = stopień najwyższy przymiotnika.');
-
-      // przedrostek + znane słowo
       for (const p of PREFIXES) {
         if (w.startsWith(p) && w.length - p.length >= 3 && this.rank.has(w.slice(p.length))) {
-          const rest = w.slice(p.length);
-          lines.push(p === 'nie'
-            ? `• Rozkład: „nie” + „${rest}” – zaprzeczenie słowa „${rest}”.`
-            : `• Rozkład: przedrostek „${p}-” + znane słowo „${rest}”.`);
+          parts = p === 'nie' ? `zaprzeczenie „${w.slice(3)}”` : `${p}- + ${w.slice(p.length)}`;
           break;
         }
       }
-
-      // słowo złożone z dwóch znanych
-      if (!r) {
-        for (let i = 3; i <= w.length - 3; i++) {
+      if (!parts && !r) {
+        for (let i = 3; i <= w.length - 3 && !parts; i++) {
           const a = w.slice(0, i), b = w.slice(i);
           const ra = this.rank.get(a), rb = this.rank.get(b);
-          if (ra && rb && ra < 150000 && rb < 150000) { lines.push(`• Złożenie: może to „${a}” + „${b}”.`); break; }
-          // łącznik -o-/-i- jak w „słowotwórstwo”
-          if (/[oi]/.test(w[i]) && i + 4 <= w.length) {
-            const a2 = w.slice(0, i), b2 = w.slice(i + 1);
-            if (this.rank.has(b2) && this.withPrefix(a2, 1).length && this.rank.get(b2) < 150000 && a2.length >= 3) {
-              lines.push(`• Złożenie: może to rdzeń „${a2}-” + łącznik „-${w[i]}-” + „${b2}”.`); break;
-            }
+          if (ra && rb && ra < 150000 && rb < 150000) parts = `${a} + ${b}`;
+          else if (/[oi]/.test(w[i]) && i + 4 <= w.length && this.rank.has(w.slice(i + 1)) && this.rank.get(w.slice(i + 1)) < 150000 && this.withPrefix(a, 1).length) {
+            parts = `${a}-${w[i]}-${w.slice(i + 1)}`; pos = 'słowo złożone';
           }
         }
       }
 
-      // rdzeń i rodzina wyrazów
-      let family = [], stem = '';
-      for (let len = w.length - 1; len >= Math.min(4, w.length - 1) && len >= 3; len--) {
-        const f = this.withPrefix(w.slice(0, len), 7).filter(x => x !== w);
-        if (f.length >= 2) { family = f.slice(0, 6); stem = w.slice(0, len); break; }
-      }
-      if (family.length) lines.push(`• Rdzeń „${stem}-” – podobne słowa, które znam: ${family.join(', ')}.`);
-
-      // literówka?
-      if (!r) {
-        const s = this.suggest(w, 4);
-        if (s.length) lines.push(`• Może to literówka? Pasuje: ${s.map(x => '**' + x + '**').join(', ')}.`);
+      let family = [];
+      for (let len = w.length - 1; len >= 3 && len >= Math.min(4, w.length - 1); len--) {
+        const f = this.withPrefix(w.slice(0, len), 5).filter(x => x !== w);
+        if (f.length >= 2) { family = f.slice(0, 3); break; }
       }
 
-      // werdykt
-      if (!r) {
-        let v;
-        if (lines.some(l => l.includes('literówka'))) v = 'najpewniej literówka albo rzadka odmiana';
-        else if (family.length || lines.some(l => l.includes('Rozkład') || l.includes('Złożenie'))) v = 'wygląda na prawdziwe, rzadkie albo nowe słowo utworzone z polskich części';
-        else if (lines.some(l => l.includes('obcy'))) v = 'wygląda na wyraz obcy albo nazwę własną';
-        else v = 'nie przypomina niczego, co znam – może to nazwa własna, skrót albo zmyślone słowo';
-        lines.push(`🐦 **Werdykt:** ${v}.`);
+      const typo = !r && !parts ? this.suggest(w, 1)[0] : null;
+      let out = `**${w}**`;
+      if (typo) out += ` – pewnie chodzi o **${typo}**.`;
+      else if (pos || parts) out += ` – ${pos || 'słowo'}${parts ? ': ' + parts : ''}.`;
+      else if (/[qvx]|th|sh|ee|oo|ph/.test(w)) out += ' – wyraz obcy albo nazwa własna.';
+      else out += ` – ${r ? 'słowo' : 'rzadkie słowo, może nazwa własna'}.`;
+      if (family.length && !typo) out += ` Podobne: ${family.join(', ')}.`;
+      if (detailed) {
+        const syl = (w.match(VOWELS) || []).length;
+        out += ` (${pl(w.length, 'litera', 'litery', 'liter')}, ${pl(syl, 'sylaba', 'sylaby', 'sylab')}${r ? ', #' + r.toLocaleString('pl-PL') : ''})`;
       }
-      return lines.join('\n');
+      return out;
     },
 
-    /* ---------- odpowiedzi ---------- */
+    /* ---------- odpowiedzi (krótkie) ---------- */
     reply(msg) {
       const raw = msg.trim();
       const t = norm(raw).replace(/[?!.]+$/g, '');
       const fmt = n => n.toLocaleString('pl-PL');
-      const total = fmt(this.words.length);
       let m;
 
       if (/^(cze[sś][cć]|hej|siema|elo|witaj|dzie[nń] dobry|dobry wiecz[oó]r|hejka|yo)(?=$|[\s,!])/.test(t))
-        return `Cześć! 🐦 Jestem **DziobSi** – Dziob Inteligence. Znam **${total}** słów. Zapytaj mnie o coś albo napisz „pomoc”.`;
+        return pick(['Cześć! 🐦 W czym pomóc?', 'Hej! Co dziś robimy?', 'Siema! 🐦']);
 
-      if (/^(pomoc|help|co umiesz|co potrafisz)/.test(t)) return HELP(total);
+      if (/^(pomoc|help|co umiesz|co potrafisz)/.test(t)) return HELP;
 
       if (/(kim|czym) jeste[sś]|jak si[eę] nazywasz|twoje imi[eę]/.test(t))
-        return `Jestem **DziobSi** (Dziob Inteligence) – samodzielna sztuczna inteligencja na telefon z mózgiem na **${total}** słów. Działam bez internetu i bez pomocy innych AI. Sprawdzam i analizuję słowa, szukam rymów, poprawiam literówki i liczę.`;
+        return 'Jestem **DziobSi** – Dziob Inteligence. Znam 500 000 słów. 🐦';
 
-      if (/ile (znasz )?s[lł][oó]w|ile masz s[lł][oó]w/.test(t))
-        return `Znam dokładnie **${total}** słów! 📚`;
-
-      if (/jak si[eę] masz|co u ciebie|co tam/.test(t))
-        return 'Dziobię się świetnie, dzięki! 🐦 A u Ciebie?';
-
-      if (/co robisz/.test(t)) return 'Przeglądam swoje 500 000 słów i czekam na Twoje pytanie 🐦';
-
-      if (/(dzi[eę]kuj[eę]|dzi[eę]ki|thx)/.test(t)) return 'Proszę bardzo! 🐦';
-
+      if (/ile (znasz )?s[lł][oó]w|ile masz s[lł][oó]w/.test(t)) return `${fmt(this.words.length)} słów. 📚`;
+      if (/jak si[eę] masz|co u ciebie|co tam/.test(t)) return 'Świetnie, dzięki! A u Ciebie?';
+      if (/co robisz/.test(t)) return 'Czekam na Twoje pytanie 🐦';
+      if (/(dzi[eę]kuj[eę]|dzi[eę]ki|thx)/.test(t)) return 'Proszę! 🐦';
+      if (/^(ok|okej|spoko|dobrze|super|fajnie|git|xd|haha)\b/.test(t)) return pick(['👍', 'Spoko! 🐦', 'Super!']);
       if (/(opowiedz )?(dowcip|żart|zart|kawa[lł])/.test(t)) return pick(JOKES);
 
       if (/(kt[oó]ra (jest )?godzina|jaka godzina)/.test(t))
-        return `Jest **${new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}**.`;
+        return `${new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })} 🕐`;
       if (/(jaki (jest )?dzi[sś] dzie[nń]|jaka (jest )?data|kt[oó]rego (jest )?dzi[sś])/.test(t))
-        return `Dziś jest **${new Date().toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}**.`;
+        return new Date().toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + ' 📅';
 
       if ((m = t.match(/(?:losowe|losuj|wylosuj)(?: s[lł]owo| s[lł]owa)?(?: (\d+))?/))) {
-        const n = Math.min(parseInt(m[1] || '1', 10) || 1, 50);
-        const ws = this.random(n);
-        return n === 1 ? `Losowe słowo: **${ws[0]}** (miejsce #${fmt(this.rankOf(ws[0]))} na ${total}).`
-                       : `Losowe słowa: ${ws.map(w => '**' + w + '**').join(', ')}`;
+        const n = Math.min(parseInt(m[1] || '1', 10) || 1, 20);
+        return this.random(n).map(w => '**' + w + '**').join(', ');
       }
 
       if ((m = t.match(/(?:przeanalizuj|analizuj|analiza|rozbierz|co (?:to )?(?:jest|znaczy|oznacza)) (?:s[lł]owo |s[lł]owa )?(\S+)$/)))
-        return this.analyze(m[1]);
+        return this.analyze(m[1], true);
 
       if ((m = t.match(/rym(?:y|u)? (?:do|na) (\S+)/))) {
-        const r = this.rhymes(m[1]);
-        return r.length ? `Rymy do **${m[1]}**: ${r.join(', ')}` : `Nie znalazłem rymów do „${m[1]}”.`;
+        const r = this.rhymes(m[1], 8);
+        return r.length ? r.join(', ') : `Trudny rym! Spróbuj innego słowa.`;
       }
 
       if ((m = t.match(/s[lł]owa (?:na|zaczynaj[aą]ce si[eę] (?:na|od)) (\S+)/))) {
-        const r = this.search(m[1], 'prefix', 20);
-        return r.total ? `Znam **${fmt(r.total)}** słów na „${m[1]}”, np.: ${r.items.join(', ')}` : `Nie znam słów na „${m[1]}”.`;
+        const r = this.search(m[1], 'prefix', 10);
+        return r.total ? `${r.items.join(', ')}… (${fmt(r.total)})` : `Brak słów na „${m[1]}”.`;
       }
 
       if ((m = t.match(/s[lł]owa (?:ko[nń]cz[aą]ce si[eę] na|z ko[nń]c[oó]wk[aą]) (\S+)/))) {
-        const r = this.search(m[1], 'suffix', 20);
-        return r.total ? `Znam **${fmt(r.total)}** słów kończących się na „${m[1]}”, np.: ${r.items.join(', ')}` : `Nie znam takich słów.`;
+        const r = this.search(m[1], 'suffix', 10);
+        return r.total ? `${r.items.join(', ')}… (${fmt(r.total)})` : 'Brak takich słów.';
       }
 
       if ((m = t.match(/(?:czy (\S+) (?:jest|to) (?:s[lł]owem|s[lł]owo|poprawne)|sprawd[zź] (?:s[lł]owo )?(\S+)|znasz (?:s[lł]owo )?(\S+))/))) {
         const w = m[1] || m[2] || m[3];
         const r = this.rankOf(w);
-        if (r) return `✅ Tak! „**${w}**” jest w moim słowniku – miejsce **#${fmt(r)}** z ${total} pod względem popularności.`;
-        return `❌ Nie znam słowa „${w}”, ale je przeanalizowałem:\n\n` + this.analyze(w);
+        return r ? `✅ Tak, **${norm(w)}** (#${fmt(r)}).` : this.analyze(w);
       }
 
       if ((m = t.match(/(?:policz|oblicz|ile to|ile jest)\s*(.+)/)) || /^[\d\s+\-*/().,^%x×:]+$/.test(t)) {
@@ -286,34 +244,24 @@
         if (/^[\d\s+\-*/().%]+$/.test(expr) && /\d/.test(expr)) {
           try {
             const v = Function('"use strict";return (' + expr + ')')();
-            if (typeof v === 'number' && isFinite(v)) return `🧮 ${expr.replace(/\*\*/g, '^')} = **${fmt(Math.round(v * 1e10) / 1e10)}**`;
+            if (typeof v === 'number' && isFinite(v)) return `**${fmt(Math.round(v * 1e10) / 1e10)}**`;
           } catch (e) { /* nie wyrażenie */ }
         }
       }
 
-      // Zwykła wiadomość: rozumiem słowa, a nieznane – analizuję
       const tokens = raw.toLowerCase().match(/[a-ząćęłńóśźżqvx]+/g) || [];
-      if (!tokens.length) return 'Hmm, nie rozumiem. 🐦 Napisz „pomoc”, żeby zobaczyć, co umiem.';
+      if (!tokens.length) return pick(['🐦?', 'Hmm? Napisz „pomoc”.']);
+      if (tokens.length === 1) return this.analyze(tokens[0]);
+
       const unknown = [...new Set(tokens.filter(w => !this.rank.has(w)))];
-
-      if (tokens.length === 1) {
-        return unknown.length ? this.analyze(tokens[0])
-          : `„**${tokens[0]}**” – znam to słowo (miejsce #${fmt(this.rankOf(tokens[0]))}). Napisz „przeanalizuj ${tokens[0]}”, a rozbiorę je na części.`;
-      }
-
-      if (!unknown.length) {
-        const rare = tokens.slice().sort((a, b) => this.rank.get(b) - this.rank.get(a))[0];
-        return `Rozumiem wszystkie słowa Twojej wiadomości (${pl(tokens.length, 'słowo', 'słowa', 'słów')}) ✅\nNajrzadsze z nich to „**${rare}**” (miejsce #${fmt(this.rank.get(rare))} z ${total}).\n\nNapisz „pomoc”, żeby zobaczyć, w czym mogę pomóc. 🐦`;
-      }
-
-      let out = `Twoja wiadomość ma ${pl(tokens.length, 'słowo', 'słowa', 'słów')}, z czego znam ${tokens.length - unknown.length}. Nie znam: ${unknown.slice(0, 5).map(w => '„' + w + '”').join(', ')} – analizuję:`;
-      for (const w of unknown.slice(0, 3)) out += '\n\n' + this.analyze(w);
-      if (unknown.length > 3) out += `\n\n…i jeszcze ${unknown.length - 3} – napisz „przeanalizuj <słowo>”.`;
-      return out;
+      if (unknown.length) return unknown.slice(0, 2).map(w => this.analyze(w)).join('\n');
+      if (/\?$/.test(raw.trim())) return pick(['Dobre pytanie! 🤔 Zapytaj mnie o słowo, rym albo kod.', 'Hmm, tego nie policzę 🐦 Spróbuj „pomoc”.']);
+      return pick(['Rozumiem 🐦', 'Jasne! Co dalej?', 'Okej 👍 Coś jeszcze?', 'Mhm, słucham dalej 🐦']);
     },
   };
 
   function norm(s) { return String(s || '').trim().toLowerCase().replace(/^["„”'«»]+|["„”'«»,.;:!?]+$/g, ''); }
+
   // odmiana: pl(3,'słowo','słowa','słów') -> '3 słowa'
   function pl(n, one, few, many) {
     const d = n % 10, dd = n % 100;
@@ -329,20 +277,15 @@
     'Dlaczego wróbel nie korzysta z internetu? Bo woli ćwierkać na żywo! 🐦',
   ];
 
-  function HELP(total) {
-    return `Oto co umiem (słownik: **${total}** słów, działam w 100% sam, bez internetu):
-• „sprawdź słowo dziób” – czy słowo istnieje
-• „przeanalizuj dziobolot” – rozbiorę każde słowo, nawet nieznane (część mowy, rdzeń, przedrostek, złożenie, literówki)
-• „rymy do kot” – rymy
-• „słowa na prze” – słowa zaczynające się na…
-• „słowa kończące się na ość”
-• „losowe słowo” / „losuj 5”
-• „policz 12*7+3” – kalkulator
-• „która godzina”, „jaka data”, „opowiedz dowcip”
-• dowolny tekst – nieznane słowa przeanalizuję automatycznie
-
-🚫 Na wiadomości z wulgaryzmami nie odpowiadam.`;
-  }
+  const HELP = `**Co umiem:**
+• sprawdź słowo …
+• przeanalizuj …
+• rymy do …
+• słowa na …
+• losowe słowo
+• policz 2+2
+• napisz kod … / zrób grę
+• opowiedz dowcip`;
 
   window.Brain = Brain;
 })();

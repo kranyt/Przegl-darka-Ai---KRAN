@@ -3,10 +3,17 @@
 Aplikacja AI na telefon (PWA) ze słownikiem **500 000 polskich słów**.
 
 ## Co potrafi
+- **Wygląd** – ciepły, spokojny styl (kremowy / grafitowy, szeryfowa czcionka odpowiedzi)
+  z efektem **Liquid Glass** (szklane, rozmyte panele i pływający pasek zakładek);
+  motyw jasny, ciemny lub automatyczny.
+- **Krótkie odpowiedzi** – DziobSi odpowiada zwięźle.
+- **DziobSi Code** – opisz, co zbudować („gra”, „kalkulator”, „lista zadań”, „zegar”, „strona”…),
+  a DziobSi wstawi kod do edytora z podglądem na żywo. W czacie: „napisz pętlę w python”,
+  „zrób grę” – kod z przyciskami *Kopiuj* i *Otwórz w Code*.
 - **Samodzielne AI** – odpowiada wyłącznie własny „mózg” DziobSi, bez internetu
   i bez wspomagania innymi AI.
-- **Analiza nieznanych słów** – część mowy, budowa, przedrostki, złożenia,
-  rdzeń i rodzina wyrazów, podpowiedzi literówek, werdykt.
+- **Analiza słów** – każde słowo, nawet spoza słownika, DziobSi krótko rozbiera:
+  część mowy, przedrostki, złożenia, podobne słowa, możliwa literówka.
 - **Blokada wulgaryzmów** – na wiadomości z niecenzuralnymi słowami DziobSi nie odpowiada
   (wykrywa też zapisy typu `k.u.r.w.a`, `chuuuj`, `kórwa`); słownik jest z nich oczyszczony.
 - **500 000 słów** (`data/slowa.txt`) – posortowane od najczęściej używanych:

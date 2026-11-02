@@ -7,99 +7,182 @@
     get(k, d) { try { const v = localStorage.getItem('dziobsi:' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem('dziobsi:' + k, JSON.stringify(v)); } catch (e) { /* brak pamięci */ } },
   };
+  const fmt = n => n.toLocaleString('pl-PL');
 
-  let history = store.get('history', []);   // [{role:'user'|'model', text, src}]
+  let history = store.get('history', []);   // [{role:'user'|'model', text, blocked?}]
   let busy = false;
 
   /* ---------- zakładki ---------- */
-  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
-    document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('active', x === b));
-    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.id === 'tab-' + b.dataset.tab));
-  }));
+  function showTab(name) {
+    document.querySelectorAll('.tabbar button').forEach(x => x.classList.toggle('active', x.dataset.tab === name));
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.id === 'tab-' + name));
+    document.body.classList.toggle('on-chat', name === 'chat');
+    $('#btnNew').style.visibility = name === 'chat' ? 'visible' : 'hidden';
+  }
+  document.querySelectorAll('.tabbar button').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+  showTab('chat');
 
   /* ---------- formatowanie ---------- */
   function esc(s) { return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  const codeStore = [];
   function md(s) {
     const blocks = [];
-    s = esc(s).replace(/```(\w*)\n?([\s\S]*?)```/g, (_, l, code) => { blocks.push(code); return '\u0000' + (blocks.length - 1) + '\u0000'; });
+    s = esc(s).replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => { blocks.push({ lang, code }); return '\u0000' + (blocks.length - 1) + '\u0000'; });
     s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>')
          .replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>')
-         .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>')
-         .replace(/^#{1,6}\s*(.+)$/gm, '<b>$1</b>')
-         .replace(/^\s*[-*]\s+/gm, '• ')
          .replace(/\n/g, '<br>');
-    return s.replace(/\u0000(\d+)\u0000/g, (_, i) => '<pre><code>' + blocks[i] + '</code></pre>');
+    return s.replace(/\u0000(\d+)\u0000/g, (_, i) => {
+      const b = blocks[i];
+      const id = codeStore.push(b.code) - 1;
+      const raw = b.code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+      codeStore[id] = raw;
+      return `<div class="codeblock"><div class="cb-bar"><span>${b.lang || 'kod'}</span>` +
+        `<button data-copy="${id}">Kopiuj</button>` +
+        (b.lang === 'html' ? `<button data-open="${id}">Otwórz w Code ›</button>` : '') +
+        `</div><pre><code>${b.code}</code></pre></div>`;
+    });
+  }
+
+  async function copyText(text, btn) {
+    try { await navigator.clipboard.writeText(text); }
+    catch (e) {
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (_) { /* brak */ } ta.remove();
+    }
+    if (btn) { const o = btn.textContent; btn.textContent = 'Skopiowano ✓'; setTimeout(() => { btn.textContent = o; }, 1200); }
   }
 
   /* ---------- czat ---------- */
   const box = $('#messages');
 
-  function addBubble(role, text, src, blocked) {
+  function addBubble(role, text, blocked) {
     const d = document.createElement('div');
-    d.className = 'msg ' + (role === 'user' ? 'me' : 'bot') + (blocked ? ' blocked' : '');
-    d.innerHTML = md(text) + (src ? `<span class="src">${esc(src)}</span>` : '') +
-      (blocked ? '<span class="src">🚫 Niecenzuralne – DziobSi nie odpowiada</span>' : '');
+    if (role === 'user') {
+      d.className = 'msg me' + (blocked ? ' blocked' : '');
+      d.innerHTML = esc(text).replace(/\n/g, '<br>') + (blocked ? '<span class="note">🚫 Niecenzuralne – brak odpowiedzi</span>' : '');
+    } else {
+      d.className = 'msg bot';
+      d.innerHTML = `<img class="av" src="icons/icon.svg" alt=""><div class="body">${md(text)}</div>`;
+    }
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
     return d;
   }
 
-  function welcome() {
-    const d = addBubble('model', 'Cześć! 🐦 Jestem **DziobSi** – *Dziob Inteligence*.\nMam w głowie **500 000 słów**. O co chcesz zapytać?');
-    const chips = document.createElement('div');
-    chips.className = 'chips';
-    ['pomoc', 'przeanalizuj dziobolot', 'rymy do dziób', 'losowe słowo', 'opowiedz dowcip']
-      .forEach(q => { const b = document.createElement('button'); b.type = 'button'; b.textContent = q; b.onclick = () => send(q); chips.appendChild(b); });
-    d.appendChild(chips);
+  function greeting() {
+    const h = new Date().getHours();
+    return h < 5 ? 'Dobranoc' : h < 12 ? 'Dzień dobry' : h < 18 ? 'Cześć' : 'Dobry wieczór';
+  }
+
+  function renderHello() {
+    const d = document.createElement('div');
+    d.className = 'hello';
+    d.innerHTML = `<img src="icons/icon.svg" alt=""><h1>${greeting()}! <br>W czym <em>pomóc</em>?</h1><div class="chips"></div>`;
+    const chips = d.querySelector('.chips');
+    ['przeanalizuj dziobolot', 'zrób grę', 'rymy do kot', 'napisz pętlę w python', 'opowiedz dowcip']
+      .forEach(q => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip glass'; b.textContent = q; b.onclick = () => send(q); chips.appendChild(b); });
+    box.appendChild(d);
   }
 
   function render() {
     box.innerHTML = '';
-    welcome();
-    history.forEach(m => addBubble(m.role, m.text, m.src, m.blocked));
+    if (!history.length) renderHello();
+    history.forEach(m => addBubble(m.role, m.text, m.blocked));
+  }
+
+  function think(text) {
+    if (window.DziobCode && DziobCode.wants(text)) {
+      const c = DziobCode.make(text);
+      return `${c.title} 👇\n\`\`\`${c.lang}\n${c.code}\n\`\`\``;
+    }
+    return Brain.reply(text);
   }
 
   async function send(text) {
     text = (text || '').trim();
     if (!text || busy) return;
     busy = true; $('#btnSend').disabled = true;
+    const hello = box.querySelector('.hello'); if (hello) hello.remove();
+
     // Wulgaryzmy: DziobSi nie odpowiada
-    if (window.Brain && Brain.isVulgar(text)) {
+    if (Brain.isVulgar(text)) {
       history.push({ role: 'user', text, blocked: true });
       store.set('history', history);
-      addBubble('user', text, null, true);
+      addBubble('user', text, true);
       busy = false; $('#btnSend').disabled = false;
       return;
     }
 
     history.push({ role: 'user', text });
     addBubble('user', text);
-
     const typing = addBubble('model', '');
-    typing.innerHTML = '<span class="typing"><span></span><span></span><span></span></span>';
+    typing.querySelector('.body').innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
 
     let reply;
     try {
       if (!Brain.ready) await brainReady;
-      await new Promise(r => setTimeout(r, 350)); // chwila „myślenia”
-      reply = Brain.reply(text);
+      await new Promise(r => setTimeout(r, 300));
+      reply = think(text);
     } catch (e) {
-      reply = 'Ups, coś poszło nie tak: ' + e.message;
+      reply = 'Ups: ' + e.message;
     }
-    const src = '🐦 DziobSi · 500 000 słów';
     typing.remove();
-    history.push({ role: 'model', text: reply, src });
+    history.push({ role: 'model', text: reply });
     if (history.length > 200) history = history.slice(-200);
     store.set('history', history);
-    addBubble('model', reply, src);
+    addBubble('model', reply);
     busy = false; $('#btnSend').disabled = false;
   }
+
+  box.addEventListener('click', e => {
+    const c = e.target.closest('[data-copy]'), o = e.target.closest('[data-open]');
+    if (c) copyText(codeStore[c.dataset.copy], c);
+    if (o) { setEditor(codeStore[o.dataset.open], 'index.html'); showTab('code'); setView('run'); }
+  });
 
   const input = $('#input');
   $('#chatForm').addEventListener('submit', e => { e.preventDefault(); const v = input.value; input.value = ''; autosize(); send(v); });
   input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#chatForm').requestSubmit(); } });
-  function autosize() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 120) + 'px'; }
+  function autosize() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 140) + 'px'; }
   input.addEventListener('input', autosize);
+
+  function clearChat() { history = []; store.set('history', history); render(); }
+  $('#btnNew').addEventListener('click', clearChat);
+
+  /* ---------- Code ---------- */
+  const editor = $('#editor'), preview = $('#preview');
+  function setEditor(code, title) {
+    editor.value = code; $('#codeTitle').textContent = title || 'index.html';
+    store.set('code', code); store.set('codeTitle', $('#codeTitle').textContent);
+  }
+  function setView(v) {
+    document.querySelectorAll('#codeView button').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+    editor.hidden = v !== 'edit'; preview.hidden = v !== 'run';
+    if (v === 'run') preview.srcdoc = editor.value;
+  }
+  document.querySelectorAll('#codeView button').forEach(b => b.addEventListener('click', () => setView(b.dataset.v)));
+  $('#btnRun').addEventListener('click', () => setView('run'));
+  $('#btnCopy').addEventListener('click', e => copyText(editor.value, e.currentTarget));
+  $('#btnReset').addEventListener('click', () => { setEditor('', 'index.html'); setView('edit'); });
+  editor.addEventListener('input', () => store.set('code', editor.value));
+  editor.addEventListener('keydown', e => {
+    if (e.key === 'Tab') { e.preventDefault(); const s = editor.selectionStart; editor.setRangeText('  ', s, editor.selectionEnd, 'end'); }
+  });
+
+  function build(desc) {
+    const c = DziobCode.make(desc);
+    const name = c.lang === 'html' ? (c.id || 'index') + '.html' : c.lang === 'python' ? 'main.py' : 'main.js';
+    setEditor(c.code, name);
+    setView(c.lang === 'html' ? 'run' : 'edit');
+  }
+  $('#codeAsk').addEventListener('submit', e => { e.preventDefault(); const v = $('#codePrompt').value.trim(); if (v) build(v); $('#codePrompt').blur(); });
+  DziobCode.templates.forEach(t => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip glass'; b.textContent = t.title;
+    b.onclick = () => { setEditor(t.code, t.id + '.html'); setView('run'); };
+    $('#codeChips').appendChild(b);
+  });
+  setEditor(store.get('code', DziobCode.templates[0].code), store.get('codeTitle', 'index.html'));
+  setView('edit');
 
   /* ---------- słownik ---------- */
   let dictMode = 'prefix';
@@ -109,49 +192,49 @@
 
   function showWords(list, info) {
     $('#dictInfo').textContent = info;
-    $('#dictResults').innerHTML = list.map(w => `<li><span>${esc(w)}</span><small>#${Brain.rankOf(w).toLocaleString('pl-PL')}</small></li>`).join('');
+    $('#dictResults').innerHTML = list.map(w => `<li><span>${esc(w)}</span><small>#${fmt(Brain.rankOf(w))}</small></li>`).join('');
   }
   let searchTimer;
   function doSearch() {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
-      if (!Brain.ready) { $('#dictInfo').textContent = 'Słownik jeszcze się ładuje…'; return; }
+      if (!Brain.ready) return;
       const q = $('#dictSearch').value;
       if (!q.trim()) { showWords([], ''); return; }
       const r = Brain.search(q, dictMode, 200);
-      const exact = Brain.has(q) ? `✅ „${q.trim()}” jest w słowniku. ` : '';
-      showWords(r.items, `${exact}Znaleziono ${r.total.toLocaleString('pl-PL')} słów${r.total > r.items.length ? ' (pokazuję ' + r.items.length + ')' : ''}.`);
+      showWords(r.items, `${fmt(r.total)} wyników${r.total > r.items.length ? ' · pokazuję ' + r.items.length : ''}`);
     }, 200);
   }
   $('#dictSearch').addEventListener('input', doSearch);
-  $('#btnRandom').addEventListener('click', () => { if (Brain.ready) showWords(Brain.random(20), '20 losowych słów:'); });
-  setMode('prefix');
+  $('#btnRandom').addEventListener('click', () => { if (Brain.ready) showWords(Brain.random(20), 'Losowe słowa'); });
 
   /* ---------- ustawienia ---------- */
-  $('#btnClear').addEventListener('click', () => {
-    if (!confirm('Wyczyścić całą rozmowę?')) return;
-    history = []; store.set('history', history); render();
-  });
-
-  /* ---------- instalacja (PWA) ---------- */
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('#btnInstall').hidden = false; });
-  $('#btnInstall').addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('#btnInstall').hidden = true;
-  });
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+  const themeMeta = document.querySelector('meta[name=theme-color]');
+  function applyTheme(t) {
+    if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+    document.querySelectorAll('#themeSeg button').forEach(b => b.classList.toggle('active', b.dataset.t === t));
+    const dark = t === 'dark' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+    themeMeta.content = dark ? '#262624' : '#f5f4ed';
   }
+  document.querySelectorAll('#themeSeg button').forEach(b => b.addEventListener('click', () => { store.set('theme', b.dataset.t); applyTheme(b.dataset.t); }));
+  applyTheme(store.get('theme', 'auto'));
+
+  const glass = $('#glassToggle');
+  glass.checked = store.get('glass', true);
+  glass.addEventListener('change', () => { store.set('glass', glass.checked); document.documentElement.classList.toggle('no-glass', !glass.checked); });
+
+  $('#btnClear').addEventListener('click', () => { if (confirm('Wyczyścić rozmowę?')) { clearChat(); showTab('chat'); } });
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 
   /* ---------- start ---------- */
   render();
   const status = $('#status');
-  const brainReady = Brain.load(n => { status.textContent = `Ładowanie mózgu… (${n.toLocaleString('pl-PL')} / 500 000 słów)`; })
+  const brainReady = Brain.load(n => { status.textContent = Math.round(n / 5000) + '%'; })
     .then(n => {
-      status.textContent = `Dziob Inteligence · ${n.toLocaleString('pl-PL')} słów`;
-      $('#dictCount').textContent = n.toLocaleString('pl-PL');
+      status.textContent = '';
+      $('#dictCount').textContent = fmt(n);
       doSearch();
     })
-    .catch(e => { status.textContent = 'Błąd słownika: ' + e.message; });
+    .catch(e => { status.textContent = '⚠️'; console.error(e); });
 })();
