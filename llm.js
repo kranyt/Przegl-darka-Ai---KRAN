@@ -6,8 +6,15 @@ import { Wllama, LoggerWithoutDebug } from './vendor/wllama/wllama.js';
 const MODEL = { repo: 'second-state/Bielik-1.5B-v3.0-Instruct-GGUF', file: 'Bielik-1.5B-v3.0-Instruct-Q4_K_M.gguf' };
 const KEY = 'dziobsi:llm:installed';
 
-const SYSTEM = `Jesteś DziobSi (Dziob Inteligence) – miła polska sztuczna inteligencja z telefonu, z ptasim dziobem 🐦. Znasz 500 000 polskich słów.
-Odpowiadasz po polsku, krótko (1–3 zdania), od razu na temat. Gdy ktoś nie pyta, po prostu ciepło rozmawiasz. Bez wulgaryzmów, najwyżej jedna emotka. Nie przedstawiasz się i nie dopisujesz „jeśli masz pytania”.`;
+const SYSTEM = `Jesteś DziobSi (Dziob Inteligence) – miła polska sztuczna inteligencja z telefonu, z ptasim dziobem. Znasz 500 000 polskich słów.
+Zawsze piszesz WYŁĄCZNIE po polsku, nigdy po angielsku. Odpowiadasz krótko (1–3 zdania) i od razu na temat. Gdy ktoś nie pyta, po prostu ciepło rozmawiasz. Bez wulgaryzmów, najwyżej jedna emotka. Nie przedstawiasz się i nie dopisujesz „jeśli masz pytania”.`;
+// przykładowa wymiana – ustawia polski język i krótki, ciepły styl
+const SEED = [
+  { role: 'user', content: 'Hej, byłem dziś w parku.' },
+  { role: 'assistant', content: 'Super! Spacer w parku to świetny pomysł. Co tam było najfajniejsze?' },
+];
+// odpowiedź po angielsku? (brak polskich znaków, dużo angielskich słówek)
+const english = t => !/[ąćęłńóśźż]/i.test(t) && (t.match(/\b(the|and|is|are|you|your|what|it's|with|of|to|i|my|love|great)\b/gi) || []).length >= 3;
 
 let wllama = null;
 const has = () => { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } };
@@ -36,6 +43,32 @@ let convo = []; // rozmowa widziana przez model – rośnie od końca, by nie pr
 let error = '';
 const listeners = new Set();
 const emit = () => listeners.forEach(fn => { try { fn(api.info()); } catch (e) { /* nic */ } });
+
+async function generate(turns, onText) {
+  const messages = [{ role: 'system', content: SYSTEM }, ...SEED, ...turns];
+  const ctrl = new AbortController();
+  const stream = await wllama.createChatCompletion({
+    messages, max_tokens: 160, temperature: 0.6, top_p: 0.9, top_k: 40,
+    penalty_repeat: 1.15, penalty_last_n: 64, frequency_penalty: 0.3,
+    stream: true, abortSignal: ctrl.signal,
+  });
+  let text = '';
+  try {
+    for await (const chunk of stream) {
+      if (chunk.timings) lastTimings = chunk.timings;
+      const piece = chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content;
+      if (piece) {
+        text += piece;
+        if (looping(text)) { ctrl.abort(); break; }
+        onText && onText(text);
+      }
+    }
+  } catch (e) {
+    if (!ctrl.signal.aborted) throw e;
+  }
+  // usuń zapętlony ogon
+  return text.replace(/(.{1,3})\1{3,}$/su, '$1').replace(/(.{8,40}?)\1+$/su, '$1').trim();
+}
 
 const api = {
   info: () => ({ state, progress, error, noCache, gpu: gpuLayers !== 0, threads: self.crossOriginIsolated ? (navigator.hardwareConcurrency || 1) : 1, lastTimings, ready: state === 'ready' }),
@@ -72,7 +105,7 @@ const api = {
       if (!noCache) { try { localStorage.setItem(KEY, '1'); } catch (e) { /* brak */ } }
       // rozgrzewka: przelicz instrukcję od razu, żeby pierwsza odpowiedź była szybsza
       state = 'loading'; emit();
-      try { await wllama.createChatCompletion({ messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: 'cześć' }], max_tokens: 1 }); } catch (e) { /* nic */ }
+      try { await wllama.createChatCompletion({ messages: [{ role: 'system', content: SYSTEM }, ...SEED, { role: 'user', content: 'cześć' }], max_tokens: 1 }); } catch (e) { /* nic */ }
       state = 'ready'; progress = 1; emit();
     } catch (e) {
       state = 'error'; error = (e && e.message) || String(e); emit();
@@ -92,29 +125,13 @@ const api = {
     if (state !== 'ready') throw new Error('Mózg AI nie jest gotowy');
     // za długa rozmowa -> zacznij kontekst od nowa (zostaw ostatnią wymianę)
     if (convo.reduce((n, m) => n + m.content.length, 0) > 1400) convo = convo.slice(-2);
-    const messages = [{ role: 'system', content: SYSTEM }, ...convo, { role: 'user', content: userText }];
-    const ctrl = new AbortController();
-    const stream = await wllama.createChatCompletion({
-      messages, max_tokens: 180, temperature: 0.7, top_p: 0.9, top_k: 40,
-      penalty_repeat: 1.15, penalty_last_n: 64, frequency_penalty: 0.3,
-      stream: true, abortSignal: ctrl.signal,
-    });
-    let text = '';
-    try {
-      for await (const chunk of stream) {
-        if (chunk.timings) lastTimings = chunk.timings;
-        const piece = chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content;
-        if (piece) {
-          text += piece;
-          if (looping(text)) { ctrl.abort(); break; }
-          onText && onText(text);
-        }
-      }
-    } catch (e) {
-      if (!ctrl.signal.aborted) throw e;
+    let text = await generate([...convo, { role: 'user', content: userText }], onText);
+    if (english(text)) {
+      // model odpłynął na angielski – zapytaj jeszcze raz, prosząc o polski
+      onText && onText('');
+      text = await generate([...convo, { role: 'user', content: userText + '\n(Odpowiedz po polsku.)' }], onText);
     }
-    // usuń zapętlony ogon
-    text = text.replace(/(.{1,3})\1{3,}$/su, '$1').replace(/(.{8,40}?)\1+$/su, '$1').trim();
+    if (english(text)) return ''; // nadal nie po polsku – aplikacja odpowie mózgiem na regułach
     convo.push({ role: 'user', content: userText }, { role: 'assistant', content: text });
     return text;
   },
