@@ -8,6 +8,9 @@ const { chromium } = require('playwright');
   p.on('console', m => { if (m.type() === 'error') console.log('CONSOLE', m.text()); });
   await p.goto('http://localhost:8080/');
   await p.waitForFunction(() => window.Brain && Brain.ready && window.DziobLLM, null, { timeout: 60000 });
+  await p.waitForTimeout(3000); // service worker + ewentualne przeładowanie
+  await p.waitForFunction(() => window.Brain && Brain.ready && window.DziobLLM, null, { timeout: 60000 });
+  console.log('crossOriginIsolated:', await p.evaluate(() => self.crossOriginIsolated), 'wątki CPU:', await p.evaluate(() => navigator.hardwareConcurrency));
   const t0 = Date.now();
   await p.evaluate(() => DziobLLM.load());
   let last = '';
@@ -19,7 +22,7 @@ const { chromium } = require('playwright');
     if (info.state === 'error') { console.log('MODEL ERROR', info.error); process.exit(1); }
     await p.waitForTimeout(3000);
   }
-  const questions = ['lubisz mnie?', 'cześć, jak się masz?', 'byłem dziś na rowerze', 'co to jest fotosynteza?', 'opowiedz mi coś o Krakowie', 'sprawdź słowo dziób', 'zrób grę'];
+  const questions = ['lubisz mnie?', 'kochasz mnie?', 'czy lubisz koty?', 'cześć, jak się masz?', 'byłem dziś na rowerze', 'co to jest fotosynteza?', 'opowiedz mi coś o Krakowie', 'sprawdź słowo dziób', 'zrób grę'];
   for (const q of questions) {
     const s = Date.now();
     await p.fill('#input', q);

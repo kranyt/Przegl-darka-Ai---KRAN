@@ -112,7 +112,7 @@
     }
     return hints.length ? `${text}\n\n(Słownik DziobSi: ${hints.join('; ')})` : text;
   }
-  const cleanup = t => t.replace(/\s*(je[sś]li|gdyby[sś]?)\s+(masz|b[eę]dziesz mia[lł]).{0,40}pyta\S*.*$/is, '').trim();
+  const cleanup = t => t.replace(/^\s*\**dziob\s?si\**\s*:\s*/i, '').replace(/\s*(je[sś]li|gdyby[sś]?)\s+(masz|b[eę]dziesz mia[lł]).{0,40}pyta\S*.*$/is, '').trim();
 
   async function think(text, typing) {
     if (window.DziobCode && DziobCode.wants(text)) {
@@ -122,6 +122,9 @@
     const llm = window.DziobLLM;
     const lower = text.toLowerCase().trim();
     if (llm && llm.ready && store.get('useAI', true) && !TOOL.test(lower) && !/^[\d\s+\-*/().,^%x×:]+$/.test(lower)) {
+      // pewne odpowiedzi o DziobSi (np. „lubisz mnie?” → „Tak, bardzo cię lubię!”) – zawsze takie same
+      const sure = window.Talk && Talk.answer(text, Brain, true);
+      if (sure) { await new Promise(r => setTimeout(r, 250)); return sure; }
       const body = typing.querySelector('.body');
       try {
         const out = await llm.chat(history.slice(0, -1), withHints(text), t => {
@@ -261,7 +264,18 @@
 
   $('#btnClear').addEventListener('click', () => { if (confirm('Wyczyścić rozmowę?')) { clearChat(); showTab('chat'); } });
 
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    // service worker dodaje nagłówki izolacji – po jego starcie przeładuj raz, by AI liczyło na wielu wątkach
+    const reloadOnce = () => {
+      if (self.crossOriginIsolated) return;
+      let tried = false; try { tried = sessionStorage.getItem('dziobsi:coi') === '1'; } catch (e) { /* brak */ }
+      if (tried || (window.DziobLLM && ['downloading', 'loading'].includes(DziobLLM.info().state))) return;
+      try { sessionStorage.setItem('dziobsi:coi', '1'); } catch (e) { /* brak */ }
+      location.reload();
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', reloadOnce);
+    navigator.serviceWorker.register('sw.js').then(() => { if (navigator.serviceWorker.controller) reloadOnce(); }).catch(() => {});
+  }
 
   /* ---------- mózg AI (model w telefonie) ---------- */
   const aiViews = [];

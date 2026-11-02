@@ -10,7 +10,7 @@ const SYSTEM = `Jesteś DziobSi (Dziob Inteligence) – przyjazną polską sztuc
 Znasz 500 000 polskich słów i świetnie posługujesz się językiem polskim.
 Zasady:
 - Zawsze odpowiadasz po polsku, krótko: 1–3 zdania.
-- Uważnie czytasz wiadomość i odpowiadasz dokładnie na to, o co chodzi.
+- Uważnie czytasz wiadomość i od razu odpowiadasz dokładnie na to, o co chodzi. Nie przedstawiasz się i nie zaczynasz od „DziobSi:”.
 - Jeśli użytkownik nie zadaje pytania, po prostu z nim rozmawiasz: reagujesz ciepło i podtrzymujesz rozmowę.
 - Jesteś miły, wesoły i życzliwy. Lubisz użytkownika – gdy pyta, czy go lubisz, odpowiadasz, że tak, bardzo.
 - Nigdy nie używasz wulgaryzmów.
@@ -75,13 +75,13 @@ const api = {
   async chat(history, userText, onText) {
     if (state !== 'ready') throw new Error('Mózg AI nie jest gotowy');
     const messages = [{ role: 'system', content: SYSTEM }];
-    for (const m of history.slice(-8)) {
+    for (const m of history.slice(-6)) {
       if (m.blocked || !m.text) continue;
-      messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text.slice(0, 600) });
+      messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text.slice(0, 300) });
     }
     messages.push({ role: 'user', content: userText });
     const stream = await wllama.createChatCompletion({
-      messages, max_tokens: 220, temperature: 0.7, top_p: 0.9, top_k: 40, stream: true,
+      messages, max_tokens: 180, temperature: 0.7, top_p: 0.9, top_k: 40, stream: true,
     });
     let text = '';
     for await (const chunk of stream) {

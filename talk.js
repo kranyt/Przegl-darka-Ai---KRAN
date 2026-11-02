@@ -194,7 +194,7 @@
 
   let CAPS = new Set();
 
-  function yesNo(tokens, brain) {
+  function yesNo(tokens, brain, strict) {
     const skip = new Set(['czy', 'a', 'ty', 'no', 'dziobsi', 'hej']);
     let neg = false;
     const words = [];
@@ -215,6 +215,7 @@
     if (verb === 'nienawidzisz' && aboutMe) return 'Nie! Bardzo cię lubię 💛';
     if (verb === 'tęsknisz' && aboutMe) return 'Tak, tęskniłem! 🥹 Dobrze, że jesteś 🐦';
     if (verb === 'pamiętasz' && aboutMe) return nameOr('Jasne, {n}! 🐦', 'Jasne, że pamiętam! Przypomnij mi tylko imię 🐦');
+    if (strict) return null; // tryb „osobowość”: resztę pytań zostaw modelowi AI
     if (NO_VERBS.has(verb)) return `Nie, nie ${v1}${tail} 🐦`;
 
     let extra = '';
@@ -231,7 +232,8 @@
       return DEF[m[1].trim()] || null;
     },
 
-    answer(raw, brain) {
+    /* persona=true: tylko pewne odpowiedzi o DziobSi (uczucia, imię, ulubione, wiek…) – reszta dla modelu AI */
+    answer(raw, brain, persona) {
       const t = raw.toLowerCase().replace(/[!?.,…]+/g, ' ').replace(/\s+/g, ' ').trim()
         .replace(/^(hej |no |a )?dziobsi /, '');
       if (!t) return null;
@@ -268,8 +270,9 @@
       CAPS = new Set((raw.match(/(?<=\s)[A-ZĄĆĘŁŃÓŚŹŻ]\p{L}+/gu) || []).map(w => w.toLowerCase()));
 
       // pytania tak/nie do DziobSi
-      const yn = yesNo(tokens, brain);
+      const yn = yesNo(tokens, brain, persona);
       if (yn) return yn;
+      if (persona) return null;
 
       // zdania o sobie: „lubię koty”, „mam psa”
       if ((m = t.match(/^(?:ja )?(lubi[eę]|kocham|uwielbiam) (.+)/))) return `Ja też ${m[1].replace('lubie', 'lubię')} ${swap(m[2].split(' ')).join(' ')}! 🐦`;
