@@ -18,7 +18,7 @@ const { chromium } = require('playwright');
     const info = await p.evaluate(() => DziobLLM.info());
     const line = info.state + ' ' + Math.round(info.progress * 100) + '%';
     if (line !== last) { console.log('MODEL', line, Math.round((Date.now() - t0) / 1000) + 's'); last = line; }
-    if (info.state === 'ready') { console.log('MODEL zapis w pamięci:', info.noCache ? 'NIE (brak miejsca)' : 'tak'); break; }
+    if (info.state === 'ready') { console.log('MODEL zapis w pamięci:', info.noCache ? 'NIE (brak miejsca)' : 'tak', '| GPU:', info.gpu, '| wątki:', info.threads); break; }
     if (info.state === 'error') { console.log('MODEL ERROR', info.error); process.exit(1); }
     await p.waitForTimeout(3000);
   }
@@ -29,7 +29,8 @@ const { chromium } = require('playwright');
     await p.press('#input', 'Enter');
     await p.waitForFunction(() => !document.querySelector('.typing') && !document.querySelector('#btnSend').disabled, null, { timeout: 300000 });
     const ans = await p.evaluate(() => { const m = [...document.querySelectorAll('.msg.bot')].pop(); return m ? m.innerText : ''; });
-    console.log(`\n>> ${q}   (${Math.round((Date.now() - s) / 1000)}s)\n${ans.slice(0, 400)}`);
+    const tm = await p.evaluate(() => DziobLLM.info().lastTimings);
+    console.log(`\n>> ${q}   (${Math.round((Date.now() - s) / 1000)}s)${tm ? ' timings: ' + JSON.stringify(tm) : ''}\n${ans.slice(0, 400)}`);
   }
   await p.screenshot({ path: 'ai-test.png' });
   await b.close();

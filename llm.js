@@ -10,6 +10,7 @@ const SYSTEM = `Jesteś DziobSi (Dziob Inteligence) – przyjazną polską sztuc
 Znasz 500 000 polskich słów i świetnie posługujesz się językiem polskim.
 Zasady:
 - Zawsze odpowiadasz po polsku, krótko: 1–3 zdania.
+- Używasz najwyżej jednej emotki w odpowiedzi.
 - Uważnie czytasz wiadomość i od razu odpowiadasz dokładnie na to, o co chodzi. Nie przedstawiasz się i nie zaczynasz od „DziobSi:”.
 - Jeśli użytkownik nie zadaje pytania, po prostu z nim rozmawiasz: reagujesz ciepło i podtrzymujesz rozmowę.
 - Jesteś miły, wesoły i życzliwy. Lubisz użytkownika – gdy pyta, czy go lubisz, odpowiadasz, że tak, bardzo.
@@ -22,13 +23,31 @@ let wllama = null;
 const has = () => { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } };
 let state = has() ? 'installed' : 'none'; // none | installed | downloading | loading | ready | error
 let progress = 0;
+let gpuLayers;
+let lastTimings = null;
+
+// Prawdziwa karta graficzna (WebGPU) = szybko. Programowa „karta” (SwiftShader) jest wolniejsza niż procesor – wtedy liczymy na CPU.
+async function pickGpu() {
+  try {
+    if (!navigator.gpu) return 0;
+    const a = await navigator.gpu.requestAdapter();
+    if (!a || a.isFallbackAdapter) return 0;
+    const i = a.info || {};
+    if (/swiftshader|llvmpipe|software|lavapipe/i.test([i.vendor, i.architecture, i.device, i.description].join(' '))) return 0;
+    return undefined; // wszystkie warstwy na GPU
+  } catch (e) { return 0; }
+}
+// Wykrywanie zapętlenia (np. ta sama emotka w kółko)
+function looping(t) {
+  return /(.{1,3})\1{5,}$/su.test(t) || /(.{8,40}?)\1{2,}$/su.test(t);
+}
 let noCache = false; // true = model działa, ale nie zmieścił się w pamięci (pobierze się znowu po restarcie)
 let error = '';
 const listeners = new Set();
 const emit = () => listeners.forEach(fn => { try { fn(api.info()); } catch (e) { /* nic */ } });
 
 const api = {
-  info: () => ({ state, progress, error, noCache, ready: state === 'ready' }),
+  info: () => ({ state, progress, error, noCache, gpu: gpuLayers !== 0, threads: self.crossOriginIsolated ? (navigator.hardwareConcurrency || 1) : 1, lastTimings, ready: state === 'ready' }),
   onChange(fn) { listeners.add(fn); fn(api.info()); return () => listeners.delete(fn); },
   get ready() { return state === 'ready'; },
 
@@ -39,8 +58,10 @@ const api = {
     try {
       wllama = new Wllama({ default: new URL('./vendor/wllama/wllama.wasm', import.meta.url).href }, { logger: LoggerWithoutDebug });
       try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) { /* nic */ }
+      gpuLayers = await pickGpu();
       const opts = {
         n_ctx: 2048,
+        ...(gpuLayers === 0 ? { n_gpu_layers: 0 } : {}),
         progressCallback: ({ loaded, total }) => {
           progress = total ? loaded / total : 0;
           if (progress >= 0.999) state = 'loading';
@@ -80,15 +101,28 @@ const api = {
       messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text.slice(0, 300) });
     }
     messages.push({ role: 'user', content: userText });
+    const ctrl = new AbortController();
     const stream = await wllama.createChatCompletion({
-      messages, max_tokens: 180, temperature: 0.7, top_p: 0.9, top_k: 40, stream: true,
+      messages, max_tokens: 180, temperature: 0.7, top_p: 0.9, top_k: 40,
+      penalty_repeat: 1.15, penalty_last_n: 64, frequency_penalty: 0.3,
+      stream: true, abortSignal: ctrl.signal,
     });
     let text = '';
-    for await (const chunk of stream) {
-      const piece = chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content;
-      if (piece) { text += piece; onText && onText(text); }
+    try {
+      for await (const chunk of stream) {
+        if (chunk.timings) lastTimings = chunk.timings;
+        const piece = chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content;
+        if (piece) {
+          text += piece;
+          if (looping(text)) { ctrl.abort(); break; }
+          onText && onText(text);
+        }
+      }
+    } catch (e) {
+      if (!ctrl.signal.aborted) throw e;
     }
-    return text.trim();
+    // usuń zapętlony ogon
+    return text.replace(/(.{1,3})\1{3,}$/su, '$1').replace(/(.{8,40}?)\1+$/su, '$1').trim();
   },
 };
 
