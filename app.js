@@ -127,7 +127,7 @@
       if (sure) { await new Promise(r => setTimeout(r, 250)); return sure; }
       const body = typing.querySelector('.body');
       try {
-        const out = await llm.chat(history.slice(0, -1), withHints(text), t => {
+        const out = await llm.chat(withHints(text), t => {
           body.innerHTML = md(cleanup(t)); box.scrollTop = box.scrollHeight;
         });
         const clean = cleanup(out);
@@ -185,7 +185,7 @@
   function autosize() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 140) + 'px'; }
   input.addEventListener('input', autosize);
 
-  function clearChat() { history = []; store.set('history', history); render(); }
+  function clearChat() { history = []; store.set('history', history); if (window.DziobLLM) DziobLLM.reset(); render(); }
   $('#btnNew').addEventListener('click', clearChat);
 
   /* ---------- Code ---------- */

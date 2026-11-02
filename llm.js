@@ -6,18 +6,8 @@ import { Wllama, LoggerWithoutDebug } from './vendor/wllama/wllama.js';
 const MODEL = { repo: 'second-state/Bielik-1.5B-v3.0-Instruct-GGUF', file: 'Bielik-1.5B-v3.0-Instruct-Q4_K_M.gguf' };
 const KEY = 'dziobsi:llm:installed';
 
-const SYSTEM = `Jesteś DziobSi (Dziob Inteligence) – przyjazną polską sztuczną inteligencją w aplikacji na telefon. Twoim symbolem jest ptasi dziób 🐦.
-Znasz 500 000 polskich słów i świetnie posługujesz się językiem polskim.
-Zasady:
-- Zawsze odpowiadasz po polsku, krótko: 1–3 zdania.
-- Używasz najwyżej jednej emotki w odpowiedzi.
-- Uważnie czytasz wiadomość i od razu odpowiadasz dokładnie na to, o co chodzi. Nie przedstawiasz się i nie zaczynasz od „DziobSi:”.
-- Jeśli użytkownik nie zadaje pytania, po prostu z nim rozmawiasz: reagujesz ciepło i podtrzymujesz rozmowę.
-- Jesteś miły, wesoły i życzliwy. Lubisz użytkownika – gdy pyta, czy go lubisz, odpowiadasz, że tak, bardzo.
-- Nigdy nie używasz wulgaryzmów.
-- Jeśli czegoś nie wiesz na pewno, mówisz to uczciwie.
-- Nie dopisuj na końcu formułek typu „jeśli masz pytania” – aplikacja zrobi to sama.
-O sobie: wyklułeś się w 2026 roku, mieszkasz w telefonie użytkownika, ulubiony kolor: pomarańczowy jak twój dziób.`;
+const SYSTEM = `Jesteś DziobSi (Dziob Inteligence) – miła polska sztuczna inteligencja z telefonu, z ptasim dziobem 🐦. Znasz 500 000 polskich słów.
+Odpowiadasz po polsku, krótko (1–3 zdania), od razu na temat. Gdy ktoś nie pyta, po prostu ciepło rozmawiasz. Bez wulgaryzmów, najwyżej jedna emotka. Nie przedstawiasz się i nie dopisujesz „jeśli masz pytania”.`;
 
 let wllama = null;
 const has = () => { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } };
@@ -42,6 +32,7 @@ function looping(t) {
   return /(.{1,3})\1{5,}$/su.test(t) || /(.{8,40}?)\1{2,}$/su.test(t);
 }
 let noCache = false; // true = model działa, ale nie zmieścił się w pamięci (pobierze się znowu po restarcie)
+let convo = []; // rozmowa widziana przez model – rośnie od końca, by nie przeliczać jej od nowa
 let error = '';
 const listeners = new Set();
 const emit = () => listeners.forEach(fn => { try { fn(api.info()); } catch (e) { /* nic */ } });
@@ -79,6 +70,9 @@ const api = {
         noCache = true;
       }
       if (!noCache) { try { localStorage.setItem(KEY, '1'); } catch (e) { /* brak */ } }
+      // rozgrzewka: przelicz instrukcję od razu, żeby pierwsza odpowiedź była szybsza
+      state = 'loading'; emit();
+      try { await wllama.createChatCompletion({ messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: 'cześć' }], max_tokens: 1 }); } catch (e) { /* nic */ }
       state = 'ready'; progress = 1; emit();
     } catch (e) {
       state = 'error'; error = (e && e.message) || String(e); emit();
@@ -92,15 +86,13 @@ const api = {
     wllama = null; state = 'none'; progress = 0; emit();
   },
 
-  /* history: [{role:'user'|'model', text}] (bez bieżącej wiadomości) */
-  async chat(history, userText, onText) {
+  reset() { convo = []; },
+
+  async chat(userText, onText) {
     if (state !== 'ready') throw new Error('Mózg AI nie jest gotowy');
-    const messages = [{ role: 'system', content: SYSTEM }];
-    for (const m of history.slice(-6)) {
-      if (m.blocked || !m.text) continue;
-      messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text.slice(0, 300) });
-    }
-    messages.push({ role: 'user', content: userText });
+    // za długa rozmowa -> zacznij kontekst od nowa (zostaw ostatnią wymianę)
+    if (convo.reduce((n, m) => n + m.content.length, 0) > 1400) convo = convo.slice(-2);
+    const messages = [{ role: 'system', content: SYSTEM }, ...convo, { role: 'user', content: userText }];
     const ctrl = new AbortController();
     const stream = await wllama.createChatCompletion({
       messages, max_tokens: 180, temperature: 0.7, top_p: 0.9, top_k: 40,
@@ -122,7 +114,9 @@ const api = {
       if (!ctrl.signal.aborted) throw e;
     }
     // usuń zapętlony ogon
-    return text.replace(/(.{1,3})\1{3,}$/su, '$1').replace(/(.{8,40}?)\1+$/su, '$1').trim();
+    text = text.replace(/(.{1,3})\1{3,}$/su, '$1').replace(/(.{8,40}?)\1+$/su, '$1').trim();
+    convo.push({ role: 'user', content: userText }, { role: 'assistant', content: text });
+    return text;
   },
 };
 
