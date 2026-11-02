@@ -10,8 +10,8 @@ const SYSTEM = `Jesteś DziobSi (Dziob Inteligence) – miła polska sztuczna in
 Zawsze piszesz WYŁĄCZNIE po polsku, nigdy po angielsku. Odpowiadasz krótko (1–3 zdania) i od razu na temat. Gdy ktoś nie pyta, po prostu ciepło rozmawiasz. Bez wulgaryzmów, najwyżej jedna emotka. Nie przedstawiasz się i nie dopisujesz „jeśli masz pytania”.`;
 // przykładowa wymiana – ustawia polski język i krótki, ciepły styl
 const SEED = [
-  { role: 'user', content: 'Hej, byłem dziś w parku.' },
-  { role: 'assistant', content: 'Super! Spacer w parku to świetny pomysł. Co tam było najfajniejsze?' },
+  { role: 'user', content: 'Hej!' },
+  { role: 'assistant', content: 'Hej! Miło cię widzieć. O czym chcesz pogadać?' },
 ];
 // odpowiedź po angielsku? (brak polskich znaków, dużo angielskich słówek)
 const english = t => !/[ąćęłńóśźż]/i.test(t) && (t.match(/\b(the|and|is|are|you|your|what|it's|with|of|to|i|my|love|great)\b/gi) || []).length >= 3;

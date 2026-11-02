@@ -112,6 +112,15 @@
     }
     return hints.length ? `${text}\n\n(Słownik DziobSi: ${hints.join('; ')})` : text;
   }
+  // korekta pisowni odpowiedzi modelu słownikiem 500 000 słów (np. „najfajniejssze” → „najfajniejsze”)
+  function spellfix(t) {
+    if (!Brain.ready) return t;
+    return t.replace(/(?<![\p{L}])\p{Ll}[\p{Ll}]{4,}(?![\p{L}])/gu, w => {
+      if (Brain.has(w)) return w;
+      const s = Brain.suggest(w, 1)[0];
+      return s && Math.abs(s.length - w.length) <= 1 ? s : w;
+    });
+  }
   const cleanup = t => t.replace(/^\s*\**dziob\s?si\**\s*:\s*/i, '').replace(/\s*(je[sś]li|gdyby[sś]?)\s+(masz|b[eę]dziesz mia[lł]).{0,40}pyta\S*.*$/is, '').trim();
 
   async function think(text, typing) {
@@ -130,7 +139,7 @@
         const out = await llm.chat(withHints(text), t => {
           body.innerHTML = md(cleanup(t)); box.scrollTop = box.scrollHeight;
         });
-        const clean = cleanup(out);
+        const clean = spellfix(cleanup(out));
         if (clean) return clean;
       } catch (e) { console.error(e); }
     }
