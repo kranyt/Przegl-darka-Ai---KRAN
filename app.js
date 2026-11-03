@@ -99,7 +99,7 @@
     history.forEach(m => addBubble(m.role, m.text, m.blocked));
   }
 
-  // podpowiedzi ze słownika 500 000 słów dla modelu (literówki w wiadomości)
+  // podpowiedzi ze słownika 5 000 000 słów dla modelu (literówki w wiadomości)
   function withHints(text) {
     if (!Brain.ready) return text;
     const tokens = [...new Set(text.toLowerCase().match(/[a-ząćęłńóśźż]{3,}/g) || [])];
@@ -112,7 +112,7 @@
     }
     return hints.length ? `${text}\n\n(Słownik DziobSi: ${hints.join('; ')})` : text;
   }
-  // korekta pisowni odpowiedzi modelu słownikiem 500 000 słów (np. „najfajniejssze” → „najfajniejsze”)
+  // korekta pisowni odpowiedzi modelu słownikiem 5 000 000 słów (np. „najfajniejssze” → „najfajniejsze”)
   function spellfix(t) {
     if (!Brain.ready) return t;
     return t.replace(/(?<![\p{L}])\p{Ll}[\p{Ll}]{4,}(?![\p{L}])/gu, w => {
@@ -240,7 +240,7 @@
 
   function showWords(list, info) {
     $('#dictInfo').textContent = info;
-    $('#dictResults').innerHTML = list.map(w => `<li><span>${esc(w)}</span><small>#${fmt(Brain.rankOf(w))}</small></li>`).join('');
+    $('#dictResults').innerHTML = list.map(w => { const r = Brain.rankOf(w); return `<li><span>${esc(w)}</span><small>${r ? '#' + fmt(r) : 'rzadkie'}</small></li>`; }).join('');
   }
   let searchTimer;
   function doSearch() {
@@ -249,6 +249,7 @@
       if (!Brain.ready) return;
       const q = $('#dictSearch').value;
       if (!q.trim()) { showWords([], ''); return; }
+      if (q.trim().length < 2 && dictMode !== 'prefix') { showWords([], 'Wpisz co najmniej 2 litery.'); return; }
       const r = Brain.search(q, dictMode, 200);
       showWords(r.items, `${fmt(r.total)} wyników${r.total > r.items.length ? ' · pokazuję ' + r.items.length : ''}`);
     }, 200);
@@ -336,8 +337,15 @@
   const brainReady = Brain.load(n => { status.textContent = Math.round(n / 5000) + '%'; })
     .then(n => {
       status.textContent = window.DziobLLM && DziobLLM.ready ? 'AI ✓' : '';
-      $('#dictCount').textContent = fmt(n);
       doSearch();
+      // potem wielki słownik 5 000 000 słów (spakowany, ~22 MB)
+      return Brain.loadBig(p => { status.textContent = '📚 ' + Math.round(p * 100) + '%'; })
+        .then(total => {
+          $('#dictCount').textContent = fmt(total);
+          status.textContent = window.DziobLLM && DziobLLM.ready ? 'AI ✓' : '';
+          doSearch();
+        })
+        .catch(e => { console.error(e); status.textContent = ''; });
     })
     .catch(e => { status.textContent = '⚠️'; console.error(e); });
 })();

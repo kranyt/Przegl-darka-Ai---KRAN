@@ -1,12 +1,12 @@
 # 🐦 DziobSi – Dziob Inteligence
 
-Aplikacja AI na telefon (PWA) ze słownikiem **500 000 polskich słów**.
+Aplikacja AI na telefon (PWA + APK) ze słownikiem **5 000 000 słów**.
 
 ## Co potrafi
 - **Mózg AI w telefonie** (`llm.js`) – polski model językowy **Bielik 1.5B** (SpeakLeash, Q4_K_M ~973 MB)
   uruchamiany lokalnie przez [wllama](https://github.com/ngxson/wllama) (llama.cpp w WebAssembly).
   Czyta wiadomość i sam układa odpowiedź; gdy użytkownik nie pyta – po prostu rozmawia.
-  Pobiera się raz (Ustawienia → Mózg AI), potem działa bez internetu. Słownik 500 000 słów
+  Pobiera się raz (Ustawienia → Mózg AI), potem działa bez internetu. Słownik 5 000 000 słów
   podpowiada modelowi poprawki literówek użytkownika i poprawia pisownię odpowiedzi modelu. Bez pobranego modelu działa mózg na regułach.
 - Każda odpowiedź kończy się: *„Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦”*
 - **Wygląd** – ciepły, spokojny styl (kremowy / grafitowy, szeryfowa czcionka odpowiedzi)
@@ -25,10 +25,14 @@ Aplikacja AI na telefon (PWA) ze słownikiem **500 000 polskich słów**.
   część mowy, przedrostki, złożenia, podobne słowa, możliwa literówka.
 - **Blokada wulgaryzmów** – na wiadomości z niecenzuralnymi słowami DziobSi nie odpowiada
   (wykrywa też zapisy typu `k.u.r.w.a`, `chuuuj`, `kórwa`); słownik jest z nich oczyszczony.
-- **500 000 słów** (`data/slowa.txt`) – posortowane od najczęściej używanych:
+- **5 000 000 słów** (`data/slownik.bin`, ~22 MB) – polskie słowa ze wszystkimi odmianami
+  i angielskie; zapisane posortowane, z kodowaniem przedrostkowym w blokach po 32 słowa
+  (`bigdict.js`): w pamięci zostają spakowane, a sprawdzenie słowa to wyszukiwanie binarne
+  i rozpakowanie jednego bloku (ułamek milisekundy).
+- **500 000 najczęstszych słów** (`data/slowa.txt`) – ranking popularności, rymy, losowanie:
   sprawdzanie pisowni i podpowiedzi poprawek, rymy, słowa na / kończące się na…,
   losowe słowa.
-- **Słownik** – wyszukiwarka po 500 000 słowach (także wzorce `kot*`, `*ość`).
+- **Słownik** – wyszukiwarka po 5 000 000 słowach (także wzorce `kot*`, `k?t`); najpierw popularne.
 - Kalkulator, godzina, data.
 - Działa **offline** i instaluje się na ekranie głównym telefonu (Android i iPhone).
 
@@ -53,5 +57,14 @@ python3 -m http.server 8000
 ```
 i otwórz http://localhost:8000
 
-Źródło listy słów: FrequencyWords (H. Dave, licencja CC BY-SA 4.0, na podstawie OpenSubtitles),
-przefiltrowane do 500 000 słów złożonych z polskich liter.
+## Źródła słów (5 000 000)
+| Źródło | Słów | Licencja |
+|---|---:|---|
+| [SJP.pl – słownik do gier](https://sjp.pl/sl/growy/) (przez [kamilmielnik/scrabble-dictionaries](https://github.com/kamilmielnik/scrabble-dictionaries)) – polski z odmianami | 3 219 043 | GPL 2 / LGPL 2.1 / CC BY 4.0 / MPL 1.1 / Apache 2.0 |
+| [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (OpenSubtitles) – polski 2018 + 2016 | 826 286 | CC BY-SA 4.0 |
+| [dwyl/english-words](https://github.com/dwyl/english-words) – angielski | 312 919 | Unlicense |
+| FrequencyWords – angielski | 641 752 | CC BY-SA 4.0 |
+
+Wulgaryzmy (polskie i angielskie) są usunięte. Słowa z list częstości pochodzą z napisów
+filmowych – są tam też imiona, nazwy i rzadkie formy potoczne.
+Skrypt budujący: kolejność SJP → polskie listy częstości → angielski słownik → angielska lista częstości, aż do 5 000 000.

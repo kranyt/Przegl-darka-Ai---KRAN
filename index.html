@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="DziobSi">
-  <meta name="description" content="DziobSi (Dziob Inteligence) – asystent AI ze słownikiem 500 000 słów.">
+  <meta name="description" content="DziobSi (Dziob Inteligence) – asystent AI ze słownikiem 5 000 000 słów.">
   <title>DziobSi</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -73,7 +73,7 @@
     <section id="tab-dict" class="tab">
       <div class="scroll">
         <h2 class="serif page-title">Słownik</h2>
-        <p class="muted"><b id="dictCount">500 000</b> słów, od najpopularniejszych.</p>
+        <p class="muted"><b id="dictCount">5 000 000</b> słów – polskich (z odmianami) i angielskich.</p>
         <div class="ask glass"><input id="dictSearch" type="search" placeholder="Szukaj… (kot*, *ość)" autocomplete="off"></div>
         <div class="seg wide glass" id="dictModes">
           <button data-mode="prefix" class="active">Początek</button>
@@ -101,7 +101,7 @@
             <input type="checkbox" id="aiToggle" class="switch">
           </label>
           <p class="muted">Polski model językowy Bielik działa w całości na Twoim telefonie: czyta wiadomość i sam układa odpowiedź.
-            Pobiera się raz, potem działa bez internetu. Komendy słownikowe (sprawdź, rymy, policz…) obsługuje słownik 500 000 słów.</p>
+            Pobiera się raz, potem działa bez internetu. Komendy słownikowe (sprawdź, rymy, policz…) obsługuje słownik 5 000 000 słów.</p>
         </div>
         <div class="card glass">
           <div class="setting">
@@ -123,7 +123,7 @@
         </div>
         <div class="card glass">
           <p class="serif about"><b>DziobSi</b> – Dziob Inteligence</p>
-          <p class="muted">Samodzielne AI na telefon. 500 000 słów, tryb Code, działa bez internetu.
+          <p class="muted">Samodzielne AI na telefon. 5 000 000 słów, tryb Code, działa bez internetu.
             Na wulgaryzmy nie odpowiada.</p>
         </div>
       </div>
@@ -151,6 +151,7 @@
     </button>
   </nav>
 
+  <script src="bigdict.js"></script>
   <script src="brain.js"></script>
   <script src="talk.js"></script>
   <script src="code.js"></script>

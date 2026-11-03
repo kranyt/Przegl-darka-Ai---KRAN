@@ -1,4 +1,5 @@
-/* DziobSi – własny mózg (bez wspomagania z zewnątrz) ze słownikiem 500 000 słów. */
+/* DziobSi – własny mózg ze słownikiem 5 000 000 słów
+   (500 000 najczęstszych z rankingiem w pamięci + pełne 5 mln w spakowanym BigDict). */
 (function () {
   'use strict';
 
@@ -6,10 +7,11 @@
   const VOWELS = /[aąeęioóuy]+/g;
 
   /* ---------- filtr wulgaryzmów ---------- */
-  const BAD_CONTAINS = ['kurw', 'chuj', 'pierdol', 'pierdal', 'pierdziel', 'pizd', 'skurw', 'fuck', 'shit', 'jeb'];
-  const BAD_STARTS = ['huj', 'cipa', 'cipy', 'cipk', 'cipą', 'cipie', 'cipo', 'ciota', 'cioto', 'cioty', 'dziwk', 'fiut', 'cwel', 'kutas', 'bitch'];
+  const BAD_CONTAINS = ['kurw', 'chuj', 'pierdol', 'pierdal', 'pierdziel', 'pizd', 'skurw', 'fuck', 'shit', 'jeb', 'nigger', 'nigga', 'motherf', 'cocksuck'];
+  const BAD_STARTS = ['huj', 'cipa', 'cipy', 'cipk', 'cipą', 'cipie', 'cipo', 'ciota', 'cioto', 'cioty', 'dziwk', 'fiut', 'cwel', 'kutas', 'bitch', 'asshole', 'cunt', 'faggot', 'whore', 'dickhead', 'wanker'];
   const BAD_EXACT = new Set(['dupa', 'dupy', 'dupie', 'dupę', 'dupe', 'dupą', 'dupek', 'dupka', 'dupku', 'dupki', 'gówno', 'gowno', 'gówna', 'gowna',
-    'gównie', 'gównem', 'sraj', 'srać', 'sracz', 'ruchać', 'ruchał', 'ruchała', 'ruchaj', 'ruchanie']);
+    'gównie', 'gównem', 'sraj', 'srać', 'sracz', 'ruchać', 'ruchał', 'ruchała', 'ruchaj', 'ruchanie',
+    'dick', 'dicks', 'cock', 'cocks', 'pussy', 'slut', 'sluts', 'twat', 'wank', 'tits', 'fag', 'fags']);
   const LEET = { '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '@': 'a', '$': 's', '!': 'i' };
   const FOLD = { 'ą': 'a', 'ć': 'c', 'ę': 'e', 'ń': 'n', 'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z' };
 
@@ -73,16 +75,37 @@
       return words.length;
     },
 
-    has(w) { return this.rank.has(norm(w)); },
+    big() { const b = (typeof window !== 'undefined' ? window : globalThis).BigDict; return b && b.ready ? b : null; },
+    /* liczba wszystkich znanych słów (5 000 000 po wczytaniu wielkiego słownika) */
+    total() { const b = this.big(); return b ? b.count : this.words.length; },
+    _has(w) { if (this.rank.has(w)) return true; const b = this.big(); return !!(b && b.has(w)); },
+    has(w) { return this._has(norm(w)); },
+    async loadBig(onProgress) {
+      const b = (typeof window !== 'undefined' ? window : globalThis).BigDict;
+      if (!b) return 0;
+      return b.load('data/slownik.bin', onProgress);
+    },
     rankOf(w) { return this.rank.get(norm(w)) || 0; },
 
+    /* wyniki z 5 mln: najpierw popularne (wg rankingu), potem rzadkie alfabetycznie */
     search(q, mode, limit = 100) {
+      const r = this._search(q, mode, this.big() ? 5000 : limit);
+      if (!this.big()) return r;
+      const R = w => this.rank.get(w) || 1e9;
+      r.items = r.items.map((w, i) => [w, R(w), i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).slice(0, limit).map(x => x[0]);
+      return r;
+    },
+
+    _search(q, mode, limit = 100) {
       q = norm(q);
       if (!q) return { total: 0, items: [] };
+      const big = this.big();
       if (q.includes('*') || q.includes('?')) {
         const re = new RegExp('^' + q.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$');
+        if (big) return big.pattern(re, q.split(/[*?]/)[0], limit);
         return this._filter(w => re.test(w), limit);
       }
+      if (big) return mode === 'suffix' || mode === 'contains' ? big.scan(mode, q, limit) : big.prefix(q, limit);
       if (mode === 'suffix') return this._filter(w => w.endsWith(q), limit);
       if (mode === 'contains') return this._filter(w => w.includes(q), limit);
       return this._filter(w => w.startsWith(q), limit);
@@ -133,8 +156,9 @@
         }
       }
       found.delete(w);
-      return [...found].filter(x => this.rank.has(x))
-        .sort((x, y) => this.rank.get(x) - this.rank.get(y))
+      const R = x => this.rank.get(x) || 1e9;
+      return [...found].filter(x => this._has(x))
+        .sort((x, y) => R(x) - R(y))
         .slice(0, limit);
     },
 
@@ -142,6 +166,7 @@
     analyze(word, detailed) {
       const w = norm(word);
       const r = this.rankOf(w);
+      const known = !!r || this._has(w);
       const rule = SUFFIX_RULES.find(([re]) => re.test(w));
       let pos = rule ? rule[1] : '';
       let parts = '';
@@ -152,7 +177,7 @@
           break;
         }
       }
-      if (!parts && !r) {
+      if (!parts && !known) {
         for (let i = 3; i <= w.length - 3 && !parts; i++) {
           const a = w.slice(0, i), b = w.slice(i);
           const ra = this.rank.get(a), rb = this.rank.get(b);
@@ -169,16 +194,16 @@
         if (f.length >= 2) { family = f.slice(0, 3); break; }
       }
 
-      const typo = !r && !parts ? this.suggest(w, 1)[0] : null;
+      const typo = !known && !parts ? this.suggest(w, 1)[0] : null;
       let out = `**${w}**`;
       if (typo) out += ` – pewnie chodzi o **${typo}**.`;
       else if (pos || parts) out += ` – ${pos || 'słowo'}${parts ? ': ' + parts : ''}.`;
       else if (/[qvx]|th|sh|ee|oo|ph/.test(w)) out += ' – wyraz obcy albo nazwa własna.';
-      else out += ` – ${r ? 'słowo' : 'rzadkie słowo, może nazwa własna'}.`;
+      else out += ` – ${known ? 'słowo' : 'rzadkie słowo, może nazwa własna'}.`;
       if (family.length && !typo) out += ` Podobne: ${family.join(', ')}.`;
       if (detailed) {
         const syl = (w.match(VOWELS) || []).length;
-        out += ` (${pl(w.length, 'litera', 'litery', 'liter')}, ${pl(syl, 'sylaba', 'sylaby', 'sylab')}${r ? ', #' + r.toLocaleString('pl-PL') : ''})`;
+        out += ` (${pl(w.length, 'litera', 'litery', 'liter')}, ${pl(syl, 'sylaba', 'sylaby', 'sylab')}${r ? ', #' + r.toLocaleString('pl-PL') : known ? ', rzadkie – ze słownika 5 mln' : ''})`;
       }
       return out;
     },
@@ -196,9 +221,9 @@
       if (/^(pomoc|help|co umiesz|co potrafisz)/.test(t)) return HELP;
 
       if (/(kim|czym) jeste[sś]|jak si[eę] nazywasz|twoje imi[eę]/.test(t))
-        return 'Jestem **DziobSi** – Dziob Inteligence. Znam 500 000 słów. 🐦';
+        return `Jestem **DziobSi** – Dziob Inteligence. Znam ${fmt(this.total())} słów. 🐦`;
 
-      if (/ile (znasz )?s[lł][oó]w|ile masz s[lł][oó]w/.test(t)) return `${fmt(this.words.length)} słów. 📚`;
+      if (/ile (znasz )?s[lł][oó]w|ile masz s[lł][oó]w/.test(t)) return `${fmt(this.total())} słów! 📚`;
       if (/jak si[eę] masz|co u ciebie|co tam/.test(t)) return 'Świetnie, dzięki! A u Ciebie?';
       if (/co robisz/.test(t)) return 'Czekam na Twoje pytanie 🐦';
       if (/(dzi[eę]kuj[eę]|dzi[eę]ki|thx)/.test(t)) return 'Proszę! 🐦';
@@ -238,7 +263,8 @@
       if ((m = t.match(/(?:czy (\S+) (?:jest|to) (?:s[lł]owem|s[lł]owo|poprawne)|sprawd[zź] (?:s[lł]owo )?(\S+)|znasz (?:s[lł]owo )?(\S+))/))) {
         const w = m[1] || m[2] || m[3];
         const r = this.rankOf(w);
-        return r ? `✅ Tak, **${norm(w)}** (#${fmt(r)}).` : this.analyze(w);
+        if (r) return `✅ Tak, **${norm(w)}** (#${fmt(r)}).`;
+        return this._has(norm(w)) ? `✅ Tak, **${norm(w)}** – rzadkie słowo ze słownika ${fmt(this.total())} słów.` : this.analyze(w);
       }
 
       if ((m = t.match(/(?:policz|oblicz|ile to|ile jest)\s*(.+)/)) || /^[\d\s+\-*/().,^%x×:]+$/.test(t)) {
@@ -257,7 +283,7 @@
       if (!tokens.length) return pick(['🐦?', 'Hmm? Napisz „pomoc”.']);
       if (tokens.length === 1) return this.analyze(tokens[0]);
 
-      const unknown = [...new Set(tokens.filter(w => !this.rank.has(w)))];
+      const unknown = [...new Set(tokens.filter(w => !this._has(w)))];
       if (unknown.length) return unknown.slice(0, 2).map(w => this.analyze(w)).join('\n');
       if (/\?$/.test(raw.trim())) return pick(['Dobre pytanie! 🤔 Zapytaj mnie o słowo, rym albo kod.', 'Hmm, tego nie policzę 🐦 Spróbuj „pomoc”.']);
       return pick(['Opowiedz mi więcej! 🐦', 'Ciekawe! A co dalej?', 'Aha! A jak się z tym czujesz?', 'Brzmi ciekawie 🐦 Mów dalej!']);
@@ -276,7 +302,7 @@
 
   const JOKES = [
     'Dlaczego DziobSi nigdy się nie gubi? Bo zawsze ma dziób na właściwym kierunku! 🐦',
-    'Co mówi ptak, który zna 500 000 słów? Nic – bo nie może się zdecydować, którego użyć! 😄',
+    'Co mówi ptak, który zna 5 000 000 słów? Nic – bo nie może się zdecydować, którego użyć! 😄',
     'Jaki jest ulubiony przedmiot DziobSi w szkole? Ćwir-matematyka! 🧮',
     'Dlaczego wróbel nie korzysta z internetu? Bo woli ćwierkać na żywo! 🐦',
   ];
