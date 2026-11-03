@@ -51,7 +51,13 @@ function echoes(user, out) {
   return (o.length <= u.length + 3 && same / o.length >= 0.6) || (u.length >= 2 && o.slice(0, u.length).join(' ') === u.join(' '));
 }
 // odpowiedź po angielsku? (brak polskich znaków, dużo angielskich słówek)
-const english = t => !/[ąćęłńóśźż]/i.test(t) && (t.match(/\b(the|and|is|are|you|your|what|it's|with|of|to|i|my|love|great)\b/gi) || []).length >= 3;
+// odpowiedź po angielsku? tylko typowo angielskie słowa (bez „to”, „i”, które są też polskie)
+const english = t => !/[ąćęłńóśźż]/i.test(t) &&
+  !/\b(jest|nie|sie|się|czy|jak|ale|mam|masz|jestem|co|ty|ja|mi|tak|bardzo|fajnie|mozesz|możesz)\b/i.test(t) &&
+  (t.match(/\b(the|and|is|are|you|your|what|it's|with|my|love|great|this|that|have|for)\b/gi) || []).length >= 3;
+// instrukcja + pamięć o użytkowniku
+const system = () => { const m = window.DziobMemory && window.DziobMemory.prompt(); return m ? SYSTEM + '\n' + m : SYSTEM; };
+const CONVO_KEY = 'dziobsi:llm:convo';
 
 let wllama = null;
 const has = () => { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } };
@@ -76,13 +82,13 @@ function looping(t) {
   return /(.{1,3})\1{5,}$/su.test(t) || /(.{8,40}?)\1{2,}$/su.test(t);
 }
 let noCache = false; // true = model działa, ale nie zmieścił się w pamięci (pobierze się znowu po restarcie)
-let convo = []; // rozmowa widziana przez model – rośnie od końca, by nie przeliczać jej od nowa
+let convo = (() => { try { return JSON.parse(localStorage.getItem('dziobsi:llm:convo')) || []; } catch (e) { return []; } })(); // rozmowa widziana przez model – rośnie od końca, by nie przeliczać jej od nowa
 let error = '';
 const listeners = new Set();
 const emit = () => listeners.forEach(fn => { try { fn(api.info()); } catch (e) { /* nic */ } });
 
 async function generate(turns, onText, opts = {}) {
-  const messages = [{ role: 'system', content: SYSTEM }, ...SEED, ...turns];
+  const messages = [{ role: 'system', content: system() }, ...SEED, ...turns];
   const ctrl = new AbortController();
   const stream = await wllama.createChatCompletion({
     messages, max_tokens: 160, temperature: opts.temperature || 0.7, top_p: 0.9, top_k: 40, min_p: 0.05,
@@ -142,7 +148,7 @@ const api = {
       if (!noCache) { try { localStorage.setItem(KEY, '1'); } catch (e) { /* brak */ } }
       // rozgrzewka: przelicz instrukcję od razu, żeby pierwsza odpowiedź była szybsza
       state = 'loading'; emit();
-      try { await wllama.createChatCompletion({ messages: [{ role: 'system', content: SYSTEM }, ...SEED, { role: 'user', content: 'cześć' }], max_tokens: 1 }); } catch (e) { /* nic */ }
+      try { await wllama.createChatCompletion({ messages: [{ role: 'system', content: system() }, ...SEED, { role: 'user', content: 'cześć' }], max_tokens: 1 }); } catch (e) { /* nic */ }
       state = 'ready'; progress = 1; emit();
     } catch (e) {
       state = 'error'; error = (e && e.message) || String(e); emit();
@@ -156,7 +162,7 @@ const api = {
     wllama = null; state = 'none'; progress = 0; emit();
   },
 
-  reset() { convo = []; },
+  reset() { convo = []; try { localStorage.removeItem(CONVO_KEY); } catch (e) { /* brak */ } },
 
   async chat(userText, onText) {
     if (state !== 'ready') throw new Error('Mózg AI nie jest gotowy');
@@ -164,28 +170,33 @@ const api = {
     convo = convo.slice(-6);
     while (convo.length > 2 && convo.reduce((n, m) => n + m.content.length, 0) > 1200) convo = convo.slice(2);
     let text = await generate([...convo, { role: 'user', content: userText }], onText);
-    if (echoes(userText, text)) {
-      // model powtórzył wiadomość – spróbuj jeszcze raz, prosząc o własną odpowiedź
+    const longMsg = words(userText).length >= 3; // krótkie wiadomości („Eli”, „ale co”) nie są sprawdzane pod kątem powtarzania
+    if (!text || (longMsg && echoes(userText, text))) {
+      // model powtórzył wiadomość albo nic nie powiedział – spróbuj jeszcze raz
       onText && onText('');
-      text = await generate([...convo, { role: 'user', content: userText + '\n(Nie powtarzaj tego – odpowiedz mi własnymi słowami i podejmij temat.)' }], onText, { temperature: 0.9 });
-      if (echoes(userText, text)) return ''; // nadal echo – odpowie tryb rozmowy
+      const again = await generate([...convo, { role: 'user', content: userText + '\n(Odpowiedz mi własnymi słowami.)' }], onText, { temperature: 0.9 });
+      if (again && !(longMsg && echoes(userText, again))) text = again;
+      else if (!text) text = again;
     }
     const topic = topicOf(userText);
     if (topic && !mentions(text, topic)) {
       // model zgubił temat – przypomnij go
       onText && onText('');
       const again = await generate([...convo, { role: 'user', content: `${userText}\n(Temat rozmowy: ${topic}. Powiedz o tym coś konkretnego i zadaj pytanie.)` }], onText, { temperature: 0.8 });
-      if (!echoes(userText, again)) text = again;
+      if (again && !echoes(userText, again)) text = again;
     }
     if (english(text)) {
       // model odpłynął na angielski – zapytaj jeszcze raz, prosząc o polski
       onText && onText('');
-      text = await generate([...convo, { role: 'user', content: userText + '\n(Odpowiedz po polsku.)' }], onText);
+      const pl = await generate([...convo, { role: 'user', content: userText + '\n(Odpowiedz po polsku.)' }], onText);
+      if (pl && !english(pl)) text = pl;
     }
-    if (english(text)) return ''; // nadal nie po polsku – aplikacja odpowie mózgiem na regułach
     const prev = [...convo].reverse().find(m => m.role === 'assistant');
     text = dropRepeatedQuestion(text, prev && prev.content);
-    convo.push({ role: 'user', content: userText }, { role: 'assistant', content: text });
+    if (text) {
+      convo.push({ role: 'user', content: userText }, { role: 'assistant', content: text });
+      try { localStorage.setItem(CONVO_KEY, JSON.stringify(convo.slice(-6))); } catch (e) { /* brak */ }
+    }
     return text;
   },
 };

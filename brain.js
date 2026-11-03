@@ -241,7 +241,7 @@
 
       if (/^(pomoc|help|co umiesz|co potrafisz)/.test(t)) return HELP;
 
-      if (/(kim|czym) jeste[sś]|jak si[eę] nazywasz|twoje imi[eę]/.test(t))
+      if (/(kim|czym) jeste[sś]|jak si[eę] nazywasz|twoje imi[eę]|jak (ty )?masz na imi[eę]/.test(t))
         return 'Jestem **DziobSi** – Dziob Inteligence, Twój ptasi asystent AI 🐦';
 
       if (/ile (znasz )?s[lł][oó]w|ile masz s[lł][oó]w/.test(t)) return `${fmt(this.total())} słów! 📚`;

@@ -3,9 +3,13 @@
 Aplikacja AI na telefon (PWA + APK) ze słownikiem **5 000 000 słów**.
 
 ## Wersja
-Aktualna wersja: **2.1.0** (widoczna w aplikacji: ekran startowy i Ustawienia → Wersja aplikacji).
+Aktualna wersja: **2.2.0** (widoczna w aplikacji: ekran startowy i Ustawienia → Wersja aplikacji).
 
 ## Co potrafi
+- **Pamięć** (`memory.js`) – DziobSi zapamiętuje fakty o użytkowniku (imię, wiek, miasto, co lubi
+  i czego nie, zwierzęta, rodzeństwo, „zapamiętaj…”), także po zamknięciu aplikacji. Mózg AI dostaje
+  je w instrukcji, a rozmowa (ostatnie wymiany) też jest zapamiętywana. „Co o mnie wiesz?” wypisuje
+  pamięć, „zapomnij wszystko” ją czyści; podgląd i usuwanie w Ustawieniach → Pamięć.
 - **Rozmowa zamiast „znam to słowo”** – DziobSi nie komentuje słów, tylko rozmawia. Słownik działa w tle
   (poprawianie literówek) i w zakładce Słownik. Dopóki Mózg AI nie jest pobrany, w czacie widać baner
   „Włącz pełny Mózg AI”, a pod odpowiedziami znacznik „⚡ Tryb podstawowy” / „🧠 Mózg AI”.

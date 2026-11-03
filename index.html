@@ -92,6 +92,15 @@
         <h2 class="serif page-title">Ustawienia</h2>
         <div class="card glass">
           <div class="setting">
+            <span>💾 Pamięć <small class="muted">co DziobSi wie o Tobie</small></span>
+            <button class="btn danger" id="btnMemClear">Wyczyść</button>
+          </div>
+          <ul id="memList" class="mem-list"></ul>
+          <p class="muted">Napisz np. „mam na imię Eli”, „lubię pływać” albo „zapamiętaj, że mam psa Burka”.
+            Zapytaj „co o mnie wiesz?”. Pamięć zostaje po zamknięciu aplikacji.</p>
+        </div>
+        <div class="card glass">
+          <div class="setting">
             <span>Mózg AI <small class="muted" id="aiState">…</small></span>
             <button class="btn primary" id="btnAI">Pobierz (~1 GB)</button>
           </div>
@@ -125,7 +134,7 @@
           <p class="serif about"><b>DziobSi</b> – Dziob Inteligence</p>
           <p class="muted">Samodzielne AI na telefon. 5 000 000 słów, tryb Code, działa bez internetu.
             Na wulgaryzmy nie odpowiada.</p>
-          <div class="setting"><span>Wersja aplikacji</span><b id="appVersion">2.1.0</b></div>
+          <div class="setting"><span>Wersja aplikacji</span><b id="appVersion">2.2.0</b></div>
         </div>
       </div>
     </section>
@@ -162,6 +171,7 @@
 
   <script src="bigdict.js"></script>
   <script src="brain.js"></script>
+  <script src="memory.js"></script>
   <script src="talk.js"></script>
   <script src="code.js"></script>
   <script src="app.js"></script>

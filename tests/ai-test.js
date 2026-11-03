@@ -22,13 +22,13 @@ const { chromium } = require('playwright');
     if (info.state === 'error') { console.log('MODEL ERROR', info.error); process.exit(1); }
     await p.waitForTimeout(3000);
   }
-  const questions = ['o czym chcesz pogadać?', 'Zaproponuj cos', 'Powtarzasz po mnie', 'Może pogadamy o basenie?', 'Lubię pływać żabką', 'byłem dziś na rowerze', 'co to jest fotosynteza?', 'lubisz mnie?', 'zrób grę'];
+  const questions = ['cześć! jak masz na imię?', 'Eli', 'Ale co', 'O czym', 'Zaproponuj cos', 'Może pogadamy o basenie?', 'Lubię pływać żabką', 'mam psa o imieniu Burek', 'jak ma na imię mój pies?', 'jak mam na imię?', 'co o mnie wiesz?', 'co to jest fotosynteza?'];
   for (const q of questions) {
     const s = Date.now();
     await p.fill('#input', q);
     await p.press('#input', 'Enter');
     await p.waitForFunction(() => !document.querySelector('.typing') && !document.querySelector('#btnSend').disabled, null, { timeout: 300000 });
-    const ans = await p.evaluate(() => { const m = [...document.querySelectorAll('.msg.bot')].pop(); return m ? m.innerText : ''; });
+    const ans = await p.evaluate(() => { const m = [...document.querySelectorAll('.msg.bot')].pop(); return m ? m.innerText.replace(/Jeśli masz jeszcze[^\n]*\n*/, '') : ''; });
     const tm = await p.evaluate(() => DziobLLM.info().lastTimings);
     console.log(`\n>> ${q}   (${Math.round((Date.now() - s) / 1000)}s)${tm ? ' timings: ' + JSON.stringify(tm) : ''}\n${ans.slice(0, 400)}`);
   }

@@ -9,7 +9,7 @@
   };
   const fmt = n => n.toLocaleString('pl-PL');
 
-  const APP_VERSION = '2.1.0';
+  const APP_VERSION = '2.2.0';
   const FOOTER = 'Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦';
   // komendy słownikowe – zawsze obsługuje je dokładny mózg słownikowy
   const TOOL = /^(rym\S* (do|na) |policz|oblicz|kt[oó]ra (jest )?godzina|jaka (jest )?data|ile (znasz|masz) s[lł][oó]w|pomoc$)/;
@@ -60,7 +60,7 @@
   /* ---------- czat ---------- */
   const box = $('#messages');
 
-  const SRC = { ai: '🧠 Mózg AI', basic: '⚡ Tryb podstawowy' };
+  const SRC = { ai: '🧠 Mózg AI', basic: '⚡ Tryb podstawowy', mem: '💾 Pamięć' };
   function addBubble(role, text, blocked, src) {
     const d = document.createElement('div');
     if (role === 'user') {
@@ -114,19 +114,37 @@
       return `${c.title} 👇\n\`\`\`${c.lang}\n${c.code}\n\`\`\``;
     }
     const llm = window.DziobLLM;
-    lastSrc = llm && llm.ready && store.get('useAI', true) ? 'ai' : 'basic';
+    lastSrc = 'basic';
     const lower = text.toLowerCase().trim();
+
+    // pamięć: polecenia
+    const M = window.DziobMemory;
+    if (M) {
+      if (/^(co (o mnie )?(wiesz|pami[eę]tasz)( o mnie)?|co wiesz o mnie|co pami[eę]tasz o mnie|moja pami[eę][cć])\??$/.test(lower)) {
+        lastSrc = 'mem';
+        const f = M.list();
+        return f.length ? 'Pamiętam o Tobie:\n' + f.map(x => '• ' + x).join('\n') : 'Jeszcze nic o Tobie nie wiem 🐦 Opowiedz mi coś o sobie!';
+      }
+      if (/^zapomnij( wszystko| o mnie| wszystko o mnie)?[.!]?$/.test(lower)) {
+        M.clear(); if (llm) llm.reset(); renderMemory(); lastSrc = 'mem';
+        return 'Gotowe – zapomniałem wszystko, co o Tobie wiedziałem. 🐦';
+      }
+      const prevBot = [...history].reverse().find(m => m.role === 'model');
+      const learned = M.learn(text, prevBot && prevBot.text);
+      if (learned.length) renderMemory();
+      if (/^zapami[eę]taj/.test(lower)) { lastSrc = 'mem'; return learned.length ? `Jasne, zapamiętam: ${learned.join('; ')} 🐦` : 'Napisz, co mam zapamiętać, np. „zapamiętaj, że mam psa Burka” 🐦'; }
+    }
     if (llm && llm.ready && store.get('useAI', true) && !TOOL.test(lower) && !/^[\d\s+\-*/().,^%x×:]+$/.test(lower)) {
       // pewne odpowiedzi o DziobSi (np. „lubisz mnie?” → „Tak, bardzo cię lubię!”) – zawsze takie same
       const sure = window.Talk && Talk.answer(text, Brain, true);
-      if (sure) { await new Promise(r => setTimeout(r, 250)); return sure; }
+      if (sure) { await new Promise(r => setTimeout(r, 250)); lastSrc = 'mem'; return sure; }
       const body = typing.querySelector('.body');
       try {
         const out = await llm.chat(Brain.fixText(text), t => {
           body.innerHTML = md(cleanup(t)); box.scrollTop = box.scrollHeight;
         });
         const clean = spellfix(cleanup(out));
-        if (clean) return clean;
+        if (clean) { lastSrc = 'ai'; return clean; }
       } catch (e) { console.error(e); }
     }
     await new Promise(r => setTimeout(r, 300));
@@ -257,6 +275,24 @@
   const glass = $('#glassToggle');
   glass.checked = store.get('glass', true);
   glass.addEventListener('change', () => { store.set('glass', glass.checked); document.documentElement.classList.toggle('no-glass', !glass.checked); });
+
+  /* ---------- pamięć (Ustawienia) ---------- */
+  function renderMemory() {
+    const M = window.DziobMemory; if (!M) return;
+    const f = M.list();
+    $('#memList').innerHTML = f.length
+      ? f.map((x, i) => `<li><span>${esc(x)}</span><button class="icon-btn" data-forget="${i}" aria-label="Usuń">✕</button></li>`).join('')
+      : '<li class="muted">Pusto – DziobSi zapamięta, co o sobie opowiesz.</li>';
+  }
+  $('#memList').addEventListener('click', e => {
+    const b = e.target.closest('[data-forget]'); if (!b) return;
+    window.DziobMemory.remove(+b.dataset.forget); renderMemory();
+  });
+  $('#btnMemClear').addEventListener('click', () => {
+    if (!confirm('Wyczyścić całą pamięć DziobSi?')) return;
+    window.DziobMemory.clear(); if (window.DziobLLM) DziobLLM.reset(); renderMemory();
+  });
+  renderMemory();
 
   $('#btnClear').addEventListener('click', () => { if (confirm('Wyczyścić rozmowę?')) { clearChat(); showTab('chat'); } });
 
