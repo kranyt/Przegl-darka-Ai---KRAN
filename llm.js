@@ -19,7 +19,7 @@ const SEED = [
   { role: 'user', content: 'Hej!' },
   { role: 'assistant', content: 'Hej! Miło cię widzieć. O czym chcesz pogadać?' },
   { role: 'user', content: 'Zaproponuj coś.' },
-  { role: 'assistant', content: 'Może opowiem ci ciekawostkę o kosmosie? Albo zagrajmy w zgadywankę: myślę o zwierzęciu, a ty zgadujesz!' },
+  { role: 'assistant', content: 'Może opowiesz mi o swoim ulubionym hobby? Albo zagrajmy w zgadywankę – ty wybierasz!' },
   { role: 'user', content: 'Może pogadamy o kotach?' },
   { role: 'assistant', content: 'Chętnie! Koty są bardzo ciekawskie i potrafią przespać nawet 16 godzin dziennie. Masz kota?' },
   { role: 'user', content: 'Powtarzasz po mnie.' },
@@ -56,7 +56,21 @@ const english = t => !/[ąćęłńóśźż]/i.test(t) &&
   !/\b(jest|nie|sie|się|czy|jak|ale|mam|masz|jestem|co|ty|ja|mi|tak|bardzo|fajnie|mozesz|możesz)\b/i.test(t) &&
   (t.match(/\b(the|and|is|are|you|your|what|it's|with|my|love|great|this|that|have|for)\b/gi) || []).length >= 3;
 // instrukcja + pamięć o użytkowniku
-const system = () => { const m = window.DziobMemory && window.DziobMemory.prompt(); return m ? SYSTEM + '\n' + m : SYSTEM; };
+const system = () => SYSTEM;
+let memMode = 'message'; // 'message' = osobna wiadomość (szybciej) | 'inline' = w instrukcji
+const memoryMsg = () => { const m = window.DziobMemory && window.DziobMemory.prompt(); return m ? [{ role: 'system', content: m }] : []; };
+// zdania, które już padły w poprzednich odpowiedziach -> usuń (model lubi kopiować sam siebie)
+const sentences = t => t.split(/(?<=[.!?…])\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ0-9„"])/u).map(x => x + ' ');
+function similar(a, b) {
+  const A = words(a), B = new Set(words(b));
+  if (A.length < 3) return false;
+  return A.filter(w => B.has(w)).length / A.length >= 0.6;
+}
+function dropRepeats(text, prevReplies) {
+  const old = prevReplies.flatMap(sentences);
+  const kept = sentences(text).filter(s => !old.some(o => similar(s, o)));
+  return kept.join('').trim();
+}
 const CONVO_KEY = 'dziobsi:llm:convo';
 
 let wllama = null;
@@ -88,13 +102,25 @@ const listeners = new Set();
 const emit = () => listeners.forEach(fn => { try { fn(api.info()); } catch (e) { /* nic */ } });
 
 async function generate(turns, onText, opts = {}) {
-  const messages = [{ role: 'system', content: system() }, ...SEED, ...turns];
+  const last = turns[turns.length - 1];
+  let messages = [{ role: 'system', content: system() }, ...SEED, ...turns.slice(0, -1), ...memoryMsg(), last];
+  if (memMode === 'inline') {
+    const mm = memoryMsg();
+    messages = [{ role: 'system', content: system() + (mm.length ? '\n' + mm[0].content : '') }, ...SEED, ...turns];
+  }
   const ctrl = new AbortController();
-  const stream = await wllama.createChatCompletion({
-    messages, max_tokens: 160, temperature: opts.temperature || 0.7, top_p: 0.9, top_k: 40, min_p: 0.05,
-    penalty_repeat: 1.15, penalty_last_n: 64, frequency_penalty: 0.3,
+  const req = () => wllama.createChatCompletion({
+    messages, max_tokens: 160, temperature: opts.temperature || 0.6, top_p: 0.9, top_k: 40, min_p: 0.05,
+    penalty_repeat: 1.15, penalty_last_n: 128, frequency_penalty: 0.4, presence_penalty: 0.3,
     stream: true, abortSignal: ctrl.signal,
   });
+  let stream;
+  try { stream = await req(); } catch (e) {
+    // szablon rozmowy modelu nie przyjmuje drugiej wiadomości systemowej -> pamięć w instrukcji
+    if (memMode === 'inline' || !memoryMsg().length) throw e;
+    memMode = 'inline';
+    return generate(turns, onText, opts);
+  }
   let text = '';
   try {
     for await (const chunk of stream) {
@@ -167,8 +193,7 @@ const api = {
   async chat(userText, onText) {
     if (state !== 'ready') throw new Error('Mózg AI nie jest gotowy');
     // krótki kontekst: ostatnie 3 wymiany, najwyżej ~1200 znaków
-    convo = convo.slice(-6);
-    while (convo.length > 2 && convo.reduce((n, m) => n + m.content.length, 0) > 1200) convo = convo.slice(2);
+    if (convo.length > 10 || convo.reduce((n, m) => n + m.content.length, 0) > 2200) convo = convo.slice(-2);
     let text = await generate([...convo, { role: 'user', content: userText }], onText);
     const longMsg = words(userText).length >= 3; // krótkie wiadomości („Eli”, „ale co”) nie są sprawdzane pod kątem powtarzania
     if (!text || (longMsg && echoes(userText, text))) {
@@ -191,11 +216,19 @@ const api = {
       const pl = await generate([...convo, { role: 'user', content: userText + '\n(Odpowiedz po polsku.)' }], onText);
       if (pl && !english(pl)) text = pl;
     }
-    const prev = [...convo].reverse().find(m => m.role === 'assistant');
-    text = dropRepeatedQuestion(text, prev && prev.content);
+    const prevs = convo.filter(m => m.role === 'assistant').slice(-3).map(m => m.content);
+    const prev = prevs[prevs.length - 1];
+    let fresh = dropRepeats(text, prevs);
+    if (fresh.length < 12 && prevs.length) {
+      // prawie całe zdanie już było – poproś o nową odpowiedź
+      onText && onText('');
+      const again = await generate([...convo, { role: 'user', content: userText + '\n(Odpowiedz inaczej niż wcześniej.)' }], onText, { temperature: 0.85 });
+      fresh = dropRepeats(again, prevs) || again;
+    }
+    text = dropRepeatedQuestion(fresh || text, prev);
     if (text) {
       convo.push({ role: 'user', content: userText }, { role: 'assistant', content: text });
-      try { localStorage.setItem(CONVO_KEY, JSON.stringify(convo.slice(-6))); } catch (e) { /* brak */ }
+      try { localStorage.setItem(CONVO_KEY, JSON.stringify(convo.slice(-10))); } catch (e) { /* brak */ }
     }
     return text;
   },

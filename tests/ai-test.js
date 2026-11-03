@@ -22,7 +22,7 @@ const { chromium } = require('playwright');
     if (info.state === 'error') { console.log('MODEL ERROR', info.error); process.exit(1); }
     await p.waitForTimeout(3000);
   }
-  const questions = ['cześć! jak masz na imię?', 'Eli', 'Ale co', 'O czym', 'Zaproponuj cos', 'Może pogadamy o basenie?', 'Lubię pływać żabką', 'mam psa o imieniu Burek', 'jak ma na imię mój pies?', 'jak mam na imię?', 'co o mnie wiesz?', 'co to jest fotosynteza?'];
+  const questions = ['cześć!', 'mam na imię Eli', 'Ale co', 'O czym', 'Zaproponuj cos', 'Może pogadamy o basenie?', 'Lubię pływać żabką', 'mam psa o imieniu Burek', 'jak ma na imię mój pies?', 'jak mam na imię?', 'co to jest fotosynteza?'];
   for (const q of questions) {
     const s = Date.now();
     await p.fill('#input', q);

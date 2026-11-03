@@ -9,7 +9,7 @@
   };
   const fmt = n => n.toLocaleString('pl-PL');
 
-  const APP_VERSION = '2.2.0';
+  const APP_VERSION = '2.3.0';
   const FOOTER = 'Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦';
   // komendy słownikowe – zawsze obsługuje je dokładny mózg słownikowy
   const TOOL = /^(rym\S* (do|na) |policz|oblicz|kt[oó]ra (jest )?godzina|jaka (jest )?data|ile (znasz|masz) s[lł][oó]w|pomoc$)/;
