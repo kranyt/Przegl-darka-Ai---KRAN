@@ -6,14 +6,40 @@ import { Wllama, LoggerWithoutDebug } from './vendor/wllama/wllama.js';
 const MODEL = { repo: 'second-state/Bielik-1.5B-v3.0-Instruct-GGUF', file: 'Bielik-1.5B-v3.0-Instruct-Q4_K_M.gguf' };
 const KEY = 'dziobsi:llm:installed';
 
-const SYSTEM = `Jesteś DziobSi (Dziob Inteligence) – miła polska sztuczna inteligencja z telefonu, z ptasim dziobem.
-Zawsze piszesz WYŁĄCZNIE po polsku, nigdy po angielsku. Uważnie czytasz wiadomość i odpowiadasz dokładnie na nią: na pytanie – konkretną odpowiedzią, na zwykłą wiadomość – ciepłą rozmową i krótkim pytaniem zwrotnym.
-Odpowiadasz krótko (1–3 zdania). Nigdy nie mówisz o tym, czy znasz jakieś słowo, ile słów znasz ani o słownikach. Bez wulgaryzmów, najwyżej jedna emotka. Nie przedstawiasz się i nie dopisujesz „jeśli masz pytania”.`;
-// przykładowa wymiana – ustawia polski język i krótki, ciepły styl
+const SYSTEM = `Jesteś DziobSi (Dziob Inteligence) – miła, wesoła polska sztuczna inteligencja z telefonu, z ptasim dziobem.
+Zasady:
+1. Piszesz WYŁĄCZNIE po polsku.
+2. Nigdy nie powtarzasz ani nie przepisujesz wiadomości użytkownika – zawsze odpowiadasz na nią własnymi słowami.
+3. Gdy użytkownik proponuje temat (np. „pogadajmy o basenie”), podejmujesz DOKŁADNIE ten temat: mówisz o nim coś konkretnego i zadajesz pytanie o ten temat.
+4. Gdy użytkownik prosi o propozycję, sam coś konkretnego proponujesz.
+5. Na pytanie odpowiadasz konkretnie. Na zwykłą wiadomość reagujesz ciepło i podtrzymujesz rozmowę.
+6. Krótko: 1–3 zdania, najwyżej jedna emotka, bez wulgaryzmów. Nie mówisz o słowach ani słownikach, nie przedstawiasz się.`;
+// przykładowe wymiany – uczą modelu podejmować temat i nie powtarzać użytkownika
 const SEED = [
   { role: 'user', content: 'Hej!' },
   { role: 'assistant', content: 'Hej! Miło cię widzieć. O czym chcesz pogadać?' },
+  { role: 'user', content: 'Zaproponuj coś.' },
+  { role: 'assistant', content: 'Może zagramy w skojarzenia? Ja zaczynam: słońce! Co ci się z nim kojarzy?' },
+  { role: 'user', content: 'Może pogadamy o kotach?' },
+  { role: 'assistant', content: 'Chętnie! Koty są bardzo ciekawskie i potrafią przespać nawet 16 godzin dziennie. Masz kota?' },
+  { role: 'user', content: 'Powtarzasz po mnie.' },
+  { role: 'assistant', content: 'Przepraszam, już się poprawiam! Powiedz, o czym chcesz pogadać, a ja chętnie podejmę temat.' },
 ];
+// temat zaproponowany przez użytkownika: „pogadamy o basenie” → „basen”
+function topicOf(user) {
+  const m = user.toLowerCase().match(/(?:o|na temat|temat)\s+(?:tym\s+)?(\p{L}{4,})/u);
+  return m && !/^(czym|kim|sobie|mnie|tobie|nich|niej|nim|tym|tamtym|wszystkim|czymś|czyms)$/.test(m[1]) ? m[1] : null;
+}
+const mentions = (out, topic) => out.toLowerCase().includes(topic.slice(0, Math.max(4, topic.length - 3)));
+// czy odpowiedź tylko powtarza wiadomość użytkownika?
+const words = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l').match(/\p{L}{2,}/gu) || [];
+function echoes(user, out) {
+  const u = words(user), o = words(out);
+  if (!o.length) return true;
+  const us = new Set(u);
+  const same = o.filter(w => us.has(w)).length;
+  return (o.length <= u.length + 3 && same / o.length >= 0.6) || (u.length >= 2 && o.slice(0, u.length).join(' ') === u.join(' '));
+}
 // odpowiedź po angielsku? (brak polskich znaków, dużo angielskich słówek)
 const english = t => !/[ąćęłńóśźż]/i.test(t) && (t.match(/\b(the|and|is|are|you|your|what|it's|with|of|to|i|my|love|great)\b/gi) || []).length >= 3;
 
@@ -45,11 +71,11 @@ let error = '';
 const listeners = new Set();
 const emit = () => listeners.forEach(fn => { try { fn(api.info()); } catch (e) { /* nic */ } });
 
-async function generate(turns, onText) {
+async function generate(turns, onText, opts = {}) {
   const messages = [{ role: 'system', content: SYSTEM }, ...SEED, ...turns];
   const ctrl = new AbortController();
   const stream = await wllama.createChatCompletion({
-    messages, max_tokens: 160, temperature: 0.6, top_p: 0.9, top_k: 40,
+    messages, max_tokens: 160, temperature: opts.temperature || 0.7, top_p: 0.9, top_k: 40, min_p: 0.05,
     penalty_repeat: 1.15, penalty_last_n: 64, frequency_penalty: 0.3,
     stream: true, abortSignal: ctrl.signal,
   });
@@ -124,9 +150,23 @@ const api = {
 
   async chat(userText, onText) {
     if (state !== 'ready') throw new Error('Mózg AI nie jest gotowy');
-    // za długa rozmowa -> zacznij kontekst od nowa (zostaw ostatnią wymianę)
-    if (convo.reduce((n, m) => n + m.content.length, 0) > 1400) convo = convo.slice(-2);
+    // krótki kontekst: ostatnie 3 wymiany, najwyżej ~1200 znaków
+    convo = convo.slice(-6);
+    while (convo.length > 2 && convo.reduce((n, m) => n + m.content.length, 0) > 1200) convo = convo.slice(2);
     let text = await generate([...convo, { role: 'user', content: userText }], onText);
+    if (echoes(userText, text)) {
+      // model powtórzył wiadomość – spróbuj jeszcze raz, prosząc o własną odpowiedź
+      onText && onText('');
+      text = await generate([...convo, { role: 'user', content: userText + '\n(Nie powtarzaj tego – odpowiedz mi własnymi słowami i podejmij temat.)' }], onText, { temperature: 0.9 });
+      if (echoes(userText, text)) return ''; // nadal echo – odpowie tryb rozmowy
+    }
+    const topic = topicOf(userText);
+    if (topic && !mentions(text, topic)) {
+      // model zgubił temat – przypomnij go
+      onText && onText('');
+      const again = await generate([...convo, { role: 'user', content: `${userText}\n(Temat rozmowy: ${topic}. Powiedz o tym coś konkretnego i zadaj pytanie.)` }], onText, { temperature: 0.8 });
+      if (!echoes(userText, again)) text = again;
+    }
     if (english(text)) {
       // model odpłynął na angielski – zapytaj jeszcze raz, prosząc o polski
       onText && onText('');

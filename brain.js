@@ -143,6 +143,27 @@
       return this._filter(x => x !== w && x.endsWith(end) && x.length > 2, limit).items;
     },
 
+    /* „cos” → „coś”, „gadac” → „gadać”: wariant z polskimi znakami, jeśli jest dużo popularniejszy */
+    fixDiacritics(w) {
+      const lw = w.toLowerCase();
+      if (/[ąćęłńóśźż]/.test(lw) || lw.length < 2 || lw.length > 20) return w;
+      const MAP = { a: 'aą', c: 'cć', e: 'eę', l: 'lł', n: 'nń', o: 'oó', s: 'sś', z: 'zźż' };
+      let vars = [''];
+      for (const ch of lw) {
+        const opts = MAP[ch] || ch;
+        const next = [];
+        for (const v of vars) for (const o of opts) next.push(v + o);
+        vars = next;
+        if (vars.length > 4096) return w;
+      }
+      const own = this.rank.get(lw) || 1e9;
+      let best = null, br = own;
+      for (const v of vars) { const r = this.rank.get(v); if (r && r < br) { best = v; br = r; } }
+      if (!best || best === lw || br * 5 > own) return w;
+      return w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase() ? best[0].toUpperCase() + best.slice(1) : best;
+    },
+    fixText(t) { return this.ready ? t.replace(/\p{L}+/gu, x => this.fixDiacritics(x)) : t; },
+
     suggest(w, limit = 5) {
       w = norm(w);
       const found = new Set();

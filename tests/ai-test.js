@@ -22,7 +22,7 @@ const { chromium } = require('playwright');
     if (info.state === 'error') { console.log('MODEL ERROR', info.error); process.exit(1); }
     await p.waitForTimeout(3000);
   }
-  const questions = ['lubisz mnie?', 'czy lubisz koty?', 'cześć, jak się masz?', 'nudzi mi się, co mogę porobić?', 'byłem dziś na rowerze', 'co to jest fotosynteza?', 'opowiedz mi coś o Krakowie', 'sprawdź słowo dziób', 'zrób grę'];
+  const questions = ['o czym chcesz pogadać?', 'Zaproponuj cos', 'Powtarzasz po mnie', 'Może pogadamy o basenie?', 'Lubię pływać żabką', 'byłem dziś na rowerze', 'co to jest fotosynteza?', 'lubisz mnie?', 'zrób grę'];
   for (const q of questions) {
     const s = Date.now();
     await p.fill('#input', q);

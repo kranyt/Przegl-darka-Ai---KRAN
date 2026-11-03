@@ -9,7 +9,7 @@
   };
   const fmt = n => n.toLocaleString('pl-PL');
 
-  const APP_VERSION = '2.0.0';
+  const APP_VERSION = '2.1.0';
   const FOOTER = 'Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦';
   // komendy słownikowe – zawsze obsługuje je dokładny mózg słownikowy
   const TOOL = /^(rym\S* (do|na) |policz|oblicz|kt[oó]ra (jest )?godzina|jaka (jest )?data|ile (znasz|masz) s[lł][oó]w|pomoc$)/;
@@ -96,22 +96,10 @@
     history.forEach(m => addBubble(m.role, m.text, m.blocked, m.src));
   }
 
-  // podpowiedzi ze słownika 5 000 000 słów dla modelu (literówki w wiadomości)
-  function withHints(text) {
-    if (!Brain.ready) return text;
-    const tokens = [...new Set(text.toLowerCase().match(/[a-ząćęłńóśźż]{3,}/g) || [])];
-    const hints = [];
-    for (const w of tokens) {
-      if (Brain.has(w)) continue;
-      const s = Brain.suggest(w, 1)[0];
-      if (s) hints.push(`„${w}” = prawdopodobnie „${s}”`);
-      if (hints.length >= 3) break;
-    }
-    return hints.length ? `${text}\n\n(Literówki: ${hints.join('; ')}. Nie wspominaj o tym w odpowiedzi.)` : text;
-  }
   // korekta pisowni odpowiedzi modelu słownikiem 5 000 000 słów (np. „najfajniejssze” → „najfajniejsze”)
   function spellfix(t) {
     if (!Brain.ready) return t;
+    t = Brain.fixText(t);
     return t.replace(/(?<![\p{L}])\p{Ll}[\p{Ll}]{4,}(?![\p{L}])/gu, w => {
       if (Brain.has(w)) return w;
       const s = Brain.suggest(w, 1)[0];
@@ -134,7 +122,7 @@
       if (sure) { await new Promise(r => setTimeout(r, 250)); return sure; }
       const body = typing.querySelector('.body');
       try {
-        const out = await llm.chat(withHints(text), t => {
+        const out = await llm.chat(Brain.fixText(text), t => {
           body.innerHTML = md(cleanup(t)); box.scrollTop = box.scrollHeight;
         });
         const clean = spellfix(cleanup(out));
