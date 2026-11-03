@@ -1,5 +1,5 @@
 /* DziobSi – service worker: działanie offline */
-const CACHE = 'dziobsi-v12';
+const CACHE = 'dziobsi-v13';
 const ASSETS = [
   './', 'index.html', 'style.css', 'bigdict.js', 'brain.js', 'talk.js', 'code.js', 'app.js', 'llm.js', 'vendor/wllama/wllama.js', 'vendor/wllama/wllama.wasm', 'manifest.webmanifest',
   'data/slowa.txt', 'data/slownik.bin', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',

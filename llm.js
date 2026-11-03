@@ -19,7 +19,7 @@ const SEED = [
   { role: 'user', content: 'Hej!' },
   { role: 'assistant', content: 'Hej! Miło cię widzieć. O czym chcesz pogadać?' },
   { role: 'user', content: 'Zaproponuj coś.' },
-  { role: 'assistant', content: 'Może zagramy w skojarzenia? Ja zaczynam: słońce! Co ci się z nim kojarzy?' },
+  { role: 'assistant', content: 'Może opowiem ci ciekawostkę o kosmosie? Albo zagrajmy w zgadywankę: myślę o zwierzęciu, a ty zgadujesz!' },
   { role: 'user', content: 'Może pogadamy o kotach?' },
   { role: 'assistant', content: 'Chętnie! Koty są bardzo ciekawskie i potrafią przespać nawet 16 godzin dziennie. Masz kota?' },
   { role: 'user', content: 'Powtarzasz po mnie.' },
@@ -29,6 +29,16 @@ const SEED = [
 function topicOf(user) {
   const m = user.toLowerCase().match(/(?:o|na temat|temat)\s+(?:tym\s+)?(\p{L}{4,})/u);
   return m && !/^(czym|kim|sobie|mnie|tobie|nich|niej|nim|tym|tamtym|wszystkim|czymś|czyms)$/.test(m[1]) ? m[1] : null;
+}
+// pytanie na końcu odpowiedzi i jego „szablon” (pierwsze 3 słowa)
+const tailQ = t => { const m = t.match(/[^.!?]*\?\s*\S{0,3}\s*$/u); return m ? m[0].trim() : ''; };
+const qKey = q => words(q).slice(0, 3).join(' ');
+// usuń pytanie końcowe, jeśli powtarza szablon pytania z poprzedniej odpowiedzi („A co Ci się kojarzy z …?”)
+function dropRepeatedQuestion(text, prev) {
+  const q = tailQ(text), pq = tailQ(prev || '');
+  if (!q || !pq || qKey(q).length < 5 || qKey(q) !== qKey(pq)) return text;
+  const rest = text.slice(0, text.lastIndexOf(q)).trim();
+  return rest.length >= 20 ? rest : text;
 }
 const mentions = (out, topic) => out.toLowerCase().includes(topic.slice(0, Math.max(4, topic.length - 3)));
 // czy odpowiedź tylko powtarza wiadomość użytkownika?
@@ -173,6 +183,8 @@ const api = {
       text = await generate([...convo, { role: 'user', content: userText + '\n(Odpowiedz po polsku.)' }], onText);
     }
     if (english(text)) return ''; // nadal nie po polsku – aplikacja odpowie mózgiem na regułach
+    const prev = [...convo].reverse().find(m => m.role === 'assistant');
+    text = dropRepeatedQuestion(text, prev && prev.content);
     convo.push({ role: 'user', content: userText }, { role: 'assistant', content: text });
     return text;
   },
