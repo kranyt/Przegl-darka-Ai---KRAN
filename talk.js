@@ -67,8 +67,8 @@
     [/piosenk|muzyk|zesp[oó]ł|utw[oó]r/, 'Ćwierkanie o poranku 🎶'],
     [/sport/, 'Latanie! 🪽 A z ludzkich – siatkówka.'],
     [/gr[aęy]|gier/, 'Moja gra „Złap ptaka” w zakładce Code 🎮'],
-    [/ksi[aą]ż/, 'Słownik! Mam w nim 5 000 000 słów 📖'],
-    [/liczb/, '5 000 000 😄'],
+    [/ksi[aą]ż/, 'Baśnie – zwłaszcza o ptakach 📖'],
+    [/liczb/, 'Siódemka – szczęśliwa! 🍀'],
     [/pora roku|por[eę] roku/, 'Wiosna – wtedy ptaki śpiewają najgłośniej 🌸'],
     [/owoc/, 'Czereśnie 🍒'],
     [/s[lł]owo/, '„Dziób”, rzecz jasna 🐦'],
@@ -93,7 +93,7 @@
     'woda': 'Woda (H₂O) to ciecz niezbędna do życia 💧',
     'ptak': 'Ptak to zwierzę z piórami, dziobem i skrzydłami – jak ja 🐦',
     'dziób': 'Dziób to twarda część pyska ptaka – mój jest pomarańczowy 🐦',
-    'słowo': 'Słowo to najmniejsza część mowy, która coś znaczy. Znam ich 5 000 000 📚',
+    'słowo': 'Słowo to najmniejsza część mowy, która coś znaczy 📚',
     'czasownik': 'Czasownik to słowo, które mówi, co ktoś robi, np. „dziobać” ✍️',
     'rzeczownik': 'Rzeczownik to nazwa osoby, rzeczy lub zjawiska, np. „ptak” 📦',
     'przymiotnik': 'Przymiotnik opisuje cechy, np. „mądry ptak” 🎨',
@@ -157,7 +157,7 @@
     [/(śpisz|spisz)\b/, () => 'Nie, czuwam dla Ciebie 24/7 🐦'],
     [/(jeste[sś] (m[aą]dr|fajn|super|najlepsz|kochan|s[lł]odk|[sś]mieszn|zabawn|genialn|świetn|swietn|cudown))/, () => pick(['Dziękuję! 😊🐦', 'Aww, Ty też! 💛'])],
     [/(jeste[sś] (g[lł]up|beznadziejn|s[lł]ab|nudn|dziwn|brzydk))/, () => 'Wciąż się uczę 🐦 Pomożesz mi być lepszym?'],
-    [/(r[oó][zż]nisz|lepszy).*(chatgpt|gemini|claude|siri|alexa|gpt)/, () => 'Jestem DziobSi – działam bez internetu i znam 5 000 000 słów 🐦'],
+    [/(r[oó][zż]nisz|lepszy).*(chatgpt|gemini|claude|siri|alexa|gpt)/, () => 'Jestem DziobSi – mieszkam w Twoim telefonie i działam nawet bez internetu 🐦'],
     [/(jak si[eę] masz|co s[lł]ycha[cć]|co u ciebie)/, () => nameOr('Świetnie, {n}! A u Ciebie? 🐦', 'Świetnie! A u Ciebie? 🐦')],
     [/^(dobrze|super|świetnie|swietnie|spoko|ok)( a u ciebie| a ty)?$/, () => 'To super! 😊 W czym pomóc?'],
     [/^(źle|zle|kiepsko|słabo|slabo|średnio|srednio)/, () => 'Przykro mi 😔 Chcesz pogadać albo usłyszeć dowcip?'],
@@ -285,11 +285,6 @@
       if (/^(?:m[oó]j|moja|moje|nasz|nasza|nasze) .+ (?:jest|s[aą]) (fajn|super|m[aą]dr|kochan|pi[eę]kn|śliczn|slodk|s[lł]odk|najlepsz)/.test(t))
         return 'Brzmi wspaniale! 💛🐦';
 
-      // inne pytania
-      if (/^czy /.test(t)) return pick(['Myślę, że tak 🤔🐦', 'Hmm… raczej tak!', 'Trudne pytanie – stawiam na „tak” 🐦']);
-      if (/^(dlaczego|czemu)/.test(t)) return pick(['Bo świat jest pełen tajemnic 🐦 A Ty jak myślisz?', 'Dobre pytanie! Sam chętnie bym się dowiedział 🤔']);
-      if (/^(jak|co|kto|gdzie|kiedy|ile|jaki|jaka|jakie|kt[oó]ry|kt[oó]ra)\b/.test(t) && /\?\s*$/.test(raw))
-        return pick(['Tego jeszcze nie wiem 🐦 Ale mogę sprawdzić słowo, znaleźć rym albo zrobić kod!', 'Hmm, nie mam tego w głowie 🤔 Zapytaj mnie o coś innego!']);
       return null;
     },
   };

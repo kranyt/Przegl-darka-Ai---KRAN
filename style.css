@@ -239,3 +239,19 @@ body:not(.on-chat) .composer { display: none; }
 .bar.indeterminate i { width: 40% !important; animation: indet 1.2s ease-in-out infinite; }
 @keyframes indet { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 .setting small { display: block; font-size: 12px; margin-top: 2px; }
+
+/* ---------- baner Mózgu AI i wersja ---------- */
+.ai-banner {
+  position: fixed; z-index: 14; left: 12px; right: 12px; margin: 0 auto; max-width: 736px;
+  bottom: calc(var(--tab-h) + var(--tab-gap) + 76px);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 6px 10px 14px; border-radius: 20px; font-size: 13px;
+}
+.ai-banner[hidden], body:not(.on-chat) .ai-banner { display: none; }
+.ai-banner #aiBannerText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ai-banner #aiBannerText small { color: var(--muted); }
+.ai-banner .btn { padding: 8px 14px; }
+.ai-banner .icon-btn { width: 32px; height: 32px; font-size: 14px; color: var(--muted); }
+.ai-banner .bar { flex-basis: 100%; margin: 2px 8px 0 0; }
+body.has-banner .messages { padding-bottom: calc(var(--tab-h) + var(--tab-gap) + 170px); }
+.msg .note.src { font-size: 11px; opacity: .8; }
+.hello .ver { font-family: var(--sans); font-size: 12px; color: var(--muted); margin: 6px 0 0; }

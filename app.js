@@ -9,9 +9,11 @@
   };
   const fmt = n => n.toLocaleString('pl-PL');
 
+  const APP_VERSION = '2.0.0';
   const FOOTER = 'Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦';
   // komendy słownikowe – zawsze obsługuje je dokładny mózg słownikowy
-  const TOOL = /^(sprawd[zź]|przeanalizuj|analizuj|rozbierz|rym|s[lł]owa (na|zaczyn|ko[nń]cz)|losuj|losowe|wylosuj|policz|oblicz|kt[oó]ra (jest )?godzina|jaka (jest )?data|ile (znasz|masz) s[lł][oó]w|czy \S+ (jest|to) (s[lł]owem|s[lł]owo|poprawne)|pomoc$|co umiesz|znasz s[lł]owo)/;
+  const TOOL = /^(rym\S* (do|na) |policz|oblicz|kt[oó]ra (jest )?godzina|jaka (jest )?data|ile (znasz|masz) s[lł][oó]w|pomoc$)/;
+  let lastSrc = '';
   let history = store.get('history', []);   // [{role:'user'|'model', text, blocked?}]
   let busy = false;
 
@@ -58,14 +60,15 @@
   /* ---------- czat ---------- */
   const box = $('#messages');
 
-  function addBubble(role, text, blocked) {
+  const SRC = { ai: '🧠 Mózg AI', basic: '⚡ Tryb podstawowy' };
+  function addBubble(role, text, blocked, src) {
     const d = document.createElement('div');
     if (role === 'user') {
       d.className = 'msg me' + (blocked ? ' blocked' : '');
       d.innerHTML = esc(text).replace(/\n/g, '<br>') + (blocked ? '<span class="note">🚫 Niecenzuralne – brak odpowiedzi</span>' : '');
     } else {
       d.className = 'msg bot';
-      d.innerHTML = `<img class="av" src="icons/icon.svg" alt=""><div class="body">${md(text)}${text ? `<p class="footer">${FOOTER}</p>` : ''}</div>`;
+      d.innerHTML = `<img class="av" src="icons/icon.svg" alt=""><div class="body">${md(text)}${text ? `<p class="footer">${FOOTER}</p>` : ''}${src ? `<span class="note src">${SRC[src] || ''}</span>` : ''}</div>`;
     }
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
@@ -80,23 +83,17 @@
   function renderHello() {
     const d = document.createElement('div');
     d.className = 'hello';
-    d.innerHTML = `<img src="icons/icon.svg" alt=""><h1>${greeting()}! <br>W czym <em>pomóc</em>?</h1><div class="chips"></div>` +
-      `<div class="ai-offer glass" hidden><b>🧠 Włącz pełne AI DziobSi</b><span>Rozumie każde pytanie i sam układa odpowiedzi. Pobiera się raz (~1 GB), potem działa bez internetu.</span>` +
-      `<div class="bar" hidden><i></i></div><button class="btn primary" type="button">Pobierz mózg AI</button></div>`;
-    const offer = d.querySelector('.ai-offer');
-    offer.querySelector('button').onclick = () => window.DziobLLM && DziobLLM.load();
-    aiViews.push({ el: offer, kind: 'offer' });
+    d.innerHTML = `<img src="icons/icon.svg" alt=""><h1>${greeting()}! <br>W czym <em>pomóc</em>?</h1><div class="chips"></div><p class="ver">DziobSi · wersja ${APP_VERSION}</p>`;
     const chips = d.querySelector('.chips');
-    ['lubisz mnie?', 'opowiedz mi coś ciekawego', 'zrób grę', 'rymy do kot', 'przeanalizuj dziobolot']
+    ['lubisz mnie?', 'opowiedz mi coś ciekawego', 'co to jest fotosynteza?', 'zrób grę', 'rymy do kot']
       .forEach(q => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip glass'; b.textContent = q; b.onclick = () => send(q); chips.appendChild(b); });
     box.appendChild(d);
-    if (window.DziobLLM) updateAI(DziobLLM.info());
   }
 
   function render() {
     box.innerHTML = '';
     if (!history.length) renderHello();
-    history.forEach(m => addBubble(m.role, m.text, m.blocked));
+    history.forEach(m => addBubble(m.role, m.text, m.blocked, m.src));
   }
 
   // podpowiedzi ze słownika 5 000 000 słów dla modelu (literówki w wiadomości)
@@ -110,7 +107,7 @@
       if (s) hints.push(`„${w}” = prawdopodobnie „${s}”`);
       if (hints.length >= 3) break;
     }
-    return hints.length ? `${text}\n\n(Słownik DziobSi: ${hints.join('; ')})` : text;
+    return hints.length ? `${text}\n\n(Literówki: ${hints.join('; ')}. Nie wspominaj o tym w odpowiedzi.)` : text;
   }
   // korekta pisowni odpowiedzi modelu słownikiem 5 000 000 słów (np. „najfajniejssze” → „najfajniejsze”)
   function spellfix(t) {
@@ -129,6 +126,7 @@
       return `${c.title} 👇\n\`\`\`${c.lang}\n${c.code}\n\`\`\``;
     }
     const llm = window.DziobLLM;
+    lastSrc = llm && llm.ready && store.get('useAI', true) ? 'ai' : 'basic';
     const lower = text.toLowerCase().trim();
     if (llm && llm.ready && store.get('useAI', true) && !TOOL.test(lower) && !/^[\d\s+\-*/().,^%x×:]+$/.test(lower)) {
       // pewne odpowiedzi o DziobSi (np. „lubisz mnie?” → „Tak, bardzo cię lubię!”) – zawsze takie same
@@ -175,10 +173,10 @@
       reply = 'Ups: ' + e.message;
     }
     typing.remove();
-    history.push({ role: 'model', text: reply });
+    history.push({ role: 'model', text: reply, src: lastSrc });
     if (history.length > 200) history = history.slice(-200);
     store.set('history', history);
-    addBubble('model', reply);
+    addBubble('model', reply, false, lastSrc);
     busy = false; $('#btnSend').disabled = false;
   }
 
@@ -307,6 +305,19 @@
       bar.classList.toggle('indeterminate', info.state !== 'downloading');
       bar.querySelector('i').style.width = (info.state === 'downloading' ? pct : 100) + '%';
     }
+    // stały baner w czacie, dopóki pełny Mózg AI nie jest pobrany
+    const ban = $('#aiBanner');
+    let closed = false; try { closed = sessionStorage.getItem('dziobsi:banner') === '0'; } catch (e) { /* brak */ }
+    const showBan = ['none', 'error', 'downloading'].includes(info.state) && !(closed && info.state !== 'downloading');
+    ban.hidden = !showBan;
+    document.body.classList.toggle('has-banner', showBan);
+    $('#aiBannerBtn').hidden = info.state === 'downloading';
+    $('#aiBannerBtn').textContent = info.state === 'error' ? 'Ponów' : 'Pobierz';
+    $('#aiBannerText').innerHTML = info.state === 'downloading'
+      ? `<b>Pobieranie Mózgu AI… ${pct}%</b><small>Nie zamykaj aplikacji (najlepiej Wi‑Fi).</small>`
+      : info.state === 'error'
+        ? `<b>Nie udało się pobrać Mózgu AI</b><small>${/fetch|network/i.test(info.error) ? 'Sprawdź internet i spróbuj ponownie.' : esc(info.error)}</small>`
+        : `<b>🧠 Włącz pełny Mózg AI</b><small>Teraz działa tryb podstawowy. Mózg AI rozumie każde pytanie (~1 GB, raz).</small>`;
     for (const v of aiViews) {
       if (v.kind !== 'offer' || !v.el.isConnected) continue;
       v.el.hidden = info.state === 'ready' || info.state === 'installed' || info.state === 'loading';
@@ -319,6 +330,12 @@
     }
     if (Brain.ready) status.textContent = info.state === 'downloading' ? `⬇ ${pct}%` : info.state === 'ready' ? 'AI ✓' : '';
   }
+  $('#aiBannerBtn').addEventListener('click', () => window.DziobLLM && DziobLLM.load());
+  $('#aiBannerClose').addEventListener('click', () => {
+    try { sessionStorage.setItem('dziobsi:banner', '0'); } catch (e) { /* brak */ }
+    $('#aiBanner').hidden = true; document.body.classList.remove('has-banner');
+  });
+  $('#appVersion').textContent = APP_VERSION;
   $('#btnAI').addEventListener('click', () => {
     const llm = window.DziobLLM; if (!llm) return;
     if (llm.ready) { if (confirm('Usunąć mózg AI z telefonu? (zwolni ~1 GB)')) llm.remove(); }

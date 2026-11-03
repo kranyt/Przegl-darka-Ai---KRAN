@@ -73,7 +73,7 @@
     <section id="tab-dict" class="tab">
       <div class="scroll">
         <h2 class="serif page-title">Słownik</h2>
-        <p class="muted"><b id="dictCount">5 000 000</b> słów – polskich (z odmianami) i angielskich.</p>
+        <p class="muted">Wszystkie słowa polskie i angielskie – <b id="dictCount">5 000 000</b> słów.</p>
         <div class="ask glass"><input id="dictSearch" type="search" placeholder="Szukaj… (kot*, *ość)" autocomplete="off"></div>
         <div class="seg wide glass" id="dictModes">
           <button data-mode="prefix" class="active">Początek</button>
@@ -101,7 +101,7 @@
             <input type="checkbox" id="aiToggle" class="switch">
           </label>
           <p class="muted">Polski model językowy Bielik działa w całości na Twoim telefonie: czyta wiadomość i sam układa odpowiedź.
-            Pobiera się raz, potem działa bez internetu. Komendy słownikowe (sprawdź, rymy, policz…) obsługuje słownik 5 000 000 słów.</p>
+            Pobiera się raz, potem działa bez internetu. Bez niego działa tryb podstawowy (rozmowa, rymy, liczenie, kod).</p>
         </div>
         <div class="card glass">
           <div class="setting">
@@ -125,10 +125,19 @@
           <p class="serif about"><b>DziobSi</b> – Dziob Inteligence</p>
           <p class="muted">Samodzielne AI na telefon. 5 000 000 słów, tryb Code, działa bez internetu.
             Na wulgaryzmy nie odpowiada.</p>
+          <div class="setting"><span>Wersja aplikacji</span><b id="appVersion">2.0.0</b></div>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- baner: pełny Mózg AI nie jest jeszcze pobrany -->
+  <div id="aiBanner" class="ai-banner glass" hidden>
+    <span id="aiBannerText"></span>
+    <button class="btn primary" id="aiBannerBtn" type="button">Pobierz</button>
+    <button class="icon-btn" id="aiBannerClose" type="button" aria-label="Zamknij">✕</button>
+    <div class="bar" hidden><i></i></div>
+  </div>
 
   <!-- pole wpisywania (czat) -->
   <form id="chatForm" class="composer glass">

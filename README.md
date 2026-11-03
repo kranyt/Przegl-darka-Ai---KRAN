@@ -2,7 +2,13 @@
 
 Aplikacja AI na telefon (PWA + APK) ze słownikiem **5 000 000 słów**.
 
+## Wersja
+Aktualna wersja: **2.0.0** (widoczna w aplikacji: ekran startowy i Ustawienia → Wersja aplikacji).
+
 ## Co potrafi
+- **Rozmowa zamiast „znam to słowo”** – DziobSi nie komentuje słów, tylko rozmawia. Słownik działa w tle
+  (poprawianie literówek) i w zakładce Słownik. Dopóki Mózg AI nie jest pobrany, w czacie widać baner
+  „Włącz pełny Mózg AI”, a pod odpowiedziami znacznik „⚡ Tryb podstawowy” / „🧠 Mózg AI”.
 - **Mózg AI w telefonie** (`llm.js`) – polski model językowy **Bielik 1.5B** (SpeakLeash, Q4_K_M ~973 MB)
   uruchamiany lokalnie przez [wllama](https://github.com/ngxson/wllama) (llama.cpp w WebAssembly).
   Czyta wiadomość i sam układa odpowiedź; gdy użytkownik nie pyta – po prostu rozmawia.

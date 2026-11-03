@@ -221,7 +221,7 @@
       if (/^(pomoc|help|co umiesz|co potrafisz)/.test(t)) return HELP;
 
       if (/(kim|czym) jeste[sś]|jak si[eę] nazywasz|twoje imi[eę]/.test(t))
-        return `Jestem **DziobSi** – Dziob Inteligence. Znam ${fmt(this.total())} słów. 🐦`;
+        return 'Jestem **DziobSi** – Dziob Inteligence, Twój ptasi asystent AI 🐦';
 
       if (/ile (znasz )?s[lł][oó]w|ile masz s[lł][oó]w/.test(t)) return `${fmt(this.total())} słów! 📚`;
       if (/jak si[eę] masz|co u ciebie|co tam/.test(t)) return 'Świetnie, dzięki! A u Ciebie?';
@@ -235,36 +235,11 @@
       if (/(jaki (jest )?dzi[sś] dzie[nń]|jaka (jest )?data|kt[oó]rego (jest )?dzi[sś])/.test(t))
         return new Date().toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + ' 📅';
 
-      if ((m = t.match(/(?:losowe|losuj|wylosuj)(?: s[lł]owo| s[lł]owa)?(?: (\d+))?/))) {
-        const n = Math.min(parseInt(m[1] || '1', 10) || 1, 20);
-        return this.random(n).map(w => '**' + w + '**').join(', ');
-      }
-
       if (window.Talk) { const d = window.Talk.define(t); if (d) return d; }
-
-      if ((m = t.match(/(?:przeanalizuj|analizuj|analiza|rozbierz|co (?:to )?(?:jest|znaczy|oznacza)) (?:s[lł]owo |s[lł]owa )?(\S+)$/)))
-        return this.analyze(m[1], true);
 
       if ((m = t.match(/rym(?:y|u)? (?:do|na) (\S+)/))) {
         const r = this.rhymes(m[1], 8);
-        return r.length ? r.join(', ') : `Trudny rym! Spróbuj innego słowa.`;
-      }
-
-      if ((m = t.match(/s[lł]owa (?:na|zaczynaj[aą]ce si[eę] (?:na|od)) (\S+)/))) {
-        const r = this.search(m[1], 'prefix', 10);
-        return r.total ? `${r.items.join(', ')}… (${fmt(r.total)})` : `Brak słów na „${m[1]}”.`;
-      }
-
-      if ((m = t.match(/s[lł]owa (?:ko[nń]cz[aą]ce si[eę] na|z ko[nń]c[oó]wk[aą]) (\S+)/))) {
-        const r = this.search(m[1], 'suffix', 10);
-        return r.total ? `${r.items.join(', ')}… (${fmt(r.total)})` : 'Brak takich słów.';
-      }
-
-      if ((m = t.match(/(?:czy (\S+) (?:jest|to) (?:s[lł]owem|s[lł]owo|poprawne)|sprawd[zź] (?:s[lł]owo )?(\S+)|znasz (?:s[lł]owo )?(\S+))/))) {
-        const w = m[1] || m[2] || m[3];
-        const r = this.rankOf(w);
-        if (r) return `✅ Tak, **${norm(w)}** (#${fmt(r)}).`;
-        return this._has(norm(w)) ? `✅ Tak, **${norm(w)}** – rzadkie słowo ze słownika ${fmt(this.total())} słów.` : this.analyze(w);
+        return r.length ? `Rymy do „${m[1]}”: ${r.join(', ')} 🎵` : 'Trudny rym! Spróbuj innego słowa.';
       }
 
       if ((m = t.match(/(?:policz|oblicz|ile to|ile jest)\s*(.+)/)) || /^[\d\s+\-*/().,^%x×:]+$/.test(t)) {
@@ -272,21 +247,22 @@
         if (/^[\d\s+\-*/().%]+$/.test(expr) && /\d/.test(expr)) {
           try {
             const v = Function('"use strict";return (' + expr + ')')();
-            if (typeof v === 'number' && isFinite(v)) return `**${fmt(Math.round(v * 1e10) / 1e10)}**`;
+            if (typeof v === 'number' && isFinite(v)) return `To jest **${fmt(Math.round(v * 1e10) / 1e10)}** 🧮`;
           } catch (e) { /* nie wyrażenie */ }
         }
       }
 
       if (window.Talk) { const ans = window.Talk.answer(raw, this); if (ans) return ans; }
 
-      const tokens = raw.toLowerCase().match(/[a-ząćęłńóśźżqvx]+/g) || [];
-      if (!tokens.length) return pick(['🐦?', 'Hmm? Napisz „pomoc”.']);
-      if (tokens.length === 1) return this.analyze(tokens[0]);
-
-      const unknown = [...new Set(tokens.filter(w => !this._has(w)))];
-      if (unknown.length) return unknown.slice(0, 2).map(w => this.analyze(w)).join('\n');
-      if (/\?$/.test(raw.trim())) return pick(['Dobre pytanie! 🤔 Zapytaj mnie o słowo, rym albo kod.', 'Hmm, tego nie policzę 🐦 Spróbuj „pomoc”.']);
-      return pick(['Opowiedz mi więcej! 🐦', 'Ciekawe! A co dalej?', 'Aha! A jak się z tym czujesz?', 'Brzmi ciekawie 🐦 Mów dalej!']);
+      // zwykła rozmowa (bez mózgu AI): reaguj na temat wiadomości
+      for (const [re, answers] of TOPICS) if (re.test(t)) return pick(answers);
+      const aiMissing = !(window.DziobLLM && window.DziobLLM.ready);
+      if (/\?\s*$/.test(raw) || /^(jak|co|kto|gdzie|kiedy|dlaczego|czemu|ile|czy|jaki|jaka|jakie|kt[oó]r)/.test(t)) {
+        return aiMissing
+          ? 'Na takie pytania odpowiada pełny Mózg AI 🧠 Pobierz go raz w Ustawieniach (~1 GB) – potem zrozumiem każde pytanie, także bez internetu.'
+          : pick(['Hmm, nie jestem tego pewien 🤔 Możesz zapytać inaczej?', 'Dobre pytanie! Opowiedz mi więcej, to spróbuję pomóc 🐦']);
+      }
+      return pick(['Opowiedz mi więcej! 🐦', 'Ciekawe! I co było dalej?', 'Rozumiem. A jak się z tym czujesz?', 'Brzmi ciekawie! Mów dalej 🐦']);
     },
   };
 
@@ -307,15 +283,27 @@
     'Dlaczego wróbel nie korzysta z internetu? Bo woli ćwierkać na żywo! 🐦',
   ];
 
-  const HELP = `**Co umiem:**
-• sprawdź słowo …
-• przeanalizuj …
+  const HELP = `**W czym pomogę:**
+• po prostu ze mną pogadaj 🐦
+• zadaj dowolne pytanie (pełny Mózg AI – Ustawienia)
 • rymy do …
-• słowa na …
-• losowe słowo
 • policz 2+2
 • napisz kod … / zrób grę
 • opowiedz dowcip`;
+
+  // tematy rozmowy dla trybu podstawowego
+  const TOPICS = [
+    [/szko[lł]|lekcj|nauczyciel|klas[aeięy]|sprawdzian|kartk[oó]wk/, ['Szkoła potrafi zmęczyć! 📚 Jaki przedmiot lubisz najbardziej?', 'Jak tam w szkole? Coś ciekawego się dziś wydarzyło?']],
+    [/\bgr[aęy]\b|gram |gra[lł]|minecraft|fortnite|roblox|konsol|playstation|xbox/, ['Lubisz grać? 🎮 W co grasz najczęściej?', 'Gry są super! U mnie w zakładce Code jest „Złap ptaka” 🐦']],
+    [/\bpies|psa\b|psem|piesek|kot\b|kota\b|kotek|zwierz/, ['Uwielbiam zwierzaki! 🐾 Jak się nazywa?', 'Zwierzęta są najlepsze! Masz jakieś w domu?']],
+    [/jedzeni|jem\b|zjad|obiad|[sś]niadani|kolacj|pizz|głodn|glodn/, ['Mniam! 😋 Co najbardziej lubisz jeść?', 'Smacznego! 🍽️ Sam gotowałeś?']],
+    [/pogod|deszcz|śnieg|snieg|słońc|slonc|zimno|ciepło|cieplo/, ['Pogoda potrafi zaskoczyć! ☀️🌧️ Lubisz taką aurę?', 'Mam nadzieję, że jest przyjemnie! Wolisz słońce czy deszcz?']],
+    [/film|serial|netflix|bajk|kino/, ['Oglądanie to świetny relaks! 🎬 Co ostatnio widziałeś?', 'Lubię dobre historie! Jaki jest Twój ulubiony film?']],
+    [/muzyk|piosenk|śpiew|spiew|słucham|slucham|rap|rock/, ['Muzyka poprawia humor! 🎶 Czego słuchasz?', 'Ja lubię ćwierkanie o poranku 🐦 A Ty jaką muzykę?']],
+    [/pi[lł]k|sport|trening|biega|rower|basen|p[lł]ywa/, ['Ruch to zdrowie! 💪 Często trenujesz?', 'Super! Jaki sport lubisz najbardziej?']],
+    [/mam[aey]\b|tat[aey]\b|brat|siostr|rodzin|babci|dziadk/, ['Rodzina jest ważna 💛 Opowiesz mi coś o nich?', 'Fajnie! Spędzacie razem czas?']],
+    [/prac[aęy]|szef|biur/, ['Praca bywa męcząca – pamiętaj o przerwach ☕', 'Jak Ci dziś minęła praca?']],
+  ];
 
   window.Brain = Brain;
 })();
