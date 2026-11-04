@@ -22,16 +22,24 @@ const { chromium } = require('playwright');
     if (info.state === 'error') { console.log('MODEL ERROR', info.error); process.exit(1); }
     await p.waitForTimeout(3000);
   }
-  const questions = ['cześć!', 'mam na imię Eli', 'Ale co', 'O czym', 'Zaproponuj cos', 'Może pogadamy o basenie?', 'Lubię pływać żabką', 'mam psa o imieniu Burek', 'jak ma na imię mój pies?', 'jak mam na imię?', 'co to jest fotosynteza?'];
-  for (const q of questions) {
+  const ask = async q => {
     const s = Date.now();
     await p.fill('#input', q);
     await p.press('#input', 'Enter');
     await p.waitForFunction(() => !document.querySelector('.typing') && !document.querySelector('#btnSend').disabled, null, { timeout: 300000 });
-    const ans = await p.evaluate(() => { const m = [...document.querySelectorAll('.msg.bot')].pop(); return m ? m.innerText.replace(/Jeśli masz jeszcze[^\n]*\n*/, '') : ''; });
+    const ans = await p.evaluate(() => { const m = [...document.querySelectorAll('.msg.bot')].pop(); return m ? m.innerText.replace(/Jeśli masz jeszcze[^\n]*\n*/, '').replace(/\n+/g, ' | ') : ''; });
+    const err = await p.evaluate(() => window.__aiError || '');
     const tm = await p.evaluate(() => DziobLLM.info().lastTimings);
-    console.log(`\n>> ${q}   (${Math.round((Date.now() - s) / 1000)}s)${tm ? ' timings: ' + JSON.stringify(tm) : ''}\n${ans.slice(0, 400)}`);
-  }
+    console.log(`>> ${q}   (${Math.round((Date.now() - s) / 1000)}s, prompt ${tm ? tm.cache_n + '+' + tm.prompt_n : '?'} tok)${err ? '  BŁĄD: ' + err : ''}\n   ${ans.slice(0, 300)}`);
+  };
+  // rozmowa ze zrzutów użytkownika
+  const part1 = ['cześć!', 'Eli', 'Ale co', 'O czym', 'Zaproponuj cos', 'Powtarzasz po mnie', 'Może pogadamy o basenie?', 'Lubię pływać żabką'];
+  const part2 = ['Elo mirdo', 'Nie wiem', 'Jakim modelem jestes', 'Ok', 'Mam pytanie czy ty znasz bartka', 'Ni to pytam', 'Ja mam na imie karol', 'I mam 27737373 lat', 'Ale co bylo?', 'No nie wiem o co ci chodzi', 'jak mam na imię?', 'co to jest fotosynteza?'];
+  for (const q of part1) await ask(q);
+  console.log('--- ponowne uruchomienie aplikacji (jak zamknięcie i otwarcie) ---');
+  await p.reload();
+  await p.waitForFunction(() => window.DziobLLM && DziobLLM.ready, null, { timeout: 300000 });
+  for (const q of part2) await ask(q);
   await p.screenshot({ path: 'ai-test.png' });
   await b.close();
 })().catch(e => { console.error(e); process.exit(1); });

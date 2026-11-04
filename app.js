@@ -9,7 +9,7 @@
   };
   const fmt = n => n.toLocaleString('pl-PL');
 
-  const APP_VERSION = '2.3.0';
+  const APP_VERSION = '2.4.0';
   const FOOTER = 'Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦';
   // komendy słownikowe – zawsze obsługuje je dokładny mózg słownikowy
   const TOOL = /^(rym\S* (do|na) |policz|oblicz|kt[oó]ra (jest )?godzina|jaka (jest )?data|ile (znasz|masz) s[lł][oó]w|pomoc$)/;
@@ -60,7 +60,7 @@
   /* ---------- czat ---------- */
   const box = $('#messages');
 
-  const SRC = { ai: '🧠 Mózg AI', basic: '⚡ Tryb podstawowy', mem: '💾 Pamięć' };
+  const SRC = { ai: '🧠 Mózg AI', basic: '⚡ Tryb podstawowy', mem: '💾 Pamięć', err: '⚠️ Błąd Mózgu AI' };
   function addBubble(role, text, blocked, src) {
     const d = document.createElement('div');
     if (role === 'user') {
@@ -135,17 +135,24 @@
       if (/^zapami[eę]taj/.test(lower)) { lastSrc = 'mem'; return learned.length ? `Jasne, zapamiętam: ${learned.join('; ')} 🐦` : 'Napisz, co mam zapamiętać, np. „zapamiętaj, że mam psa Burka” 🐦'; }
     }
     if (llm && llm.ready && store.get('useAI', true) && !TOOL.test(lower) && !/^[\d\s+\-*/().,^%x×:]+$/.test(lower)) {
-      // pewne odpowiedzi o DziobSi (np. „lubisz mnie?” → „Tak, bardzo cię lubię!”) – zawsze takie same
-      const sure = window.Talk && Talk.answer(text, Brain, true);
-      if (sure) { await new Promise(r => setTimeout(r, 250)); lastSrc = 'mem'; return sure; }
+      // jedyne stałe odpowiedzi w trybie AI: „lubisz mnie?” → „Tak, bardzo cię lubię!” (reszta – model)
+      if (/(lubisz|kochasz|uwielbiasz|nienawidzisz) mnie|mnie (lubisz|kochasz)/.test(lower)) {
+        const sure = window.Talk && Talk.answer(text, Brain, true);
+        if (sure) { await new Promise(r => setTimeout(r, 250)); lastSrc = 'ai'; return sure; }
+      }
       const body = typing.querySelector('.body');
-      try {
-        const out = await llm.chat(Brain.fixText(text), t => {
-          body.innerHTML = md(cleanup(t)); box.scrollTop = box.scrollHeight;
-        });
-        const clean = spellfix(cleanup(out));
-        if (clean) { lastSrc = 'ai'; return clean; }
-      } catch (e) { console.error(e); }
+      const ask = () => llm.chat(Brain.fixText(text), t => { body.innerHTML = md(cleanup(t)); box.scrollTop = box.scrollHeight; });
+      let out = '', err = null;
+      try { out = await ask(); } catch (e) {
+        console.error(e); err = e;
+        // spróbuj jeszcze raz od czystej rozmowy (np. za długi kontekst)
+        try { llm.reset(); out = await ask(); err = null; } catch (e2) { console.error(e2); err = e2; }
+      }
+      window.__aiError = err ? String((err && err.message) || err) : '';
+      if (err) { lastSrc = 'err'; updateAI(llm.info()); return `Ups, Mózg AI miał problem: „${window.__aiError}”. Napisz proszę jeszcze raz 🐦`; }
+      lastSrc = 'ai';
+      const clean = spellfix(cleanup(out));
+      return clean || 'Hmm, zamyśliłem się 🤔 Napiszesz to jeszcze raz, innymi słowami?';
     }
     await new Promise(r => setTimeout(r, 300));
     return Brain.reply(text);
@@ -317,7 +324,7 @@
       none: 'nie pobrany', installed: 'wczytywanie…', downloading: `pobieranie ${pct}%`,
       loading: 'uruchamianie…', ready: 'gotowy ✓', error: /fetch|network/i.test(info.error) ? 'brak połączenia z internetem' : 'błąd: ' + info.error,
     }[info.state];
-    $('#aiState').textContent = label;
+    $('#aiState').textContent = label + (info.state === 'ready' && window.__aiError ? ' · ostatni błąd: ' + window.__aiError : '');
     const btn = $('#btnAI');
     btn.hidden = !['none', 'error'].includes(info.state) && info.state !== 'ready';
     btn.textContent = info.state === 'ready' ? 'Usuń model' : info.state === 'error' ? 'Spróbuj ponownie' : 'Pobierz (~1 GB)';

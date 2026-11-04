@@ -1,5 +1,5 @@
 /* DziobSi – service worker: działanie offline */
-const CACHE = 'dziobsi-v15';
+const CACHE = 'dziobsi-v16';
 const ASSETS = [
   './', 'index.html', 'style.css', 'bigdict.js', 'brain.js', 'memory.js', 'talk.js', 'code.js', 'app.js', 'llm.js', 'vendor/wllama/wllama.js', 'vendor/wllama/wllama.wasm', 'manifest.webmanifest',
   'data/slowa.txt', 'data/slownik.bin', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
@@ -27,11 +27,13 @@ function isolate(res) {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin) return; // API Gemini idzie prosto do sieci
-  e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
-      return res;
-    })).then(isolate)
-  );
+  if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  const big = /\.(bin|txt|wasm|png|svg)$/.test(url.pathname);
+  const fromCache = () => caches.match(e.request);
+  const fromNet = () => fetch(e.request).then(res => {
+    if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+    return res;
+  });
+  // duże dane: najpierw pamięć podręczna; kod aplikacji: najpierw sieć (po aktualizacji zawsze nowy)
+  e.respondWith((big ? fromCache().then(hit => hit || fromNet()) : fromNet().catch(() => fromCache())).then(isolate));
 });

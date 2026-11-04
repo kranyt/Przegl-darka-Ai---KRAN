@@ -48,7 +48,7 @@
         add('name', `Ma na imię ${cap(m[1])}`, cap(m[1]));
       }
       // wiek, miejsce
-      if ((m = raw.match(/mam (\d{1,3}) (?:lat|lata|rok)/i))) add('age', `Ma ${m[1]} lat`, m[1]);
+      if ((m = raw.match(/mam (\d{1,3}) (?:lat|lata|rok)/i)) && +m[1] > 0 && +m[1] <= 120) add('age', `Ma ${m[1]} lat`, m[1]);
       if ((m = raw.match(/mieszkam (?:w|we|na) ([\p{L} -]{2,30}?)(?:[.,!?]|$| i | a )/iu))) add('city', `Mieszka w ${cap(clean(m[1]))}`, m[1]);
       if ((m = low.match(/chodz[eę] do (\d+\.? ?klasy|szko[lł]y [\p{L} ]{2,25}|przedszkola|liceum|technikum)/u))) add('school', `Chodzi do ${clean(m[1])}`, m[1]);
       // upodobania

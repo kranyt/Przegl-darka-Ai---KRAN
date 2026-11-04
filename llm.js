@@ -96,7 +96,7 @@ function looping(t) {
   return /(.{1,3})\1{5,}$/su.test(t) || /(.{8,40}?)\1{2,}$/su.test(t);
 }
 let noCache = false; // true = model działa, ale nie zmieścił się w pamięci (pobierze się znowu po restarcie)
-let convo = (() => { try { return JSON.parse(localStorage.getItem('dziobsi:llm:convo')) || []; } catch (e) { return []; } })(); // rozmowa widziana przez model – rośnie od końca, by nie przeliczać jej od nowa
+let convo = (() => { try { return (JSON.parse(localStorage.getItem('dziobsi:llm:convo')) || []).slice(-4); } catch (e) { return []; } })(); // rozmowa widziana przez model – rośnie od końca, by nie przeliczać jej od nowa
 let error = '';
 const listeners = new Set();
 const emit = () => listeners.forEach(fn => { try { fn(api.info()); } catch (e) { /* nic */ } });
@@ -124,6 +124,7 @@ async function generate(turns, onText, opts = {}) {
   let text = '';
   try {
     for await (const chunk of stream) {
+      if (chunk && chunk.error) throw new Error(chunk.error.message || String(chunk.error));
       if (chunk.timings) lastTimings = chunk.timings;
       const piece = chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content;
       if (piece) {
@@ -133,7 +134,9 @@ async function generate(turns, onText, opts = {}) {
       }
     }
   } catch (e) {
-    if (!ctrl.signal.aborted) throw e;
+    if (ctrl.signal.aborted) { /* przerwane celowo (zapętlenie) */ }
+    else if (memMode !== 'inline' && memoryMsg().length && !text) { memMode = 'inline'; return generate(turns, onText, opts); }
+    else throw e;
   }
   // usuń zapętlony ogon
   return text.replace(/(.{1,3})\1{3,}$/su, '$1').replace(/(.{8,40}?)\1+$/su, '$1').trim();
