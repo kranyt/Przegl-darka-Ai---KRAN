@@ -1,6 +1,6 @@
 /* DziobSi – wbudowany mózg AI (model językowy uruchamiany w telefonie, bez internetu).
    Model pobiera się raz z Hugging Face i zostaje w pamięci telefonu. */
-import { Wllama, LoggerWithoutDebug } from './vendor/wllama/wllama.js';
+import { Wllama } from './vendor/wllama/wllama.js';
 
 // Polski model Bielik 1.5B v3.0 Instruct (SpeakLeash), kwantyzacja Q4_K_M (~973 MB)
 const MODEL = { repo: 'second-state/Bielik-1.5B-v3.0-Instruct-GGUF', file: 'Bielik-1.5B-v3.0-Instruct-Q4_K_M.gguf' };
@@ -83,7 +83,7 @@ let lastTimings = null;
 // Prawdziwa karta graficzna (WebGPU) = szybko. Programowa „karta” (SwiftShader) jest wolniejsza niż procesor – wtedy liczymy na CPU.
 async function pickGpu() {
   try {
-    if (!navigator.gpu) return 0;
+    if (!navigator.gpu || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent || '')) return 0;
     const a = await navigator.gpu.requestAdapter();
     if (!a || a.isFallbackAdapter) return 0;
     const i = a.info || {};
@@ -95,24 +95,36 @@ async function pickGpu() {
 function looping(t) {
   return /(.{1,3})\1{5,}$/su.test(t) || /(.{8,40}?)\1{2,}$/su.test(t);
 }
+// awaria silnika (np. brak pamięci w telefonie) -> trzeba go uruchomić od nowa
+const crashed = e => /crash|reload the module|abort|memory|out of bounds|unreachable|RuntimeError|exit\(/i.test(String((e && e.message) || e));
+const SAFE_KEY = 'dziobsi:llm:safe';
+// tryb oszczędny: mniej pamięci (krótszy kontekst, mniejsze bufory, 2 wątki) – włącza się sam po awarii
+let safe = (() => { try { return localStorage.getItem(SAFE_KEY) === '1'; } catch (e) { return false; } })();
+let lastAbort = '';
+const logger = {
+  debug() {}, log() {}, info() {},
+  warn: (...a) => console.warn(...a),
+  error: (...a) => { lastAbort = a.map(String).join(' ').slice(0, 200); console.error(...a); },
+};
 let noCache = false; // true = model działa, ale nie zmieścił się w pamięci (pobierze się znowu po restarcie)
 let convo = (() => { try { return (JSON.parse(localStorage.getItem('dziobsi:llm:convo')) || []).slice(-4); } catch (e) { return []; } })(); // rozmowa widziana przez model – rośnie od końca, by nie przeliczać jej od nowa
 let error = '';
 const listeners = new Set();
 const emit = () => listeners.forEach(fn => { try { fn(api.info()); } catch (e) { /* nic */ } });
 
+let fakeCrash = false; // tylko do testów automatycznych
 async function generate(turns, onText, opts = {}) {
+  if (fakeCrash) { fakeCrash = false; throw new Error('wllama has crashed, please reload the module'); }
   const last = turns[turns.length - 1];
   let messages = [{ role: 'system', content: system() }, ...SEED, ...turns.slice(0, -1), ...memoryMsg(), last];
   if (memMode === 'inline') {
     const mm = memoryMsg();
     messages = [{ role: 'system', content: system() + (mm.length ? '\n' + mm[0].content : '') }, ...SEED, ...turns];
   }
-  const ctrl = new AbortController();
   const req = () => wllama.createChatCompletion({
-    messages, max_tokens: 160, temperature: opts.temperature || 0.6, top_p: 0.9, top_k: 40, min_p: 0.05,
+    messages, max_tokens: safe ? 120 : 160, temperature: opts.temperature || 0.6, top_p: 0.9, top_k: 40, min_p: 0.05,
     penalty_repeat: 1.15, penalty_last_n: 128, frequency_penalty: 0.4, presence_penalty: 0.3,
-    stream: true, abortSignal: ctrl.signal,
+    stream: true,
   });
   let stream;
   try { stream = await req(); } catch (e) {
@@ -121,29 +133,28 @@ async function generate(turns, onText, opts = {}) {
     memMode = 'inline';
     return generate(turns, onText, opts);
   }
-  let text = '';
+  let text = '', loop = false;
   try {
+    // bez przerywania w trakcie (przerwanie mogło wywracać silnik) – po zapętleniu tylko przestajemy dopisywać
     for await (const chunk of stream) {
       if (chunk && chunk.error) throw new Error(chunk.error.message || String(chunk.error));
       if (chunk.timings) lastTimings = chunk.timings;
       const piece = chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content;
-      if (piece) {
+      if (piece && !loop) {
         text += piece;
-        if (looping(text)) { ctrl.abort(); break; }
-        onText && onText(text);
+        if (looping(text)) loop = true; else onText && onText(text);
       }
     }
   } catch (e) {
-    if (ctrl.signal.aborted) { /* przerwane celowo (zapętlenie) */ }
-    else if (memMode !== 'inline' && memoryMsg().length && !text) { memMode = 'inline'; return generate(turns, onText, opts); }
-    else throw e;
+    if (!crashed(e) && memMode !== 'inline' && memoryMsg().length && !text) { memMode = 'inline'; return generate(turns, onText, opts); }
+    throw e;
   }
   // usuń zapętlony ogon
   return text.replace(/(.{1,3})\1{3,}$/su, '$1').replace(/(.{8,40}?)\1+$/su, '$1').trim();
 }
 
 const api = {
-  info: () => ({ state, progress, error, noCache, gpu: gpuLayers !== 0, threads: self.crossOriginIsolated ? (navigator.hardwareConcurrency || 1) : 1, lastTimings, ready: state === 'ready' }),
+  info: () => ({ state, progress, error, noCache, safe, lastAbort, gpu: gpuLayers !== 0, threads: self.crossOriginIsolated ? (navigator.hardwareConcurrency || 1) : 1, lastTimings, ready: state === 'ready' }),
   onChange(fn) { listeners.add(fn); fn(api.info()); return () => listeners.delete(fn); },
   get ready() { return state === 'ready'; },
 
@@ -152,11 +163,15 @@ const api = {
     const wasInstalled = has();
     state = wasInstalled ? 'loading' : 'downloading'; progress = 0; error = ''; emit();
     try {
-      wllama = new Wllama({ default: new URL('./vendor/wllama/wllama.wasm', import.meta.url).href }, { logger: LoggerWithoutDebug });
+      wllama = new Wllama({ default: new URL('./vendor/wllama/wllama.wasm', import.meta.url).href }, { logger });
       try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) { /* nic */ }
       gpuLayers = await pickGpu();
+      const mobile = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent || '');
       const opts = {
-        n_ctx: 2048,
+        n_ctx: safe ? 1024 : 2048,
+        n_batch: safe ? 64 : (mobile ? 128 : 512),
+        n_ubatch: safe ? 64 : (mobile ? 128 : 512),
+        ...(safe || mobile ? { n_threads: Math.min(safe ? 2 : 4, navigator.hardwareConcurrency || 2) } : {}),
         ...(gpuLayers === 0 ? { n_gpu_layers: 0 } : {}),
         progressCallback: ({ loaded, total }) => {
           progress = total ? loaded / total : 0;
@@ -184,6 +199,15 @@ const api = {
     }
   },
 
+  /* ponowne uruchomienie silnika po awarii (model z pamięci telefonu, bez pobierania) */
+  async restart(saveMode) {
+    if (saveMode && !safe) { safe = true; try { localStorage.setItem(SAFE_KEY, '1'); } catch (e) { /* brak */ } }
+    try { if (wllama) await wllama.exit(); } catch (e) { /* martwy silnik */ }
+    wllama = null; state = 'none'; emit();
+    await api.load();
+    if (state !== 'ready') throw new Error(error || 'nie udało się ponownie uruchomić Mózgu AI');
+  },
+
   async remove() {
     try { if (wllama) { await wllama.exit(); } } catch (e) { /* nic */ }
     try { const w = wllama || new Wllama({ default: new URL('./vendor/wllama/wllama.wasm', import.meta.url).href }); await w.cacheManager.clear(); } catch (e) { /* nic */ }
@@ -191,12 +215,27 @@ const api = {
     wllama = null; state = 'none'; progress = 0; emit();
   },
 
+  _testCrash() { fakeCrash = true; },
   reset() { convo = []; try { localStorage.removeItem(CONVO_KEY); } catch (e) { /* brak */ } },
 
   async chat(userText, onText) {
+    try { return await chatOnce(userText, onText); } catch (e) {
+      if (!crashed(e)) throw e;
+      // silnik się wywrócił: uruchom go ponownie (za drugim razem w trybie oszczędnym) i spróbuj jeszcze raz
+      onText && onText('🔄 Uruchamiam Mózg AI ponownie…');
+      convo = convo.slice(-2);
+      await api.restart(true);
+      onText && onText('');
+      return await chatOnce(userText, onText);
+    }
+  },
+};
+
+async function chatOnce(userText, onText) {
+  {
     if (state !== 'ready') throw new Error('Mózg AI nie jest gotowy');
     // krótki kontekst: ostatnie 3 wymiany, najwyżej ~1200 znaków
-    if (convo.length > 10 || convo.reduce((n, m) => n + m.content.length, 0) > 2200) convo = convo.slice(-2);
+    if (convo.length > (safe ? 4 : 10) || convo.reduce((n, m) => n + m.content.length, 0) > (safe ? 800 : 2200)) convo = convo.slice(-2);
     let text = await generate([...convo, { role: 'user', content: userText }], onText);
     const longMsg = words(userText).length >= 3; // krótkie wiadomości („Eli”, „ale co”) nie są sprawdzane pod kątem powtarzania
     if (!text || (longMsg && echoes(userText, text))) {
@@ -234,8 +273,8 @@ const api = {
       try { localStorage.setItem(CONVO_KEY, JSON.stringify(convo.slice(-10))); } catch (e) { /* brak */ }
     }
     return text;
-  },
-};
+  }
+}
 
 window.DziobLLM = api;
 window.dispatchEvent(new Event('dziobllm'));

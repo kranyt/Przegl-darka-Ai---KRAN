@@ -9,7 +9,7 @@
   };
   const fmt = n => n.toLocaleString('pl-PL');
 
-  const APP_VERSION = '2.4.1';
+  const APP_VERSION = '2.5.0';
   const FOOTER = 'Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦';
   // komendy słownikowe – zawsze obsługuje je dokładny mózg słownikowy
   const TOOL = /^(rym\S* (do|na) |policz|oblicz|kt[oó]ra (jest )?godzina|jaka (jest )?data|ile (znasz|masz) s[lł][oó]w|pomoc$)/;
@@ -151,7 +151,12 @@
         try { llm.reset(); out = await ask(); err = null; } catch (e2) { console.error(e2); err = e2; }
       }
       window.__aiError = err ? String((err && err.message) || err) : '';
-      if (err) { lastSrc = 'err'; updateAI(llm.info()); return `Ups, Mózg AI miał problem: „${window.__aiError}”. Napisz proszę jeszcze raz 🐦`; }
+      if (err) {
+        lastSrc = 'err'; updateAI(llm.info());
+        return /crash|memory|abort|reload/i.test(window.__aiError)
+          ? 'Telefonowi zabrakło pamięci dla Mózgu AI 😔 Zamknij inne aplikacje i napisz jeszcze raz – włączyłem tryb oszczędny.'
+          : `Ups, Mózg AI miał problem: „${window.__aiError}”. Napisz proszę jeszcze raz 🐦`;
+      }
       lastSrc = 'ai';
       const clean = spellfix(cleanup(out));
       return clean || 'Hmm, zamyśliłem się 🤔 Napiszesz to jeszcze raz, innymi słowami?';
@@ -326,7 +331,7 @@
       none: 'nie pobrany', installed: 'wczytywanie…', downloading: `pobieranie ${pct}%`,
       loading: 'uruchamianie…', ready: 'gotowy ✓', error: /fetch|network/i.test(info.error) ? 'brak połączenia z internetem' : 'błąd: ' + info.error,
     }[info.state];
-    $('#aiState').textContent = label + (info.state === 'ready' && window.__aiError ? ' · ostatni błąd: ' + window.__aiError : '');
+    $('#aiState').textContent = label + (info.safe && info.state === 'ready' ? ' · tryb oszczędny' : '') + (info.state === 'ready' && window.__aiError ? ' · ostatni błąd: ' + window.__aiError : '');
     const btn = $('#btnAI');
     btn.hidden = !['none', 'error'].includes(info.state) && info.state !== 'ready';
     btn.textContent = info.state === 'ready' ? 'Usuń model' : info.state === 'error' ? 'Spróbuj ponownie' : 'Pobierz (~1 GB)';
