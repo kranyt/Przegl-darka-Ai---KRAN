@@ -9,7 +9,7 @@
   };
   const fmt = n => n.toLocaleString('pl-PL');
 
-  const APP_VERSION = '2.4.0';
+  const APP_VERSION = '2.4.1';
   const FOOTER = 'Jeśli masz jeszcze jakieś zapytanie, pytaj – jestem otwarty na wszystko! 🐦';
   // komendy słownikowe – zawsze obsługuje je dokładny mózg słownikowy
   const TOOL = /^(rym\S* (do|na) |policz|oblicz|kt[oó]ra (jest )?godzina|jaka (jest )?data|ile (znasz|masz) s[lł][oó]w|pomoc$)/;
@@ -129,6 +129,8 @@
         M.clear(); if (llm) llm.reset(); renderMemory(); lastSrc = 'mem';
         return 'Gotowe – zapomniałem wszystko, co o Tobie wiedziałem. 🐦';
       }
+      const rec = M.recall(text);
+      if (rec) { lastSrc = 'mem'; return rec; }
       const prevBot = [...history].reverse().find(m => m.role === 'model');
       const learned = M.learn(text, prevBot && prevBot.text);
       if (learned.length) renderMemory();

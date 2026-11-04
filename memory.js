@@ -68,6 +68,23 @@
       return added;
     },
 
+    /* pytania o zapamiętane rzeczy – odpowiedź prosto z pamięci (zawsze poprawna) */
+    recall(text) {
+      const t = text.toLowerCase().replace(/[?!.]+$/, '').trim();
+      const get = k => facts.find(f => f.k === k);
+      const has = p => facts.find(f => f.k.startsWith(p));
+      if (/^(a )?jak (ja )?(mam na imi[eę]|si[eę] nazywam)|^pami[eę]tasz (jak mam na imi[eę]|moje imi[eę])/.test(t)) {
+        const n = this.name(); return n ? `Masz na imię ${n}! 🐦` : 'Jeszcze mi nie powiedziałeś 🙂 Jak masz na imię?';
+      }
+      if (/^(a )?ile (ja )?mam lat/.test(t)) { const f = get('age'); return f ? `Masz ${f.v} lat 🎂` : 'Nie mówiłeś mi jeszcze, ile masz lat 🙂'; }
+      if (/^(a )?gdzie (ja )?mieszkam/.test(t)) { const f = get('city'); return f ? f.t.replace('Mieszka', 'Mieszkasz') + ' 🏠' : 'Nie wiem jeszcze, gdzie mieszkasz 🙂'; }
+      if (/jak (ma na imi[eę]|si[eę] nazywa) m[oó]j (pies|kot|chomik|kr[oó]lik|brat)|jak (ma na imi[eę]|si[eę] nazywa) moja (siostra|papuga|świnka)/.test(t)) {
+        const f = facts.find(x => /o imieniu|: /.test(x.t) && x.k.startsWith('has:'));
+        return f ? f.t.replace(/^Ma /, 'Masz ') + ' 🐾' : null;
+      }
+      return null;
+    },
+
     /* tekst do instrukcji modelu */
     prompt() {
       if (!facts.length) return '';

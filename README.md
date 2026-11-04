@@ -3,7 +3,7 @@
 Aplikacja AI na telefon (PWA + APK) ze słownikiem **5 000 000 słów**.
 
 ## Wersja
-Aktualna wersja: **2.4.0** (widoczna w aplikacji: ekran startowy i Ustawienia → Wersja aplikacji).
+Aktualna wersja: **2.4.1** (widoczna w aplikacji: ekran startowy i Ustawienia → Wersja aplikacji).
 
 ## Co potrafi
 - **Pamięć** (`memory.js`) – DziobSi zapamiętuje fakty o użytkowniku (imię, wiek, miasto, co lubi
