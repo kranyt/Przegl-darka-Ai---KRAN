@@ -150,7 +150,10 @@ async function generate(turns, onText, opts = {}) {
     throw e;
   }
   // usuń zapętlony ogon
-  return text.replace(/(.{1,3})\1{3,}$/su, '$1').replace(/(.{8,40}?)\1+$/su, '$1').trim();
+  text = text.replace(/(.{1,3})\1{3,}$/su, '$1').replace(/(.{8,40}?)\1+$/su, '$1');
+  // bez „odgrywania” typu *uśmiecha się ciepło* albo (pyta się)
+  return text.replace(/\*[^*\n]{1,60}\*/g, '').replace(/\((?:pyta|uśmiecha|odpowiada|zadaje|próbuje|śmieje|myśli|przytula)[^)]{0,60}\)/giu, '')
+    .replace(/[ \t]{2,}/g, ' ').replace(/\s+([.,!?])/g, '$1').trim();
 }
 
 const api = {
