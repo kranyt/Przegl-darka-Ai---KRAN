@@ -1,0 +1,72 @@
+# ==========================================
+#  Panstwa - konfiguracja
+# ==========================================
+
+fundament:
+  # Koszt fundamentu (/p fundament)
+  koszt:
+    DIRT: 64
+    OAK_LOG: 64
+
+chunk:
+  # Koszt kolejnego chunka (/p chunk) w diamentach
+  koszt-diamenty: 32
+
+armia:
+  # Pierwszy zakup: 5 diamentow = 5 zolnierzy, potem 5 diamentow = 1 zolnierz
+  pierwszy-pakiet-koszt: 5
+  pierwszy-pakiet-ilosc: 5
+  zolnierz-koszt: 5
+  # Max ile chunkow moze byc cel, zeby zwykli zolnierze dosiegli
+  zasieg-zolnierzy-chunki: 16
+  # Max ile jednostek danego typu wychodzi na jedna wojne (ochrona przed lagami)
+  max-jednostek-na-wojne: 30
+
+# Jednostki: hp = punkty zycia (2 hp = 1 serce)
+# predkosc = wielokrotnosc predkosci chodzenia gracza (1.0 = jak gracz)
+# obrazenia = ile hp zabiera jeden atak (atak co 1 sekunde)
+jednostki:
+  zolnierz:
+    hp: 24
+    predkosc: 1.0
+    obrazenia: 4
+  dron:
+    hp: 68
+    predkosc: 3.0
+    obrazenia: 5
+    koszt-diamenty: 128
+  samolot:
+    hp: 120
+    predkosc: 4.0
+    obrazenia: 7
+    koszt-diamenty: 256
+  jet:
+    hp: 256
+    predkosc: 8.0
+    obrazenia: 10
+    koszt-diamenty: 512
+
+wojna:
+  # Ile sekund trzeba stac na chunku bez obroncow zeby go przejac
+  czas-przejecia-sekundy: 10
+  # Po ilu sekundach wojna konczy sie porazka atakujacego
+  max-czas-sekundy: 600
+  # Zasieg w blokach w ktorym jednostki szukaja wrogow
+  zasieg-wykrywania: 16
+
+gielda:
+  # Co ile sekund gracz dostaje plony z akcji
+  zbior-co-sekund: 180
+  # Po ilu sekundach od zbioru sadzi sie nowe rosliny
+  sadzenie-po-sekundach: 120
+  # Co ile sekund zmieniaja sie ceny akcji
+  zmiana-cen-co-sekund: 300
+  # Szanse w procentach (suma = 100)
+  szansa-znikniecia: 30
+  szansa-staniania: 35
+  szansa-podrozenia: 35
+  # O ile procent akcja tanieje / drozeje
+  stanienie-min: 30
+  stanienie-max: 70
+  podrozenie-min: 15
+  podrozenie-max: 110
