@@ -8,8 +8,11 @@ description: Panstwa, chunki, wojny, armie i gielda akcji.
 commands:
   p:
     description: Glowna komenda panstw
-    usage: /p <fundament|chunk|wojna|pokoj|armia|drony|samolot|jet|gielda|info|nazwa|pomoc>
+    usage: /p <fundament|chunk|wojna|pokoj|armia|drony|samolot|jet|gielda|info|tutaj|chunki|mapa|wojny|ranking|gracz|akcja|nazwa|lista|pomoc>
     aliases: [panstwo]
+  kraj:
+    description: Informacje o panstwie
+    usage: /kraj [panstwo|gracz]
   akcje:
     description: Rynek akcji - kup akcje
     usage: /akcje

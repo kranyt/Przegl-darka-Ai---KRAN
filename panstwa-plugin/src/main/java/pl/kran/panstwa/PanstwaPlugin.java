@@ -50,6 +50,8 @@ public final class PanstwaPlugin extends JavaPlugin {
         PCommand p = new PCommand(this);
         getCommand("p").setExecutor(p);
         getCommand("p").setTabCompleter(p);
+        getCommand("kraj").setExecutor(p);
+        getCommand("kraj").setTabCompleter(p);
         StockCommands sc = new StockCommands(this);
         for (String c : List.of("akcje", "sprzedajakcje", "mojeakcje")) {
             getCommand(c).setExecutor(sc);

@@ -17,11 +17,14 @@ import java.util.List;
 
 public class PCommand implements TabExecutor {
     private static final List<String> SUBS = List.of("fundament", "chunk", "wojna", "pokoj", "armia", "drony",
-            "samolot", "jet", "gielda", "info", "nazwa", "lista", "pomoc");
+            "samolot", "jet", "gielda", "info", "tutaj", "chunki", "mapa", "wojny", "ranking", "gracz", "akcja",
+            "nazwa", "lista", "pomoc");
     private final PanstwaPlugin plugin;
+    private final InfoCommands info;
 
     public PCommand(PanstwaPlugin plugin) {
         this.plugin = plugin;
+        this.info = new InfoCommands(plugin);
     }
 
     @Override
@@ -29,6 +32,12 @@ public class PCommand implements TabExecutor {
         if (!(sender instanceof Player p)) {
             sender.sendMessage("Tylko dla graczy.");
             return true;
+        }
+        if (cmd.getName().equalsIgnoreCase("kraj")) {
+            String[] a = new String[args.length + 1];
+            a[0] = "info";
+            System.arraycopy(args, 0, a, 1, args.length);
+            args = a;
         }
         String sub = args.length == 0 ? "pomoc" : args[0].toLowerCase();
         Nation n = plugin.nations().get(p.getUniqueId());
@@ -62,7 +71,20 @@ public class PCommand implements TabExecutor {
             case "samolot", "samoloty" -> unitShop(p, n, UnitType.PLANE);
             case "jet", "jety" -> unitShop(p, n, UnitType.JET);
             case "gielda" -> stock(p, n);
-            case "info" -> info(p);
+            case "info", "kraj", "panstwo" -> info.nationInfo(p, args.length > 1 ? args[1] : null);
+            case "tutaj", "chunkinfo" -> info.here(p);
+            case "chunki" -> info.chunks(p, args.length > 1 ? args[1] : null);
+            case "mapa" -> info.map(p);
+            case "wojny" -> info.wars(p);
+            case "ranking", "top" -> info.ranking(p);
+            case "gracz" -> {
+                if (args.length < 2) Msg.send(p, "&cUzycie: /p gracz <nick>");
+                else info.player(p, args[1]);
+            }
+            case "akcja" -> {
+                if (args.length < 2) Msg.send(p, "&cUzycie: /p akcja <id>");
+                else info.share(p, args[1]);
+            }
             case "nazwa" -> {
                 if (needNation(p, n)) return true;
                 if (args.length < 2 || !args[1].matches("[A-Za-z0-9_ĄĆĘŁŃÓŚŹŻąćęłńóśźż]{3,16}")) {
@@ -172,23 +194,6 @@ public class PCommand implements TabExecutor {
         plugin.menus().openStockCreate(p, 10, 1);
     }
 
-    private void info(Player p) {
-        ChunkPos pos = ChunkPos.of(p.getLocation());
-        Nation here = plugin.nations().getAt(pos);
-        Msg.send(p, "&7Chunk &f" + pos + "&7: " + (here == null ? "&aniczyj" : "&6" + here.getName()
-                + (here.getCapital().equals(pos) ? " &e(fundament)" : "")));
-        Nation n = plugin.nations().get(p.getUniqueId());
-        if (n == null) {
-            Msg.send(p, "&7Nie masz panstwa. Zaloz je: &f/p fundament");
-            return;
-        }
-        Msg.raw(p, "&6&l" + n.getName());
-        Msg.raw(p, " &7Chunki: &f" + n.getChunks().size() + " &7Fundament: &f" + n.getFundX() + ", " + n.getFundY() + ", " + n.getFundZ());
-        StringBuilder sb = new StringBuilder(" &7Armia: ");
-        for (UnitType t : UnitType.values()) sb.append("&f").append(n.getUnits(t)).append(" &7").append(t.plural()).append("  ");
-        Msg.raw(p, sb.toString());
-    }
-
     private void help(Player p) {
         Msg.raw(p, "&6&l=== Panstwa ===");
         Msg.raw(p, "&e/p fundament &7- zaloz panstwo (64 dirt + 64 drewna debowego)");
@@ -199,14 +204,43 @@ public class PCommand implements TabExecutor {
         Msg.raw(p, "&e/p drony &7| &e/p samolot &7| &e/p jet &7- lotnictwo");
         Msg.raw(p, "&e/p gielda &7- wystaw akcje farmy");
         Msg.raw(p, "&e/akcje &7| &e/sprzedajakcje &7| &e/mojeakcje &7- gielda akcji");
-        Msg.raw(p, "&e/p info &7| &e/p nazwa <nazwa> &7| &e/p lista");
+        Msg.raw(p, "&6&l--- Informacje ---");
+        Msg.raw(p, "&e/p info [panstwo|gracz] &7- informacje o panstwie");
+        Msg.raw(p, "&e/p tutaj &7- do kogo nalezy chunk na ktorym stoisz");
+        Msg.raw(p, "&e/p chunki [panstwo] &7- lista chunkow panstwa");
+        Msg.raw(p, "&e/p mapa &7- mapa chunkow dookola");
+        Msg.raw(p, "&e/p wojny &7- trwajace wojny");
+        Msg.raw(p, "&e/p ranking &7- najlepsze panstwa");
+        Msg.raw(p, "&e/p lista &7- wszystkie panstwa");
+        Msg.raw(p, "&e/p gracz <nick> &7- informacje o graczu");
+        Msg.raw(p, "&e/p akcja <id> &7- informacje o akcji");
+        Msg.raw(p, "&e/p nazwa <nazwa> &7- zmien nazwe panstwa");
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+        if (cmd.getName().equalsIgnoreCase("kraj")) {
+            String[] a = new String[args.length + 1];
+            a[0] = "info";
+            System.arraycopy(args, 0, a, 1, args.length);
+            args = a;
+        }
         List<String> out = new ArrayList<>();
         if (args.length == 1) {
             for (String s : SUBS) if (s.startsWith(args[0].toLowerCase())) out.add(s);
+        } else if (args.length == 2) {
+            String sub = args[0].toLowerCase();
+            String pre = args[1].toLowerCase();
+            if (sub.equals("info") || sub.equals("kraj") || sub.equals("panstwo") || sub.equals("chunki")) {
+                for (Nation n : plugin.nations().all()) if (n.getName().toLowerCase().startsWith(pre)) out.add(n.getName());
+            } else if (sub.equals("gracz")) {
+                for (Player pl : Bukkit.getOnlinePlayers()) if (pl.getName().toLowerCase().startsWith(pre)) out.add(pl.getName());
+            } else if (sub.equals("akcja")) {
+                plugin.market().all().forEach(sh -> {
+                    String id = String.valueOf(sh.getId());
+                    if (id.startsWith(pre)) out.add(id);
+                });
+            }
         }
         return out;
     }

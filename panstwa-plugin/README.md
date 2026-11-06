@@ -25,7 +25,20 @@ Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.0.0.jar`.
 | `/akcje` | Rynek – kupowanie akcji. |
 | `/sprzedajakcje [id]` | Sprzedaj akcję serwerowi po aktualnej cenie (bez id otwiera menu). |
 | `/mojeakcje` | Lista twoich akcji z cenami. |
-| `/p info`, `/p nazwa <nazwa>`, `/p lista`, `/p pomoc` | Informacje, zmiana nazwy, lista państw. |
+| `/p nazwa <nazwa>`, `/p pomoc` | Zmiana nazwy państwa, pomoc. |
+
+### Komendy informacyjne
+| Komenda | Opis |
+|---|---|
+| `/p info [państwo\|gracz]` lub `/kraj [państwo\|gracz]` | Informacje o państwie: właściciel (online/offline), miejsce w rankingu, chunki, fundament, armia, siła armii, akcje, wojny. Bez argumentu – twoje państwo. |
+| `/p tutaj` | Do kogo należy chunk, na którym stoisz, czy można go podbić, odległość od twojego państwa (czy żołnierze dosięgną), czy trwa tu wojna, czy kolumna jest akcją. |
+| `/p chunki [państwo]` | Lista chunków państwa z koordynatami. |
+| `/p mapa` | Mapa chunków dookoła w czacie (twoje na zielono, inne państwa w kolorach, ★ fundament, ⚔ wojna). |
+| `/p wojny` | Wszystkie trwające wojny i ile jednostek zostało każdej stronie. |
+| `/p ranking` (`/p top`) | Top 10 państw (chunki, potem siła armii). |
+| `/p lista` | Wszystkie państwa. |
+| `/p gracz <nick>` | Państwo i akcje gracza. |
+| `/p akcja <id>` | Szczegóły akcji (cena, posiadacz, kolumna, uprawa). |
 
 ## Wojna
 - Wpisujesz `/p wojna` stojąc na chunku wroga. Cała twoja armia (max 30 jednostek danego typu, do zmiany w configu) wyrusza z twojego najbliższego chunka, a armia obrońcy z jego najbliższego chunka.
