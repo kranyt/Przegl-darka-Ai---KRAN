@@ -73,7 +73,10 @@ public class UnitListener implements Listener {
     private UUID sideOf(Entity e) {
         WarUnit u = plugin.wars().getUnit(e);
         if (u != null) return u.getSide();
-        if (e instanceof Player p && plugin.nations().get(p.getUniqueId()) != null) return p.getUniqueId();
+        if (e instanceof Player p) {
+            var n = plugin.nations().of(p.getUniqueId());
+            if (n != null) return n.getOwner();
+        }
         return null;
     }
 

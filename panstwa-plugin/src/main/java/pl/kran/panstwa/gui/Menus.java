@@ -131,6 +131,27 @@ public class Menus {
         p.openInventory(inv);
     }
 
+    // ------------------------------------------------------------------ /p oplata
+    public void openUpkeep(Player p, Nation n) {
+        MenuHolder h = new MenuHolder(MenuHolder.Type.UPKEEP);
+        Inventory inv = create(h, 27, "&6&lOplata za panstwo");
+        var up = plugin.upkeep();
+        int cost = up.cost();
+        long left = up.timeLeft(n);
+        boolean ok = Items.count(p, Material.DIAMOND) >= cost;
+        long days = plugin.getConfig().getLong("oplata.co-ile-dni", 7);
+        inv.setItem(11, Items.icon(Material.DIAMOND, cost, "&b" + cost + "x Diament",
+                "&7Oplata co " + days + " dni", "&7Masz: &f" + Items.count(p, Material.DIAMOND), status(ok)));
+        inv.setItem(13, Items.icon(Material.CLOCK, "&e&lPanstwo oplacone jeszcze na:",
+                (left < 24 * 3600_000L ? "&c" : "&a") + pl.kran.panstwa.model.UpkeepManager.timeText(left),
+                "&7Jesli nikt nie zaplaci,", "&7panstwo &cwygasnie&7 i zostanie usuniete!",
+                "&7Placic moze kazdy czlonek.",
+                "&7Mozna zaplacic max " + up.maxAhead() + " okresy z gory."));
+        inv.setItem(15, Items.icon(Material.LIME_CONCRETE, "&a&lZaplac " + cost + " diamentow",
+                "&7Przedluza panstwo o " + days + " dni."));
+        p.openInventory(inv);
+    }
+
     // ------------------------------------------------------------------ /p gielda
     public void openStockCreate(Player p, int price, int count) {
         MenuHolder h = new MenuHolder(MenuHolder.Type.STOCK_CREATE);

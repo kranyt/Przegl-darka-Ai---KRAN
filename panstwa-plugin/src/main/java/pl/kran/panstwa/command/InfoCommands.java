@@ -66,7 +66,7 @@ public class InfoCommands {
     public void nationInfo(Player p, String arg) {
         Nation n;
         if (arg == null) {
-            n = plugin.nations().get(p.getUniqueId());
+            n = plugin.nations().of(p.getUniqueId());
             if (n == null) {
                 Msg.send(p, "&7Nie masz panstwa. Zaloz je: &f/p fundament &7lub sprawdz inne: &f/p info <nazwa>");
                 return;
@@ -78,7 +78,7 @@ public class InfoCommands {
                 return;
             }
         }
-        boolean own = n.getOwner().equals(p.getUniqueId());
+        boolean own = n.isMember(p.getUniqueId());
         OfflinePlayer owner = Bukkit.getOfflinePlayer(n.getOwner());
         Msg.raw(p, "&8&m                                        ");
         Msg.raw(p, "&6&l" + n.getName() + " &7(#" + position(n) + " w rankingu)");
@@ -86,6 +86,10 @@ public class InfoCommands {
         if (owner.getFirstPlayed() > 0 && !owner.isOnline() && owner.getLastSeen() > 0) {
             Msg.raw(p, " &7Ostatnio online: &f" + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(owner.getLastSeen())));
         }
+        Msg.raw(p, " &7Czlonkowie: &f" + n.getMembers().size() + " &7(+ wlasciciel) &8- /p czlonkowie " + n.getName());
+        long left = plugin.upkeep().timeLeft(n);
+        Msg.raw(p, " &7Oplacone na: " + (left < 24 * 3600_000L ? "&c" : "&a")
+                + pl.kran.panstwa.model.UpkeepManager.timeText(left) + (own ? " &8- /p oplata" : ""));
         Msg.raw(p, " &7Chunki: &f" + n.getChunks().size());
         Msg.raw(p, " &7Fundament: &f" + n.getFundX() + ", " + n.getFundY() + ", " + n.getFundZ()
                 + " &7(" + n.getFundWorld() + ", chunk " + n.getCapital() + ")");
@@ -119,14 +123,14 @@ public class InfoCommands {
             Msg.raw(p, " &7Panstwo: &6" + n.getName() + " &7(wlasciciel: &f" + name(n.getOwner()) + "&7)");
             if (n.getCapital().equals(pos)) Msg.raw(p, " &eTo chunk z fundamentem - nie do zniszczenia i nie do podbicia.");
             else if (n.getChunks().size() <= 1) Msg.raw(p, " &7Panstwo ma 1 chunk - nie mozna go podbic.");
-            else if (!n.getOwner().equals(p.getUniqueId())) Msg.raw(p, " &cMozna go podbic: &f/p wojna");
+            else if (!n.isMember(p.getUniqueId())) Msg.raw(p, " &cMozna go podbic: &f/p wojna");
         }
         War w = plugin.wars().warAt(pos);
         if (w != null) {
             Nation a = plugin.nations().get(w.getAttacker());
             Msg.raw(p, " &4&lTrwa tu wojna! &7Atakuje: &6" + (a == null ? "?" : a.getName()));
         }
-        Nation mine = plugin.nations().get(p.getUniqueId());
+        Nation mine = plugin.nations().of(p.getUniqueId());
         if (mine != null && n != mine) {
             int d = mine.distanceTo(pos);
             int range = plugin.getConfig().getInt("armia.zasieg-zolnierzy-chunki", 16);
@@ -140,7 +144,7 @@ public class InfoCommands {
 
     // ------------------------------------------------------------------ /p chunki [panstwo]
     public void chunks(Player p, String arg) {
-        Nation n = arg == null ? plugin.nations().get(p.getUniqueId()) : find(arg);
+        Nation n = arg == null ? plugin.nations().of(p.getUniqueId()) : find(arg);
         if (n == null) {
             Msg.send(p, arg == null ? "&cNie masz panstwa." : "&cNie znaleziono panstwa: " + arg);
             return;
@@ -158,7 +162,7 @@ public class InfoCommands {
         ChunkPos center = ChunkPos.of(p.getLocation());
         int rx = 10, rz = 5;
         Map<UUID, String> colors = new LinkedHashMap<>();
-        Nation mine = plugin.nations().get(p.getUniqueId());
+        Nation mine = plugin.nations().of(p.getUniqueId());
         Msg.raw(p, "&8&m          &6 Mapa chunkow &8(polnoc w gore) &8&m          ");
         for (int dz = -rz; dz <= rz; dz++) {
             StringBuilder row = new StringBuilder(" ");
@@ -229,7 +233,7 @@ public class InfoCommands {
             Msg.raw(p, " " + medal + "#" + (i + 1) + " &6" + n.getName() + " &7- &f" + n.getChunks().size()
                     + " &7chunkow, armia &b" + armyValue(n) + " &7diam. &8(" + name(n.getOwner()) + ")");
         }
-        Nation mine = plugin.nations().get(p.getUniqueId());
+        Nation mine = plugin.nations().of(p.getUniqueId());
         if (mine != null && list.indexOf(mine) >= 10) {
             Msg.raw(p, " &7Twoje panstwo: &e#" + (list.indexOf(mine) + 1) + " &6" + mine.getName());
         }
@@ -239,9 +243,10 @@ public class InfoCommands {
     public void player(Player p, String arg) {
         @SuppressWarnings("deprecation")
         OfflinePlayer op = Bukkit.getOfflinePlayer(arg);
-        Nation n = plugin.nations().get(op.getUniqueId());
+        Nation n = plugin.nations().of(op.getUniqueId());
         Msg.send(p, "&7Gracz &f" + (op.getName() == null ? arg : op.getName()) + (op.isOnline() ? " &a(online)" : " &c(offline)"));
-        Msg.raw(p, " &7Panstwo: " + (n == null ? "&7brak" : "&6" + n.getName() + " &7(" + n.getChunks().size() + " chunkow)"));
+        Msg.raw(p, " &7Panstwo: " + (n == null ? "&7brak" : "&6" + n.getName() + " &7(" + n.getChunks().size() + " chunkow, "
+                + (n.isOwner(op.getUniqueId()) ? "wlasciciel" : "czlonek") + ")"));
         List<Share> shares = plugin.market().ownedBy(op.getUniqueId());
         Msg.raw(p, " &7Akcje: &f" + shares.size() + " &7(warte &b" + shares.stream().mapToInt(Share::getPrice).sum() + " diamentow&7)");
     }

@@ -23,6 +23,8 @@ public class NationManager {
     private final File file;
     private final Map<UUID, Nation> nations = new HashMap<>();
     private final Map<ChunkPos, UUID> chunkOwners = new HashMap<>();
+    /** Czlonek -> wlasciciel panstwa. */
+    private final Map<UUID, UUID> memberIndex = new HashMap<>();
     /** Przedmioty czekajace na graczy offline (diamenty z gieldy, plony). */
     private final Map<UUID, List<ItemStack>> pending = new HashMap<>();
 
@@ -33,7 +35,28 @@ public class NationManager {
 
     public Collection<Nation> all() { return nations.values(); }
 
+    /** Panstwo po UUID wlasciciela (klucz panstwa). */
     public Nation get(UUID owner) { return nations.get(owner); }
+
+    /** Panstwo do ktorego nalezy gracz (jako wlasciciel albo czlonek). */
+    public Nation of(UUID player) {
+        Nation n = nations.get(player);
+        if (n != null) return n;
+        UUID o = memberIndex.get(player);
+        return o == null ? null : nations.get(o);
+    }
+
+    public void addMember(Nation n, UUID player) {
+        n.getMembers().add(player);
+        memberIndex.put(player, n.getOwner());
+        save();
+    }
+
+    public void removeMember(Nation n, UUID player) {
+        n.getMembers().remove(player);
+        memberIndex.remove(player);
+        save();
+    }
 
     public Nation getAt(ChunkPos pos) {
         UUID o = chunkOwners.get(pos);
@@ -55,6 +78,7 @@ public class NationManager {
     public Nation create(UUID owner, String name, Location fundament) {
         Nation n = new Nation(owner, name, fundament.getWorld().getName(),
                 fundament.getBlockX(), fundament.getBlockY(), fundament.getBlockZ());
+        n.setPaidUntil(System.currentTimeMillis() + plugin.upkeepPeriodMs());
         nations.put(owner, n);
         claim(n, ChunkPos.of(fundament));
         save();
@@ -74,6 +98,7 @@ public class NationManager {
 
     public void delete(Nation n) {
         for (ChunkPos c : n.getChunks()) chunkOwners.remove(c);
+        for (UUID m : n.getMembers()) memberIndex.remove(m);
         nations.remove(n.getOwner());
         save();
     }
@@ -96,6 +121,7 @@ public class NationManager {
     public void load() {
         nations.clear();
         chunkOwners.clear();
+        memberIndex.clear();
         pending.clear();
         if (!file.exists()) return;
         YamlConfiguration y = YamlConfiguration.loadConfiguration(file);
@@ -109,6 +135,12 @@ public class NationManager {
                             s.getInt("fundament.x"), s.getInt("fundament.y"), s.getInt("fundament.z"));
                     n.setStarterPackBought(s.getBoolean("pierwszy-pakiet"));
                     for (UnitType t : UnitType.values()) n.setUnits(t, s.getInt("armia." + t.key()));
+                    n.setPaidUntil(s.getLong("oplacone-do", System.currentTimeMillis() + plugin.upkeepPeriodMs()));
+                    for (String m : s.getStringList("czlonkowie")) {
+                        UUID id = UUID.fromString(m);
+                        n.getMembers().add(id);
+                        memberIndex.put(id, owner);
+                    }
                     nations.put(owner, n);
                     for (String c : s.getStringList("chunki")) claim(n, ChunkPos.parse(c));
                 } catch (Exception e) {
@@ -136,6 +168,10 @@ public class NationManager {
             y.set(p + "fundament.y", n.getFundY());
             y.set(p + "fundament.z", n.getFundZ());
             y.set(p + "pierwszy-pakiet", n.isStarterPackBought());
+            y.set(p + "oplacone-do", n.getPaidUntil());
+            List<String> mem = new ArrayList<>();
+            for (UUID m : n.getMembers()) mem.add(m.toString());
+            y.set(p + "czlonkowie", mem);
             for (UnitType t : UnitType.values()) y.set(p + "armia." + t.key(), n.getUnits(t));
             List<String> ch = new ArrayList<>();
             for (ChunkPos c : n.getChunks()) ch.add(c.serialize());

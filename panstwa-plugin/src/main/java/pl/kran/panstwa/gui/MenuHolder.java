@@ -8,7 +8,7 @@ import java.util.Map;
 
 /** Holder ktory oznacza nasze menu i trzyma jego stan. */
 public class MenuHolder implements InventoryHolder {
-    public enum Type { FUNDAMENT, DELETE, CHUNK, ARMY, UNIT_SHOP, STOCK_CREATE, MARKET, SELL_SHARES }
+    public enum Type { FUNDAMENT, DELETE, CHUNK, ARMY, UNIT_SHOP, STOCK_CREATE, MARKET, SELL_SHARES, UPKEEP }
 
     final Type type;
     Inventory inventory;

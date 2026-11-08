@@ -4,10 +4,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import pl.kran.panstwa.util.ChunkPos;
 import pl.kran.panstwa.war.UnitType;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +24,9 @@ public class Nation {
     private final Set<ChunkPos> chunks = new LinkedHashSet<>();
     private final Map<UnitType, Integer> army = new EnumMap<>(UnitType.class);
     private boolean starterPackBought;
+    private final Set<UUID> members = new LinkedHashSet<>();
+    /** Do kiedy oplacone jest panstwo (64 diamenty co 7 dni). */
+    private long paidUntil;
 
     public Nation(UUID owner, String name, String fundWorld, int fundX, int fundY, int fundZ) {
         this.owner = owner;
@@ -41,6 +47,37 @@ public class Nation {
     public Set<ChunkPos> getChunks() { return chunks; }
     public boolean isStarterPackBought() { return starterPackBought; }
     public void setStarterPackBought(boolean b) { this.starterPackBought = b; }
+
+    /** Czlonkowie (bez wlasciciela). */
+    public Set<UUID> getMembers() { return members; }
+
+    /** Czy gracz jest wlascicielem albo czlonkiem. */
+    public boolean isMember(UUID player) {
+        return owner.equals(player) || members.contains(player);
+    }
+
+    public boolean isOwner(UUID player) { return owner.equals(player); }
+
+    /** Wlasciciel + czlonkowie. */
+    public List<UUID> allPlayers() {
+        List<UUID> l = new ArrayList<>();
+        l.add(owner);
+        l.addAll(members);
+        return l;
+    }
+
+    /** Gracze panstwa ktorzy sa teraz online. */
+    public List<Player> online() {
+        List<Player> l = new ArrayList<>();
+        for (UUID id : allPlayers()) {
+            Player p = Bukkit.getPlayer(id);
+            if (p != null) l.add(p);
+        }
+        return l;
+    }
+
+    public long getPaidUntil() { return paidUntil; }
+    public void setPaidUntil(long t) { this.paidUntil = t; }
 
     public ChunkPos getCapital() {
         return new ChunkPos(fundWorld, fundX >> 4, fundZ >> 4);

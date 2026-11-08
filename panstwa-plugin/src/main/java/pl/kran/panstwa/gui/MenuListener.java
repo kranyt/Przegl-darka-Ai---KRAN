@@ -50,6 +50,7 @@ public class MenuListener implements Listener {
             case STOCK_CREATE -> clickStock(p, h, slot);
             case MARKET -> clickMarket(p, h, slot);
             case SELL_SHARES -> clickSell(p, h, slot);
+            case UPKEEP -> clickUpkeep(p, slot);
         }
     }
 
@@ -69,8 +70,8 @@ public class MenuListener implements Listener {
     // ------------------------------------------------------------------
     private void clickFundament(Player p, int slot) {
         if (slot != 16) return;
-        if (plugin.nations().get(p.getUniqueId()) != null) {
-            fail(p, "Masz juz panstwo!");
+        if (plugin.nations().of(p.getUniqueId()) != null) {
+            fail(p, "Nalezysz juz do panstwa!");
             return;
         }
         if (!Items.take(p, plugin.fundamentCost())) {
@@ -97,17 +98,13 @@ public class MenuListener implements Listener {
             fail(p, "Nie masz panstwa.");
             return;
         }
-        plugin.wars().endAllFor(n.getOwner(), "Panstwo " + n.getName() + " zostalo usuniete - wojna zakonczona.");
-        Block b = n.getFundamentBlock();
-        if (b != null && b.getType() == Material.BEACON) b.setType(Material.AIR);
-        plugin.nations().delete(n);
-        Bukkit.broadcast(Msg.c(Msg.PREFIX + "&cPanstwo &6" + n.getName() + " &czostalo usuniete."));
+        plugin.disband(n, "&cPanstwo &6" + n.getName() + " &czostalo usuniete.");
     }
 
     private void clickChunk(Player p, int slot) {
         if (slot != 15) return;
         p.closeInventory();
-        Nation n = plugin.nations().get(p.getUniqueId());
+        Nation n = plugin.nations().of(p.getUniqueId());
         if (n == null) {
             fail(p, "Najpierw zaloz panstwo: /p fundament");
             return;
@@ -115,7 +112,7 @@ public class MenuListener implements Listener {
         ChunkPos pos = ChunkPos.of(p.getLocation());
         Nation owner = plugin.nations().getAt(pos);
         if (owner != null) {
-            fail(p, owner == n ? "Ten chunk juz nalezy do ciebie." : "Ten chunk nalezy do panstwa " + owner.getName() + ". Mozesz go podbic: /p wojna");
+            fail(p, owner == n ? "Ten chunk juz nalezy do twojego panstwa." : "Ten chunk nalezy do panstwa " + owner.getName() + ". Mozesz go podbic: /p wojna");
             return;
         }
         int cost = plugin.getConfig().getInt("chunk.koszt-diamenty", 32);
@@ -131,7 +128,7 @@ public class MenuListener implements Listener {
 
     private void clickArmy(Player p, int slot) {
         if (slot != 11) return;
-        Nation n = plugin.nations().get(p.getUniqueId());
+        Nation n = plugin.nations().of(p.getUniqueId());
         if (n == null) {
             p.closeInventory();
             fail(p, "Nie masz panstwa.");
@@ -161,7 +158,7 @@ public class MenuListener implements Listener {
     private void clickUnitShop(Player p, MenuHolder h, int slot) {
         if (slot != 15) return;
         UnitType t = h.get("unit");
-        Nation n = plugin.nations().get(p.getUniqueId());
+        Nation n = plugin.nations().of(p.getUniqueId());
         if (n == null) {
             p.closeInventory();
             fail(p, "Nie masz panstwa.");
@@ -249,6 +246,23 @@ public class MenuListener implements Listener {
         if (made < count) {
             Msg.send(p, "&eW tym chunku bylo tylko " + made + " wolnych kolumn z farma.");
         }
+    }
+
+    private void clickUpkeep(Player p, int slot) {
+        if (slot != 15) return;
+        Nation n = plugin.nations().of(p.getUniqueId());
+        if (n == null) {
+            p.closeInventory();
+            fail(p, "Nie nalezysz do zadnego panstwa.");
+            return;
+        }
+        String err = plugin.upkeep().pay(p, n);
+        if (err != null) {
+            fail(p, err);
+            return;
+        }
+        success(p);
+        plugin.menus().openUpkeep(p, n);
     }
 
     private void clickMarket(Player p, MenuHolder h, int slot) {

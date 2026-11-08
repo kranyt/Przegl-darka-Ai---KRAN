@@ -40,7 +40,7 @@ public class ProtectionListener implements Listener {
     private boolean canBuild(Player p, Block b) {
         Nation n = plugin.nations().getAt(b.getLocation());
         if (n == null) return true;
-        if (n.getOwner().equals(p.getUniqueId())) return true;
+        if (n.isMember(p.getUniqueId())) return true;
         return p.hasPermission("panstwa.admin");
     }
 
@@ -50,9 +50,9 @@ public class ProtectionListener implements Listener {
         Player p = e.getPlayer();
         Block b = e.getBlockPlaced();
         if (plugin.isFundamentItem(e.getItemInHand())) {
-            if (plugin.nations().get(p.getUniqueId()) != null) {
+            if (plugin.nations().of(p.getUniqueId()) != null) {
                 e.setCancelled(true);
-                Msg.send(p, "&cMasz juz panstwo! Jedno panstwo na gracza.");
+                Msg.send(p, "&cNalezysz juz do panstwa! Jedno panstwo na gracza.");
                 return;
             }
             Nation owner = plugin.nations().getAt(b.getLocation());
@@ -86,6 +86,8 @@ public class ProtectionListener implements Listener {
             e.setCancelled(true);
             if (fund.getOwner().equals(p.getUniqueId())) {
                 Bukkit.getScheduler().runTask(plugin, () -> plugin.menus().openDelete(p));
+            } else if (fund.isMember(p.getUniqueId())) {
+                Msg.send(p, "&cTylko wlasciciel moze usunac panstwo.");
             } else {
                 Msg.send(p, "&cNie mozesz zniszczyc fundamentu panstwa " + fund.getName() + "!");
             }
@@ -182,6 +184,8 @@ public class ProtectionListener implements Listener {
         Player p = e.getPlayer();
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!p.isOnline()) return;
+            pl.kran.panstwa.model.Nation nat = plugin.nations().of(p.getUniqueId());
+            if (nat != null && plugin.upkeep().timeLeft(nat) < 24 * 3600_000L) plugin.upkeep().warn(p, nat);
             int notes = plugin.market().noticeCount(p.getUniqueId());
             if (notes > 0) {
                 Msg.send(p, "&cGdy cie nie bylo wygaslo ci " + notes + " akcji! &7Zobacz: &f/mojeakcje");

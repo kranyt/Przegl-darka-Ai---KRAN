@@ -13,14 +13,19 @@ import pl.kran.panstwa.war.UnitType;
 import pl.kran.panstwa.war.War;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class PCommand implements TabExecutor {
     private static final List<String> SUBS = List.of("fundament", "chunk", "wojna", "pokoj", "armia", "drony",
             "samolot", "jet", "gielda", "info", "tutaj", "chunki", "mapa", "wojny", "ranking", "gracz", "akcja",
-            "nazwa", "lista", "pomoc");
+            "nazwa", "lista", "pomoc", "zapros", "akceptuj", "odrzuc", "wyrzuc", "opusc", "czlonkowie", "oplata");
     private final PanstwaPlugin plugin;
     private final InfoCommands info;
+    /** Zaproszony gracz -> (wlasciciel panstwa, czas wygasniecia). */
+    private final Map<UUID, Map.Entry<UUID, Long>> invites = new HashMap<>();
 
     public PCommand(PanstwaPlugin plugin) {
         this.plugin = plugin;
@@ -40,11 +45,11 @@ public class PCommand implements TabExecutor {
             args = a;
         }
         String sub = args.length == 0 ? "pomoc" : args[0].toLowerCase();
-        Nation n = plugin.nations().get(p.getUniqueId());
+        Nation n = plugin.nations().of(p.getUniqueId());
         switch (sub) {
             case "fundament" -> {
                 if (n != null) {
-                    Msg.send(p, "&cMasz juz panstwo &6" + n.getName() + "&c.");
+                    Msg.send(p, "&cNalezysz juz do panstwa &6" + n.getName() + "&c.");
                     return true;
                 }
                 plugin.menus().openFundament(p);
@@ -85,8 +90,21 @@ public class PCommand implements TabExecutor {
                 if (args.length < 2) Msg.send(p, "&cUzycie: /p akcja <id>");
                 else info.share(p, args[1]);
             }
-            case "nazwa" -> {
+            case "zapros" -> invite(p, n, args);
+            case "akceptuj", "dolacz" -> accept(p, n);
+            case "odrzuc" -> {
+                if (invites.remove(p.getUniqueId()) != null) Msg.send(p, "&7Odrzuciles zaproszenie.");
+                else Msg.send(p, "&cNie masz zadnego zaproszenia.");
+            }
+            case "wyrzuc" -> kick(p, n, args);
+            case "opusc" -> leave(p, n);
+            case "czlonkowie" -> members(p, args.length > 1 ? info.find(args[1]) : n, args.length > 1);
+            case "oplata", "podatek" -> {
                 if (needNation(p, n)) return true;
+                plugin.menus().openUpkeep(p, n);
+            }
+            case "nazwa" -> {
+                if (needOwner(p, n)) return true;
                 if (args.length < 2 || !args[1].matches("[A-Za-z0-9_ĄĆĘŁŃÓŚŹŻąćęłńóśźż]{3,16}")) {
                     Msg.send(p, "&cUzycie: /p nazwa <nazwa> &7(3-16 znakow, litery/cyfry/_)");
                     return true;
@@ -118,6 +136,115 @@ public class PCommand implements TabExecutor {
             return true;
         }
         return false;
+    }
+
+    private boolean needOwner(Player p, Nation n) {
+        if (needNation(p, n)) return true;
+        if (!n.isOwner(p.getUniqueId())) {
+            Msg.send(p, "&cTylko wlasciciel panstwa moze to zrobic.");
+            return true;
+        }
+        return false;
+    }
+
+    // ------------------------------------------------------------------ czlonkowie
+    private void invite(Player p, Nation n, String[] args) {
+        if (needOwner(p, n)) return;
+        if (args.length < 2) {
+            Msg.send(p, "&cUzycie: /p zapros <gracz>");
+            return;
+        }
+        Player t = Bukkit.getPlayerExact(args[1]);
+        if (t == null) {
+            Msg.send(p, "&cGracz musi byc online.");
+            return;
+        }
+        if (t == p) {
+            Msg.send(p, "&cNie mozesz zaprosic siebie.");
+            return;
+        }
+        if (plugin.nations().of(t.getUniqueId()) != null) {
+            Msg.send(p, "&c" + t.getName() + " nalezy juz do panstwa.");
+            return;
+        }
+        int max = plugin.getConfig().getInt("czlonkowie.max", 10);
+        if (n.getMembers().size() >= max) {
+            Msg.send(p, "&cTwoje panstwo ma juz maksymalnie " + max + " czlonkow.");
+            return;
+        }
+        int sec = plugin.getConfig().getInt("czlonkowie.zaproszenie-wazne-sekundy", 120);
+        invites.put(t.getUniqueId(), Map.entry(n.getOwner(), System.currentTimeMillis() + sec * 1000L));
+        Msg.send(p, "&aZaproszono &f" + t.getName() + "&a do panstwa. Zaproszenie wazne " + sec + "s.");
+        Msg.send(t, "&6" + p.getName() + " &azaprasza cie do panstwa &6" + n.getName() + "&a!");
+        Msg.send(t, "&7Wpisz &a/p akceptuj &7aby dolaczyc albo &c/p odrzuc&7. (" + sec + "s)");
+        t.playSound(t.getLocation(), "minecraft:entity.experience_orb.pickup", 1f, 1f);
+    }
+
+    private void accept(Player p, Nation current) {
+        if (current != null) {
+            Msg.send(p, "&cNalezysz juz do panstwa " + current.getName() + ". Najpierw je opusc: /p opusc");
+            return;
+        }
+        Map.Entry<UUID, Long> inv = invites.remove(p.getUniqueId());
+        if (inv == null || inv.getValue() < System.currentTimeMillis()) {
+            Msg.send(p, "&cNie masz waznego zaproszenia.");
+            return;
+        }
+        Nation n = plugin.nations().get(inv.getKey());
+        if (n == null) {
+            Msg.send(p, "&cTo panstwo juz nie istnieje.");
+            return;
+        }
+        if (n.getMembers().size() >= plugin.getConfig().getInt("czlonkowie.max", 10)) {
+            Msg.send(p, "&cTo panstwo jest juz pelne.");
+            return;
+        }
+        plugin.nations().addMember(n, p.getUniqueId());
+        for (Player o : n.online()) Msg.send(o, "&a" + p.getName() + " dolaczyl do panstwa &6" + n.getName() + "&a!");
+    }
+
+    private void kick(Player p, Nation n, String[] args) {
+        if (needOwner(p, n)) return;
+        if (args.length < 2) {
+            Msg.send(p, "&cUzycie: /p wyrzuc <gracz>");
+            return;
+        }
+        UUID target = null;
+        for (UUID m : n.getMembers()) {
+            if (plugin.menus().holderName(m).equalsIgnoreCase(args[1])) target = m;
+        }
+        if (target == null) {
+            Msg.send(p, "&c" + args[1] + " nie jest czlonkiem twojego panstwa.");
+            return;
+        }
+        plugin.nations().removeMember(n, target);
+        Msg.send(p, "&aWyrzucono &f" + plugin.menus().holderName(target) + "&a z panstwa.");
+        Player t = Bukkit.getPlayer(target);
+        if (t != null) Msg.send(t, "&cZostales wyrzucony z panstwa " + n.getName() + ".");
+    }
+
+    private void leave(Player p, Nation n) {
+        if (needNation(p, n)) return;
+        if (n.isOwner(p.getUniqueId())) {
+            Msg.send(p, "&cJestes wlascicielem. Aby usunac panstwo, zniszcz fundament.");
+            return;
+        }
+        plugin.nations().removeMember(n, p.getUniqueId());
+        Msg.send(p, "&7Opusciles panstwo &6" + n.getName() + "&7.");
+        for (Player o : n.online()) Msg.send(o, "&e" + p.getName() + " opuscil panstwo.");
+    }
+
+    private void members(Player p, Nation n, boolean byArg) {
+        if (n == null) {
+            Msg.send(p, byArg ? "&cNie znaleziono panstwa." : "&cNie nalezysz do zadnego panstwa.");
+            return;
+        }
+        Msg.send(p, "&6Czlonkowie panstwa " + n.getName() + " (" + (n.getMembers().size() + 1) + "):");
+        for (UUID id : n.allPlayers()) {
+            boolean online = Bukkit.getPlayer(id) != null;
+            Msg.raw(p, " &8- " + (online ? "&a" : "&7") + plugin.menus().holderName(id)
+                    + (n.isOwner(id) ? " &6(wlasciciel)" : "") + (online ? " &a●" : " &8●"));
+        }
     }
 
     private void unitShop(Player p, Nation n, UnitType t) {
@@ -164,10 +291,12 @@ public class PCommand implements TabExecutor {
         }
         Msg.send(p, "&7Zostan na chunku (ty lub twoja armia) przez &f" + capture
                 + "s&7 bez obroncow, aby go przejac. Wycofanie: &f/p pokoj");
-        Player dp = Bukkit.getPlayer(def.getOwner());
-        if (dp != null) {
-            Msg.send(dp, "&c&lTwoj chunk " + pos + " jest atakowany przez " + n.getName() + "! &7Bron go!");
+        for (Player dp : def.online()) {
+            Msg.send(dp, "&c&lChunk " + pos + " twojego panstwa jest atakowany przez " + n.getName() + "! &7Bron go!");
             dp.playSound(dp.getLocation(), "minecraft:event.raid.horn", 1f, 1f);
+        }
+        for (Player ap : n.online()) {
+            if (ap != p) Msg.send(ap, "&c" + p.getName() + " rozpoczal atak na chunk " + pos + " (" + def.getName() + ")! &7Dolacz do walki!");
         }
         p.playSound(p.getLocation(), "minecraft:event.raid.horn", 1f, 1f);
         plugin.wars().startWar(n, def, pos);
@@ -175,6 +304,10 @@ public class PCommand implements TabExecutor {
 
     private void stock(Player p, Nation n) {
         if (needNation(p, n)) return;
+        if (!n.isOwner(p.getUniqueId())) {
+            Msg.send(p, "&cTylko wlasciciel panstwa moze wystawiac akcje.");
+            return;
+        }
         ChunkPos pos = ChunkPos.of(p.getLocation());
         if (plugin.nations().getAt(pos) != n) {
             Msg.send(p, "&cMusisz stac na chunku swojego panstwa.");
@@ -204,6 +337,13 @@ public class PCommand implements TabExecutor {
         Msg.raw(p, "&e/p drony &7| &e/p samolot &7| &e/p jet &7- lotnictwo");
         Msg.raw(p, "&e/p gielda &7- wystaw akcje farmy");
         Msg.raw(p, "&e/akcje &7| &e/sprzedajakcje &7| &e/mojeakcje &7- gielda akcji");
+        Msg.raw(p, "&6&l--- Czlonkowie i oplata ---");
+        Msg.raw(p, "&e/p zapros <gracz> &7- zapros gracza (wlasciciel)");
+        Msg.raw(p, "&e/p akceptuj &7| &e/p odrzuc &7- odpowiedz na zaproszenie");
+        Msg.raw(p, "&e/p wyrzuc <gracz> &7- wyrzuc czlonka (wlasciciel)");
+        Msg.raw(p, "&e/p opusc &7- opusc panstwo");
+        Msg.raw(p, "&e/p czlonkowie [panstwo] &7- lista czlonkow");
+        Msg.raw(p, "&e/p oplata &7- zaplac 64 diamenty (co 7 dni, inaczej panstwo wygasa!)");
         Msg.raw(p, "&6&l--- Informacje ---");
         Msg.raw(p, "&e/p info [panstwo|gracz] &7- informacje o panstwie");
         Msg.raw(p, "&e/p tutaj &7- do kogo nalezy chunk na ktorym stoisz");
@@ -231,9 +371,15 @@ public class PCommand implements TabExecutor {
         } else if (args.length == 2) {
             String sub = args[0].toLowerCase();
             String pre = args[1].toLowerCase();
-            if (sub.equals("info") || sub.equals("kraj") || sub.equals("panstwo") || sub.equals("chunki")) {
+            if (sub.equals("info") || sub.equals("kraj") || sub.equals("panstwo") || sub.equals("chunki") || sub.equals("czlonkowie")) {
                 for (Nation n : plugin.nations().all()) if (n.getName().toLowerCase().startsWith(pre)) out.add(n.getName());
-            } else if (sub.equals("gracz")) {
+            } else if (sub.equals("wyrzuc") && sender instanceof Player pl0) {
+                Nation n = plugin.nations().of(pl0.getUniqueId());
+                if (n != null) for (UUID m : n.getMembers()) {
+                    String nm = plugin.menus().holderName(m);
+                    if (nm.toLowerCase().startsWith(pre)) out.add(nm);
+                }
+            } else if (sub.equals("gracz") || sub.equals("zapros")) {
                 for (Player pl : Bukkit.getOnlinePlayers()) if (pl.getName().toLowerCase().startsWith(pre)) out.add(pl.getName());
             } else if (sub.equals("akcja")) {
                 plugin.market().all().forEach(sh -> {

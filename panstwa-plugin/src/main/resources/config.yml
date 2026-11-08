@@ -8,6 +8,18 @@ fundament:
     DIRT: 64
     OAK_LOG: 64
 
+oplata:
+  # Panstwo trzeba oplacac co tyle dni, inaczej wygasa (zostaje usuniete)
+  co-ile-dni: 7
+  koszt-diamenty: 64
+  # Ile okresow mozna oplacic z gory
+  max-okresow-z-gory: 4
+
+czlonkowie:
+  # Max czlonkow (bez wlasciciela)
+  max: 10
+  zaproszenie-wazne-sekundy: 120
+
 chunk:
   # Koszt kolejnego chunka (/p chunk) w diamentach
   koszt-diamenty: 32

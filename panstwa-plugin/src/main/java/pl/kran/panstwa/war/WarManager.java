@@ -121,15 +121,14 @@ public class WarManager {
             if (sent.length() > 0) sent.append(", ");
             sent.append(count).append("x ").append(t.display());
         }
-        Player p = Bukkit.getPlayer(n.getOwner());
-        if (p != null) {
+        for (Player p : n.online()) {
             if (sent.length() == 0) {
                 Msg.send(p, attacker ? "&eNie wyslales zadnych jednostek - walczysz sam!"
                         : "&eNie masz jednostek ktore moga bronic chunka " + w.target + " - bron sie sam!");
             } else {
                 Msg.send(p, (attacker ? "&aWyslano do ataku: &f" : "&aWyslano do obrony: &f") + sent);
             }
-            if (!attacker || dist <= range) return;
+            if (!attacker || dist <= range) continue;
             if (n.getUnits(UnitType.SOLDIER) > 0) {
                 Msg.send(p, "&eCel jest dalej niz " + range + " chunkow - zolnierze nie dosiegaja. Kup drony: &f/p drony");
             }
@@ -363,10 +362,12 @@ public class WarManager {
             if (d < best) { best = d; found = o.entity; }
         }
         UUID enemySide = u.side.equals(u.war.attacker) ? u.war.defender : u.war.attacker;
-        Player p = Bukkit.getPlayer(enemySide);
-        if (p != null && validFighter(p) && p.getWorld() == loc.getWorld()) {
+        Nation enemy = plugin.nations().get(enemySide);
+        if (enemy == null) return found;
+        for (Player p : enemy.online()) {
+            if (!validFighter(p) || p.getWorld() != loc.getWorld()) continue;
             double d = p.getLocation().distanceSquared(loc);
-            if (d < best) found = p;
+            if (d < best) { best = d; found = p; }
         }
         return found;
     }
@@ -410,8 +411,12 @@ public class WarManager {
     }
 
     private boolean presence(War w, UUID side) {
-        Player p = Bukkit.getPlayer(side);
-        if (p != null && validFighter(p) && w.target.contains(p.getLocation())) return true;
+        Nation n = plugin.nations().get(side);
+        if (n != null) {
+            for (Player p : n.online()) {
+                if (validFighter(p) && w.target.contains(p.getLocation())) return true;
+            }
+        }
         for (WarUnit u : w.units) {
             if (u.side.equals(side) && u.alive() && w.target.contains(u.entity.getLocation())) return true;
         }
@@ -429,10 +434,8 @@ public class WarManager {
         w.bar.name(Msg.c("&c" + att.getName() + " &7(" + aU + ") &fvs &9" + def.getName() + " &7(" + dU + ")"
                 + " &8| &ePrzejmowanie " + w.captureSeconds + "/" + need + "s &8| &7" + Math.max(0, left) + "s"));
         w.bar.progress(Math.min(1f, w.captureSeconds / (float) need));
-        for (UUID id : new UUID[]{w.attacker, w.defender}) {
-            Player p = Bukkit.getPlayer(id);
-            if (p != null) p.showBossBar(w.bar);
-        }
+        for (Player p : att.online()) p.showBossBar(w.bar);
+        for (Player p : def.online()) p.showBossBar(w.bar);
     }
 
     // =====================================================================
@@ -455,9 +458,16 @@ public class WarManager {
         for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(w.bar);
         plugin.nations().save();
 
+        List<Player> notify = new ArrayList<>();
+        List<UUID> sides = new ArrayList<>();
         for (UUID id : new UUID[]{w.attacker, w.defender}) {
-            Player p = Bukkit.getPlayer(id);
-            if (p == null) continue;
+            Nation nn = plugin.nations().get(id);
+            if (nn == null) continue;
+            for (Player pl : nn.online()) { notify.add(pl); sides.add(id); }
+        }
+        for (int i = 0; i < notify.size(); i++) {
+            Player p = notify.get(i);
+            UUID id = sides.get(i);
             if (attackerWon) {
                 Msg.send(p, id.equals(w.attacker) ? "&a&lZwyciestwo! &aChunk " + w.target + " jest teraz twoj."
                         : "&c&lPorazka! &cStraciles chunk " + w.target + ".");

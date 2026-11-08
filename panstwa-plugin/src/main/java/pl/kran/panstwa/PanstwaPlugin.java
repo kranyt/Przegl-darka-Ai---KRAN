@@ -30,6 +30,7 @@ public final class PanstwaPlugin extends JavaPlugin {
     private WarManager wars;
     private MarketManager market;
     private Menus menus;
+    private pl.kran.panstwa.model.UpkeepManager upkeep;
     private pl.kran.panstwa.listener.TempBlockManager tempBlocks;
     private NamespacedKey fundamentKey;
 
@@ -40,6 +41,7 @@ public final class PanstwaPlugin extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         saveConfig();
         fundamentKey = new NamespacedKey(this, "fundament");
+        upkeep = new pl.kran.panstwa.model.UpkeepManager(this);
         nations = new NationManager(this);
         nations.load();
         market = new MarketManager(this);
@@ -72,11 +74,13 @@ public final class PanstwaPlugin extends JavaPlugin {
         wars.start();
         market.start();
         tempBlocks.start();
+        upkeep.start();
         getLogger().info("Panstwa wlaczone! Panstw: " + nations.all().size() + ", akcji: " + market.all().size());
     }
 
     @Override
     public void onDisable() {
+        if (upkeep != null) upkeep.shutdown();
         if (wars != null) wars.shutdown();
         if (market != null) market.shutdown();
         if (tempBlocks != null) tempBlocks.shutdown();
@@ -87,6 +91,20 @@ public final class PanstwaPlugin extends JavaPlugin {
     public WarManager wars() { return wars; }
     public MarketManager market() { return market; }
     public Menus menus() { return menus; }
+    public pl.kran.panstwa.model.UpkeepManager upkeep() { return upkeep; }
+
+    public long upkeepPeriodMs() {
+        return getConfig().getLong("oplata.co-ile-dni", 7) * 24L * 3600_000L;
+    }
+
+    /** Usuwa panstwo: konczy wojny, zdejmuje fundament, zwalnia chunki. */
+    public void disband(pl.kran.panstwa.model.Nation n, String broadcast) {
+        wars.endAllFor(n.getOwner(), "Panstwo " + n.getName() + " zostalo usuniete - wojna zakonczona.");
+        org.bukkit.block.Block b = n.getFundamentBlock();
+        if (b != null && b.getType() == Material.BEACON) b.setType(Material.AIR);
+        nations.delete(n);
+        Bukkit.broadcast(Msg.c(Msg.PREFIX + broadcast));
+    }
 
     /** Koszt fundamentu z configu (domyslnie 64 dirt + 64 oak log). */
     public Map<Material, Integer> fundamentCost() {

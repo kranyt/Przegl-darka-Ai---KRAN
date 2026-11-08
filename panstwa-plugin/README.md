@@ -3,11 +3,11 @@
 Państwa, chunki, wojny z armią/dronami/samolotami/jetami oraz giełda akcji farm.
 
 ## Instalacja
-1. Wrzuć `Panstwa-1.1.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
+1. Wrzuć `Panstwa-1.2.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
 2. Uruchom serwer. Konfiguracja: `plugins/Panstwa/config.yml` (koszty, HP, prędkości, szanse giełdy).
 3. Dane zapisują się w `plugins/Panstwa/panstwa.yml` i `plugins/Panstwa/gielda.yml`.
 
-Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.1.0.jar`.
+Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.2.0.jar`.
 
 ## Komendy
 | Komenda | Opis |
@@ -39,6 +39,26 @@ Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.1.0.jar`.
 | `/p lista` | Wszystkie państwa. |
 | `/p gracz <nick>` | Państwo i akcje gracza. |
 | `/p akcja <id>` | Szczegóły akcji (cena, posiadacz, kolumna, uprawa). |
+
+## Członkowie
+| Komenda | Opis |
+|---|---|
+| `/p zapros <gracz>` | Właściciel zaprasza gracza (online) – zaproszenie ważne 2 minuty. |
+| `/p akceptuj` / `/p odrzuc` | Przyjęcie / odrzucenie zaproszenia. |
+| `/p wyrzuc <gracz>` | Właściciel wyrzuca członka. |
+| `/p opusc` | Członek opuszcza państwo. |
+| `/p czlonkowie [państwo]` | Lista członków (online/offline). |
+
+Gracz może należeć tylko do jednego państwa (max 10 członków + właściciel, do zmiany w configu).
+Członkowie mogą budować i otwierać skrzynie na terenie państwa, kupować chunki i jednostki dla państwa, rozpoczynać wojny (`/p wojna`, `/p pokoj`), płacić za państwo i walczyć – liczą się przy przejmowaniu i obronie chunka, a jednostki wroga ich atakują.
+Tylko właściciel może: zapraszać/wyrzucać, zmieniać nazwę, wystawiać akcje (`/p gielda`) i usunąć państwo (zniszczenie fundamentu).
+
+## Opłata za państwo
+- Państwo trzeba opłacać **64 diamentami co 7 dni** – komenda `/p oplata` (menu z czasem do końca i przyciskiem zapłaty). Płacić może każdy członek, można zapłacić do 4 okresów z góry.
+- Nowe państwo jest opłacone na pierwsze 7 dni.
+- Ostrzeżenia na czacie 24h, 6h, 1h i 10 min przed końcem oraz przy wejściu na serwer, gdy zostało mniej niż 24h.
+- Jeśli nikt nie zapłaci, państwo **wygasa**: zostaje usunięte razem z fundamentem, chunkami i armią, a trwające wojny się kończą.
+- Czas opłaty widać też w `/p info`.
 
 ## Wojna
 - Wpisujesz `/p wojna` stojąc na chunku wroga. Cała twoja armia (max 30 jednostek danego typu, do zmiany w configu) wyrusza z twojego najbliższego chunka, a armia obrońcy z jego najbliższego chunka.
