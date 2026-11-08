@@ -27,3 +27,6 @@ permissions:
   panstwa.admin:
     description: Omija ochrone chunkow
     default: op
+  panstwa.trwalebloki:
+    description: Bloki stawiane poza panstwem nie znikaja
+    default: false

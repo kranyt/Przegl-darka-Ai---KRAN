@@ -169,6 +169,7 @@ public class Menus {
         Inventory inv = create(h, 54, "&a&lRynek akcji &8(strona " + (page + 1) + ")");
         List<Share> list = plugin.market().forSale();
         fillShares(h, list, page, true);
+        showNotices(p, inv);
         p.openInventory(inv);
     }
 
@@ -180,7 +181,26 @@ public class Menus {
         List<Share> list = new ArrayList<>();
         for (Share s : plugin.market().ownedBy(p.getUniqueId())) if (!s.isForSale()) list.add(s);
         fillShares(h, list, page, false);
+        showNotices(p, inv);
         p.openInventory(inv);
+    }
+
+    /** Pokazuje wygasle akcje gracza (i oznacza je jako zobaczone). */
+    private void showNotices(Player p, Inventory inv) {
+        List<String> notes = plugin.market().takeNotices(p.getUniqueId());
+        if (notes.isEmpty()) return;
+        List<String> lore = new ArrayList<>();
+        for (int i = 0; i < notes.size() && i < 20; i++) lore.add(notes.get(i));
+        if (notes.size() > 20) lore.add("&7... i " + (notes.size() - 20) + " wiecej");
+        inv.setItem(47, Items.icon(Material.BARRIER, Math.min(notes.size(), 64),
+                "&c&lWygasle akcje (" + notes.size() + ")", lore));
+        Msg.send(p, "&cWygaslo ci " + notes.size() + " akcji:");
+        for (String n : notes) Msg.raw(p, " &8- " + n);
+    }
+
+    private String timeText(long ms) {
+        long min = ms / 60000;
+        return min >= 60 ? (min / 60) + "h " + (min % 60) + "min" : min + "min";
     }
 
     private void fillShares(MenuHolder h, List<Share> list, int page, boolean buying) {
@@ -192,6 +212,10 @@ public class Menus {
             Nation n = plugin.nations().get(s.getIssuer());
             List<String> lore = new ArrayList<>();
             lore.add("&7Cena: &b" + s.getPrice() + " diamentow");
+            lore.add("&7Trend: " + s.trendText());
+            lore.add(plugin.market().isCheap(s) ? "&7Akcja: &atania &7(5% wygasa, 20% tanieje, 75% drozeje)"
+                    : "&7Akcja: &cdroga &7(15% wygasa, 35% tanieje, 50% drozeje)");
+            if (s.isForSale()) lore.add("&7Wygasa za: &e" + timeText(plugin.market().timeLeft(s)) + " &7jesli nikt nie kupi");
             lore.add("&7Panstwo: &f" + (n == null ? "-" : n.getName()));
             lore.add("&7Kolumna: &f" + s.getX() + ", " + s.getZ() + " &7(" + s.getWorld() + ")");
             lore.add("&7Sprzedawca: &f" + holderName(s.getHolder()));
@@ -206,8 +230,10 @@ public class Menus {
         if (page > 0) inv.setItem(45, Items.icon(Material.ARROW, "&ePoprzednia strona"));
         if (start + 45 < list.size()) inv.setItem(53, Items.icon(Material.ARROW, "&eNastepna strona"));
         inv.setItem(49, Items.icon(Material.BOOK, "&6Gielda",
-                "&7Ceny zmieniaja sie co 5 minut:", "&a35% &7- drozeje o 15-110%",
-                "&c35% &7- tanieje o 30-70%", "&430% &7- akcja znika!"));
+                "&7Ceny zmieniaja sie stopniowo co 3 minuty", "&7(male kroki, max ok. 3% na raz).",
+                "&aTania &7(ponizej wiekszosci): 5% wygasa, 20% tanieje, 75% drozeje",
+                "&cDroga&7: 15% wygasa, 35% tanieje, 50% drozeje",
+                "&7Niesprzedana przez 24h - wygasa."));
     }
 
     public String holderName(UUID id) {

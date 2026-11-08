@@ -3,11 +3,11 @@
 Państwa, chunki, wojny z armią/dronami/samolotami/jetami oraz giełda akcji farm.
 
 ## Instalacja
-1. Wrzuć `Panstwa-1.0.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
+1. Wrzuć `Panstwa-1.1.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
 2. Uruchom serwer. Konfiguracja: `plugins/Panstwa/config.yml` (koszty, HP, prędkości, szanse giełdy).
 3. Dane zapisują się w `plugins/Panstwa/panstwa.yml` i `plugins/Panstwa/gielda.yml`.
 
-Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.0.0.jar`.
+Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.1.0.jar`.
 
 ## Komendy
 | Komenda | Opis |
@@ -53,7 +53,20 @@ Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.0.0.jar`.
 - `/p gielda` stojąc na takiej kolumnie: wybierasz cenę (jako właściciel państwa ustalasz pierwszą cenę) i liczbę akcji (kolejne kolumny z farmą w tym chunku, od najbliższej).
 - Kupujący płaci sprzedającemu diamentami (gracze offline dostaną je po wejściu na serwer).
 - Posiadacz akcji co **3 minuty** dostaje plony z tej kolumny; po **2 minutach** rośliny same się sadzą od nowa.
-- Co **5 minut** serwer zmienia ceny: 30% – akcja znika, 35% – tanieje o 30-70%, 35% – drożeje o 15-110%.
+
+### Ceny akcji
+- Ceny zmieniają się **stopniowo**: co **3 minuty** cena robi mały krok (1–3%) w stronę celu aktualnego trendu – nie ma nagłych skoków o 40%.
+- Gdy trend się skończy, losowany jest nowy:
+  - **tania** akcja (tańsza niż większość, czyli poniżej mediany): 5% wygasa, 20% tanieje, 75% drożeje,
+  - **droga** akcja: 15% wygasa, 35% tanieje, 50% drożeje.
+- Wielkość trendu: drożenie najczęściej o 5–16%, rzadko o 17–60%; tanienie często o 5–15%, rzadko o 16–30%, bardzo rzadko o 31–80%.
+- Jeśli właściciel państwa wystawi akcję taniej niż większość akcji, akcja od razu zaczyna drożeć.
+- Akcja, której nikt nie kupi przez **24h**, wygasa.
+- Gdy twoja akcja wygaśnie, informacja czeka na ciebie, dopóki jej nie zobaczysz – pokazuje się w `/mojeakcje`, `/akcje` i `/sprzedajakcje` (czerwona bariera + wiadomość), a po wejściu na serwer dostajesz przypomnienie.
+- W menu każda akcja pokazuje trend (▲ rośnie / ▼ spada), czy jest tania czy droga i za ile wygaśnie.
+
+## Znikające bloki
+Bloki postawione **poza państwem** znikają po **10 minutach**. Po postawieniu takiego bloku na action barze pojawia się informacja, że blok zniknie za 10 minut. Zawartość skrzyń wypada na ziemię. Jeśli teren w międzyczasie stanie się częścią państwa, blok zostaje. Uprawnienie `panstwa.trwalebloki` wyłącza znikanie dla danego gracza; czas i włączenie – `znikajace-bloki` w configu.
 
 ## Ochrona
 Na chunkach państwa tylko właściciel może niszczyć i stawiać bloki, otwierać skrzynie itp. Wybuchy, ogień i tłoki nie niszczą chunków państw. Uprawnienie `panstwa.admin` (domyślnie OP) pozwala ominąć ochronę.

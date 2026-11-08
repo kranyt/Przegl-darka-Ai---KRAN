@@ -15,7 +15,14 @@ public class Share {
     final UUID issuer;      // wlasciciel panstwa ktory wystawil akcje jako pierwszy
     UUID holder;            // aktualny posiadacz (null = serwer)
     boolean forSale;
-    int price;
+    /** Dokladna cena - zmienia sie stopniowo o male procenty. */
+    double exact;
+    /** Kiedy akcja zostala wystawiona na sprzedaz (wygasa po 24h bez sprzedazy). */
+    long listedAt;
+    /** Aktualny trend: cena do ktorej akcja stopniowo dazy (0 = brak trendu). */
+    double trendTarget;
+    /** Calkowita zmiana trendu w procentach (do wyswietlania, + / -). */
+    int trendPct;
     Material icon;
 
     Share(int id, String world, int x, int z, UUID issuer) {
@@ -33,6 +40,15 @@ public class Share {
     public UUID getIssuer() { return issuer; }
     public UUID getHolder() { return holder; }
     public boolean isForSale() { return forSale; }
-    public int getPrice() { return price; }
+    public long getListedAt() { return listedAt; }
+    public int getPrice() { return (int) Math.max(1, Math.round(exact)); }
+    public boolean hasTrend() { return trendTarget > 0; }
+    public int getTrendPct() { return trendPct; }
     public Material getIcon() { return icon == null ? Material.WHEAT : icon; }
+
+    /** Opis trendu do GUI / czatu. */
+    public String trendText() {
+        if (!hasTrend()) return "&7stabilna";
+        return trendTarget > exact ? "&a▲ rosnie &7(trend +" + trendPct + "%)" : "&c▼ spada &7(trend " + trendPct + "%)";
+    }
 }

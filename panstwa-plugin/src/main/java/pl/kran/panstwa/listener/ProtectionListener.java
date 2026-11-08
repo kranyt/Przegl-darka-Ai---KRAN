@@ -182,6 +182,10 @@ public class ProtectionListener implements Listener {
         Player p = e.getPlayer();
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!p.isOnline()) return;
+            int notes = plugin.market().noticeCount(p.getUniqueId());
+            if (notes > 0) {
+                Msg.send(p, "&cGdy cie nie bylo wygaslo ci " + notes + " akcji! &7Zobacz: &f/mojeakcje");
+            }
             List<ItemStack> items = plugin.nations().takePending(p.getUniqueId());
             if (items == null || items.isEmpty()) return;
             Items.give(p, items.toArray(new ItemStack[0]));

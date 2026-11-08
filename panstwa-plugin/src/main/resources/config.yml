@@ -59,14 +59,42 @@ gielda:
   zbior-co-sekund: 180
   # Po ilu sekundach od zbioru sadzi sie nowe rosliny
   sadzenie-po-sekundach: 120
-  # Co ile sekund zmieniaja sie ceny akcji
-  zmiana-cen-co-sekund: 300
-  # Szanse w procentach (suma = 100)
-  szansa-znikniecia: 30
-  szansa-staniania: 35
-  szansa-podrozenia: 35
-  # O ile procent akcja tanieje / drozeje
-  stanienie-min: 30
-  stanienie-max: 70
-  podrozenie-min: 15
-  podrozenie-max: 110
+  # Co ile sekund cena robi jeden maly krok (albo akcja wygasa)
+  krok-cen-co-sekund: 180
+  # Jeden krok zmienia cene o min-max procent (cena dazy stopniowo do celu trendu)
+  min-krok-procent: 1
+  max-krok-procent: 3
+  # Niesprzedana akcja wygasa po tylu godzinach
+  wygasanie-niesprzedanej-godziny: 24
+  # Akcja jest "tania" gdy kosztuje mniej niz wiekszosc akcji (ponizej mediany).
+  # Wystawienie akcji taniej niz wiekszosc sprawia, ze od razu zaczyna drozec.
+  # Szanse w procentach przy losowaniu nowego trendu (reszta = podrozenie)
+  tania:
+    szansa-wygasniecia: 5
+    szansa-stanienia: 20
+  droga:
+    szansa-wygasniecia: 15
+    szansa-stanienia: 35
+  # O ile procent w sumie ma podrozec trend
+  drozenie:
+    czesto-szansa: 85
+    czesto-min: 5
+    czesto-max: 16
+    rzadko-min: 17
+    rzadko-max: 60
+  # O ile procent w sumie ma stanic trend
+  tanienie:
+    czesto-szansa: 80
+    czesto-min: 5
+    czesto-max: 15
+    rzadko-szansa: 18
+    rzadko-min: 16
+    rzadko-max: 30
+    bardzo-rzadko-min: 31
+    bardzo-rzadko-max: 80
+
+znikajace-bloki:
+  # Bloki postawione poza panstwem znikaja po czasie
+  # (uprawnienie panstwa.trwalebloki wylacza to dla gracza)
+  wlaczone: true
+  czas-minuty: 10

@@ -30,11 +30,15 @@ public final class PanstwaPlugin extends JavaPlugin {
     private WarManager wars;
     private MarketManager market;
     private Menus menus;
+    private pl.kran.panstwa.listener.TempBlockManager tempBlocks;
     private NamespacedKey fundamentKey;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        // dopisz nowe opcje do starego config.yml
+        getConfig().options().copyDefaults(true);
+        saveConfig();
         fundamentKey = new NamespacedKey(this, "fundament");
         nations = new NationManager(this);
         nations.load();
@@ -46,6 +50,8 @@ public final class PanstwaPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new MenuListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ProtectionListener(this), this);
         Bukkit.getPluginManager().registerEvents(new UnitListener(this), this);
+        tempBlocks = new pl.kran.panstwa.listener.TempBlockManager(this);
+        Bukkit.getPluginManager().registerEvents(tempBlocks, this);
 
         PCommand p = new PCommand(this);
         getCommand("p").setExecutor(p);
@@ -65,6 +71,7 @@ public final class PanstwaPlugin extends JavaPlugin {
 
         wars.start();
         market.start();
+        tempBlocks.start();
         getLogger().info("Panstwa wlaczone! Panstw: " + nations.all().size() + ", akcji: " + market.all().size());
     }
 
@@ -72,6 +79,7 @@ public final class PanstwaPlugin extends JavaPlugin {
     public void onDisable() {
         if (wars != null) wars.shutdown();
         if (market != null) market.shutdown();
+        if (tempBlocks != null) tempBlocks.shutdown();
         if (nations != null) nations.save();
     }
 

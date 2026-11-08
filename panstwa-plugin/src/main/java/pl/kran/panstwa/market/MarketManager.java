@@ -57,6 +57,8 @@ public class MarketManager {
     private final Map<Integer, Share> shares = new LinkedHashMap<>();
     /** Bloki do posadzenia ponownie (lokalizacja -> dane bloku). */
     private final Map<Block, BlockData> replant = new HashMap<>();
+    /** Gracz -> lista powiadomien o wygaslych akcjach. */
+    private final Map<UUID, List<String>> notices = new HashMap<>();
     private int nextId = 1;
     private final List<BukkitTask> tasks = new ArrayList<>();
 
@@ -69,9 +71,10 @@ public class MarketManager {
 
     public void start() {
         long harvest = cfg().getLong("gielda.zbior-co-sekund", 180) * 20L;
-        long prices = cfg().getLong("gielda.zmiana-cen-co-sekund", 300) * 20L;
+        long step = cfg().getLong("gielda.krok-cen-co-sekund", 180) * 20L;
         tasks.add(Bukkit.getScheduler().runTaskTimer(plugin, this::harvestAll, harvest, harvest));
-        tasks.add(Bukkit.getScheduler().runTaskTimer(plugin, this::changePrices, prices, prices));
+        tasks.add(Bukkit.getScheduler().runTaskTimer(plugin, this::priceStep, step, step));
+        tasks.add(Bukkit.getScheduler().runTaskTimer(plugin, this::checkUnsold, 1200L, 1200L));
     }
 
     public void shutdown() {
@@ -141,12 +144,26 @@ public class MarketManager {
     //  Wystawianie / kupno / sprzedaz
     // ---------------------------------------------------------------
 
+    /** Ile czasu (ms) zostalo zanim niesprzedana akcja wygasnie. */
+    public long timeLeft(Share s) {
+        long max = cfg().getLong("gielda.wygasanie-niesprzedanej-godziny", 24) * 3600_000L;
+        return Math.max(0, s.listedAt + max - System.currentTimeMillis());
+    }
+
     public Share create(String world, int x, int z, UUID issuer, int price, Material icon) {
+        double med = median();
         Share s = new Share(nextId++, world, x, z, issuer);
         s.holder = issuer;
         s.forSale = true;
-        s.price = Math.max(1, price);
+        s.exact = Math.max(1, price);
+        s.listedAt = System.currentTimeMillis();
         s.icon = icon;
+        // wystawiona taniej niz wiekszosc akcji -> od razu zaczyna drozec
+        if (s.exact < med) {
+            double pct = upPercent();
+            s.trendTarget = s.exact * (1 + pct);
+            s.trendPct = (int) Math.round(pct * 100);
+        }
         shares.put(s.id, s);
         save();
         return s;
@@ -156,14 +173,15 @@ public class MarketManager {
     public String buy(Player buyer, Share s) {
         if (!shares.containsKey(s.id) || !s.forSale) return "Ta akcja nie jest juz na sprzedaz.";
         if (buyer.getUniqueId().equals(s.holder)) return "Nie mozesz kupic wlasnej akcji.";
-        if (!Items.takeDiamonds(buyer, s.price)) return "Potrzebujesz " + s.price + " diamentow.";
+        int price = s.getPrice();
+        if (!Items.takeDiamonds(buyer, price)) return "Potrzebujesz " + price + " diamentow.";
         UUID seller = s.holder;
         if (seller != null) {
-            List<ItemStack> pay = Items.stacks(Material.DIAMOND, s.price);
+            List<ItemStack> pay = Items.stacks(Material.DIAMOND, price);
             Player sp = Bukkit.getPlayer(seller);
             if (sp != null) {
                 Items.give(sp, pay.toArray(new ItemStack[0]));
-                Msg.send(sp, "&a" + buyer.getName() + " kupil twoja akcje #" + s.id + " za &b" + s.price + " diamentow&a!");
+                Msg.send(sp, "&a" + buyer.getName() + " kupil twoja akcje #" + s.id + " za &b" + price + " diamentow&a!");
             } else {
                 plugin.nations().addPending(seller, pay);
             }
@@ -179,9 +197,10 @@ public class MarketManager {
         if (!shares.containsKey(s.id) || !p.getUniqueId().equals(s.holder) || s.forSale) {
             return "Nie masz tej akcji.";
         }
-        Items.give(p, Items.stacks(Material.DIAMOND, s.price).toArray(new ItemStack[0]));
+        Items.give(p, Items.stacks(Material.DIAMOND, s.getPrice()).toArray(new ItemStack[0]));
         s.holder = null;
         s.forSale = true;
+        s.listedAt = System.currentTimeMillis();
         save();
         return null;
     }
@@ -255,52 +274,135 @@ public class MarketManager {
     }
 
     // ---------------------------------------------------------------
-    //  Zmiana cen co 5 minut
+    //  Zmiana cen - stopniowo, krok co 3 minuty
     // ---------------------------------------------------------------
 
-    private void changePrices() {
+    /** Mediana cen wszystkich akcji - ponizej niej akcja jest "tania". */
+    private double median() {
+        List<Double> prices = new ArrayList<>();
+        for (Share s : shares.values()) prices.add(s.exact);
+        if (prices.isEmpty()) return 0;
+        prices.sort(Double::compare);
+        int n = prices.size();
+        return n % 2 == 1 ? prices.get(n / 2) : (prices.get(n / 2 - 1) + prices.get(n / 2)) / 2.0;
+    }
+
+    public boolean isCheap(Share s) {
+        return s.exact < median();
+    }
+
+    private double range(double min, double max) {
+        return (min + ThreadLocalRandom.current().nextDouble() * (max - min)) / 100.0;
+    }
+
+    /** O ile procent akcja ma podrozec: najczesciej 5-16%, rzadko 17-60%. */
+    private double upPercent() {
+        double r = ThreadLocalRandom.current().nextDouble(100);
+        if (r < cfg().getDouble("gielda.drozenie.czesto-szansa", 85)) {
+            return range(cfg().getDouble("gielda.drozenie.czesto-min", 5), cfg().getDouble("gielda.drozenie.czesto-max", 16));
+        }
+        return range(cfg().getDouble("gielda.drozenie.rzadko-min", 17), cfg().getDouble("gielda.drozenie.rzadko-max", 60));
+    }
+
+    /** O ile procent akcja ma stanie: czesto 5-15%, rzadko 16-30%, bardzo rzadko 31-80%. */
+    private double downPercent() {
+        double r = ThreadLocalRandom.current().nextDouble(100);
+        double often = cfg().getDouble("gielda.tanienie.czesto-szansa", 80);
+        double rare = cfg().getDouble("gielda.tanienie.rzadko-szansa", 18);
+        if (r < often) {
+            return range(cfg().getDouble("gielda.tanienie.czesto-min", 5), cfg().getDouble("gielda.tanienie.czesto-max", 15));
+        }
+        if (r < often + rare) {
+            return range(cfg().getDouble("gielda.tanienie.rzadko-min", 16), cfg().getDouble("gielda.tanienie.rzadko-max", 30));
+        }
+        return range(cfg().getDouble("gielda.tanienie.bardzo-rzadko-min", 31), cfg().getDouble("gielda.tanienie.bardzo-rzadko-max", 80));
+    }
+
+    /**
+     * Co 3 minuty: akcja bez trendu losuje nowy (wygasa / tanieje / drozeje),
+     * a potem cena przesuwa sie w strone celu malymi krokami (max ~3% na krok),
+     * zeby nie bylo nagle +40%.
+     */
+    private void priceStep() {
         if (shares.isEmpty()) return;
         ThreadLocalRandom r = ThreadLocalRandom.current();
-        double pGone = cfg().getDouble("gielda.szansa-znikniecia", 30);
-        double pDown = cfg().getDouble("gielda.szansa-staniania", 35);
-        double downMin = cfg().getDouble("gielda.stanienie-min", 30) / 100.0;
-        double downMax = cfg().getDouble("gielda.stanienie-max", 70) / 100.0;
-        double upMin = cfg().getDouble("gielda.podrozenie-min", 15) / 100.0;
-        double upMax = cfg().getDouble("gielda.podrozenie-max", 110) / 100.0;
-        Map<UUID, List<String>> notes = new HashMap<>();
-        int gone = 0, down = 0, up = 0;
+        double med = median();
+        double maxStep = cfg().getDouble("gielda.max-krok-procent", 3);
+        double minStep = cfg().getDouble("gielda.min-krok-procent", 1);
+        boolean changed = false;
 
         for (Share s : new ArrayList<>(shares.values())) {
-            double roll = r.nextDouble(100);
-            String note;
-            if (roll < pGone) {
-                shares.remove(s.id);
-                note = "&c#" + s.id + " ZNIKNELA!";
-                gone++;
-            } else if (roll < pGone + pDown) {
-                int old = s.price;
-                double pct = downMin + r.nextDouble() * (downMax - downMin);
-                s.price = Math.max(1, (int) Math.round(old * (1 - pct)));
-                note = "&c#" + s.id + " " + old + " -> " + s.price + " (-" + Math.round(pct * 100) + "%)";
-                down++;
-            } else {
-                int old = s.price;
-                double pct = upMin + r.nextDouble() * (upMax - upMin);
-                s.price = Math.max(old + 1, (int) Math.round(old * (1 + pct)));
-                note = "&a#" + s.id + " " + old + " -> " + s.price + " (+" + Math.round(pct * 100) + "%)";
-                up++;
+            if (!s.hasTrend()) {
+                boolean cheap = s.exact < med;
+                String k = cheap ? "gielda.tania." : "gielda.droga.";
+                double pGone = cfg().getDouble(k + "szansa-wygasniecia", cheap ? 5 : 15);
+                double pDown = cfg().getDouble(k + "szansa-stanienia", cheap ? 20 : 35);
+                double roll = r.nextDouble(100);
+                if (roll < pGone) {
+                    expire(s, "wygasla na gieldzie");
+                    changed = true;
+                    continue;
+                }
+                double pct = roll < pGone + pDown ? -downPercent() : upPercent();
+                s.trendTarget = Math.max(1.0, s.exact * (1 + pct));
+                s.trendPct = (int) Math.round(pct * 100);
             }
-            if (s.holder != null) notes.computeIfAbsent(s.holder, k -> new ArrayList<>()).add(note);
+            // jeden maly krok w strone celu
+            double step = range(minStep, maxStep);
+            if (s.trendTarget > s.exact) {
+                s.exact = Math.min(s.trendTarget, s.exact * (1 + step));
+            } else {
+                s.exact = Math.max(s.trendTarget, Math.max(1.0, s.exact * (1 - step)));
+            }
+            if (Math.abs(s.exact - s.trendTarget) < 0.0001 || (s.exact <= 1.0 && s.trendTarget <= 1.0)) {
+                s.trendTarget = 0;
+                s.trendPct = 0;
+            }
+            changed = true;
         }
-        save();
-        Bukkit.broadcast(Msg.c(Msg.PREFIX + "&eGielda: ceny akcji zmienione! &a" + up + " podrozalo&7, &c"
-                + down + " stanialo&7, &4" + gone + " zniknelo&7."));
-        for (Map.Entry<UUID, List<String>> e : notes.entrySet()) {
-            Player p = Bukkit.getPlayer(e.getKey());
-            if (p == null) continue;
-            Msg.send(p, "&eTwoje akcje:");
-            for (String n : e.getValue()) Msg.raw(p, " &8- " + n);
+        if (changed) save();
+    }
+
+    /** Akcje ktore nie sprzedaly sie przez 24h wygasaja. */
+    private void checkUnsold() {
+        long max = cfg().getLong("gielda.wygasanie-niesprzedanej-godziny", 24) * 3600_000L;
+        long now = System.currentTimeMillis();
+        boolean changed = false;
+        for (Share s : new ArrayList<>(shares.values())) {
+            if (s.forSale && now - s.listedAt >= max) {
+                expire(s, "nie sprzedala sie przez " + (max / 3600_000L) + "h");
+                changed = true;
+            }
         }
+        if (changed) save();
+    }
+
+    private void expire(Share s, String reason) {
+        shares.remove(s.id);
+        if (s.holder == null) return;
+        String note = "&cAkcja #" + s.id + " &7(" + s.x + ", " + s.z + ", cena " + s.getPrice() + ") &c" + reason + "!";
+        notices.computeIfAbsent(s.holder, k -> new ArrayList<>()).add(note);
+        Player p = Bukkit.getPlayer(s.holder);
+        if (p != null) {
+            Msg.send(p, note);
+            Msg.send(p, "&7Szczegoly zobaczysz w &f/mojeakcje&7.");
+        }
+    }
+
+    // ---------------------------------------------------------------
+    //  Powiadomienia o wygaslych akcjach (zostaja az gracz je zobaczy)
+    // ---------------------------------------------------------------
+
+    public int noticeCount(UUID player) {
+        List<String> l = notices.get(player);
+        return l == null ? 0 : l.size();
+    }
+
+    /** Zwraca i usuwa powiadomienia (gracz je wlasnie zobaczyl). */
+    public List<String> takeNotices(UUID player) {
+        List<String> l = notices.remove(player);
+        if (l != null) save();
+        return l == null ? List.of() : l;
     }
 
     // ---------------------------------------------------------------
@@ -309,9 +411,14 @@ public class MarketManager {
 
     public void load() {
         shares.clear();
+        notices.clear();
         if (!file.exists()) return;
         YamlConfiguration y = YamlConfiguration.loadConfiguration(file);
         nextId = y.getInt("nastepne-id", 1);
+        ConfigurationSection ns = y.getConfigurationSection("powiadomienia");
+        if (ns != null) {
+            for (String key : ns.getKeys(false)) notices.put(UUID.fromString(key), new ArrayList<>(ns.getStringList(key)));
+        }
         ConfigurationSection sec = y.getConfigurationSection("akcje");
         if (sec == null) return;
         for (String key : sec.getKeys(false)) {
@@ -322,7 +429,10 @@ public class MarketManager {
                 String h = c.getString("posiadacz");
                 s.holder = h == null || h.isEmpty() ? null : UUID.fromString(h);
                 s.forSale = c.getBoolean("na-sprzedaz");
-                s.price = c.getInt("cena");
+                s.exact = c.getDouble("cena");
+                s.listedAt = c.getLong("wystawiona", System.currentTimeMillis());
+                s.trendTarget = c.getDouble("trend-cel", 0);
+                s.trendPct = c.getInt("trend-procent", 0);
                 s.icon = Material.matchMaterial(c.getString("ikona", "WHEAT"));
                 shares.put(s.id, s);
                 nextId = Math.max(nextId, s.id + 1);
@@ -335,6 +445,7 @@ public class MarketManager {
     public void save() {
         YamlConfiguration y = new YamlConfiguration();
         y.set("nastepne-id", nextId);
+        for (Map.Entry<UUID, List<String>> e : notices.entrySet()) y.set("powiadomienia." + e.getKey(), e.getValue());
         for (Share s : shares.values()) {
             String p = "akcje." + s.id + ".";
             y.set(p + "swiat", s.world);
@@ -343,7 +454,10 @@ public class MarketManager {
             y.set(p + "wystawca", s.issuer.toString());
             y.set(p + "posiadacz", s.holder == null ? "" : s.holder.toString());
             y.set(p + "na-sprzedaz", s.forSale);
-            y.set(p + "cena", s.price);
+            y.set(p + "cena", s.exact);
+            y.set(p + "wystawiona", s.listedAt);
+            y.set(p + "trend-cel", s.trendTarget);
+            y.set(p + "trend-procent", s.trendPct);
             y.set(p + "ikona", s.getIcon().name());
         }
         try {

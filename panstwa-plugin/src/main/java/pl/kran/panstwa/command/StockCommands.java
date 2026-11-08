@@ -49,6 +49,11 @@ public class StockCommands implements TabExecutor {
                 else Msg.send(p, "&aSprzedales akcje &f#" + s.getId() + "&a serwerowi za &b" + price + " diamentow&a.");
             }
             case "mojeakcje" -> {
+                List<String> notes = plugin.market().takeNotices(p.getUniqueId());
+                if (!notes.isEmpty()) {
+                    Msg.send(p, "&c&lWygaslo ci " + notes.size() + " akcji:");
+                    for (String n : notes) Msg.raw(p, " &8- " + n);
+                }
                 List<Share> list = plugin.market().ownedBy(p.getUniqueId());
                 if (list.isEmpty()) {
                     Msg.send(p, "&7Nie masz zadnych akcji. Kup je: &f/akcje");
@@ -62,6 +67,7 @@ public class StockCommands implements TabExecutor {
                     Msg.raw(p, " &8- &eAkcja #" + s.getId() + " &7cena: &b" + s.getPrice() + " diamentow &7| "
                             + (n == null ? "" : "&6" + n.getName() + " &7| ") + "&f" + s.getX() + ", " + s.getZ()
                             + (s.isForSale() ? " &a(wystawiona na sprzedaz)" : ""));
+                    Msg.raw(p, "    &7Trend: " + s.trendText());
                 }
                 Msg.raw(p, " &7Lacznie warte: &b" + total + " diamentow");
             }
