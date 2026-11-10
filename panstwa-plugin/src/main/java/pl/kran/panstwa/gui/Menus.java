@@ -234,8 +234,11 @@ public class Menus {
             List<String> lore = new ArrayList<>();
             lore.add("&7Cena: &b" + s.getPrice() + " diamentow");
             lore.add("&7Trend: " + s.trendText());
-            lore.add(plugin.market().isCheap(s) ? "&7Akcja: &atania &7(5% wygasa, 20% tanieje, 75% drozeje)"
-                    : "&7Akcja: &cdroga &7(15% wygasa, 35% tanieje, 50% drozeje)");
+            lore.add("&7Akcja: " + plugin.market().chancesText(s));
+            if (plugin.market().isPopular(s)) {
+                lore.add("&6★ Najpopularniejsza farma na serwerze!");
+                lore.add("&7Szanse i wielkosc tanienia/drozenia sa odwrocone.");
+            }
             if (s.isForSale()) lore.add("&7Wygasa za: &e" + timeText(plugin.market().timeLeft(s)) + " &7jesli nikt nie kupi");
             lore.add("&7Panstwo: &f" + (n == null ? "-" : n.getName()));
             lore.add("&7Kolumna: &f" + s.getX() + ", " + s.getZ() + " &7(" + s.getWorld() + ")");
@@ -254,7 +257,9 @@ public class Menus {
                 "&7Ceny zmieniaja sie stopniowo co 3 minuty", "&7(male kroki, max ok. 3% na raz).",
                 "&aTania &7(ponizej wiekszosci): 5% wygasa, 20% tanieje, 75% drozeje",
                 "&cDroga&7: 15% wygasa, 35% tanieje, 50% drozeje",
-                "&7Niesprzedana przez 24h - wygasa."));
+                "&7Niesprzedana przez 24h - wygasa.",
+                "&6★ &7Najpopularniejsza farma (najwiecej graczy",
+                "&7ma jej akcje): tanienie i drozenie odwrocone."));
     }
 
     public String holderName(UUID id) {

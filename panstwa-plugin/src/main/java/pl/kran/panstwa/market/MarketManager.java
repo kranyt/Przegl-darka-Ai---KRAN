@@ -291,6 +291,50 @@ public class MarketManager {
         return s.exact < median();
     }
 
+    /**
+     * Najpopularniejsze farmy: rodzaj uprawy, ktorego akcje ma najwiecej roznych graczy.
+     * Dla nich szanse i wielkosci tanienia/drozenia sa odwrocone.
+     */
+    public Set<Material> popularFarms() {
+        Map<Material, Set<UUID>> holders = new HashMap<>();
+        for (Share s : shares.values()) {
+            if (s.forSale || s.holder == null) continue;
+            holders.computeIfAbsent(s.getIcon(), k -> new java.util.HashSet<>()).add(s.holder);
+        }
+        int max = 0;
+        for (Set<UUID> h : holders.values()) max = Math.max(max, h.size());
+        Set<Material> out = EnumSet.noneOf(Material.class);
+        if (max < cfg().getInt("gielda.najpopularniejsza.min-graczy", 2)) return out;
+        for (Map.Entry<Material, Set<UUID>> e : holders.entrySet()) if (e.getValue().size() == max) out.add(e.getKey());
+        return out;
+    }
+
+    public boolean isPopular(Share s) {
+        return popularFarms().contains(s.getIcon());
+    }
+
+    /** [szansa wygasniecia, szansa stanienia, szansa podrozenia] w procentach. */
+    public double[] chances(boolean cheap, boolean popular) {
+        String k = cheap ? "gielda.tania." : "gielda.droga.";
+        double pGone = cfg().getDouble(k + "szansa-wygasniecia", cheap ? 5 : 15);
+        double pDown = cfg().getDouble(k + "szansa-stanienia", cheap ? 20 : 35);
+        double pUp = Math.max(0, 100 - pGone - pDown);
+        if (popular) { double t = pDown; pDown = pUp; pUp = t; }
+        return new double[]{pGone, pDown, pUp};
+    }
+
+    private String fmt(double d) {
+        return d == Math.floor(d) ? String.valueOf((int) d) : String.valueOf(d);
+    }
+
+    /** Opis szans danej akcji do GUI. */
+    public String chancesText(Share s) {
+        boolean cheap = isCheap(s);
+        double[] c = chances(cheap, isPopular(s));
+        return (cheap ? "&atania" : "&cdroga") + " &7(" + fmt(c[0]) + "% wygasa, " + fmt(c[1]) + "% tanieje, "
+                + fmt(c[2]) + "% drozeje)";
+    }
+
     private double range(double min, double max) {
         return (min + ThreadLocalRandom.current().nextDouble() * (max - min)) / 100.0;
     }
@@ -327,23 +371,29 @@ public class MarketManager {
         if (shares.isEmpty()) return;
         ThreadLocalRandom r = ThreadLocalRandom.current();
         double med = median();
+        Set<Material> popular = popularFarms();
         double maxStep = cfg().getDouble("gielda.max-krok-procent", 3);
         double minStep = cfg().getDouble("gielda.min-krok-procent", 1);
         boolean changed = false;
 
         for (Share s : new ArrayList<>(shares.values())) {
             if (!s.hasTrend()) {
-                boolean cheap = s.exact < med;
-                String k = cheap ? "gielda.tania." : "gielda.droga.";
-                double pGone = cfg().getDouble(k + "szansa-wygasniecia", cheap ? 5 : 15);
-                double pDown = cfg().getDouble(k + "szansa-stanienia", cheap ? 20 : 35);
+                double[] ch = chances(s.exact < med, popular.contains(s.getIcon()));
                 double roll = r.nextDouble(100);
-                if (roll < pGone) {
+                if (roll < ch[0]) {
                     expire(s, "wygasla na gieldzie");
                     changed = true;
                     continue;
                 }
-                double pct = roll < pGone + pDown ? -downPercent() : upPercent();
+                boolean inverted = popular.contains(s.getIcon());
+                double pct;
+                if (roll < ch[0] + ch[1]) {
+                    // tanieje (dla najpopularniejszej farmy wielkosc jak przy drozeniu)
+                    pct = -(inverted ? upPercent() : downPercent());
+                } else {
+                    // drozeje (dla najpopularniejszej farmy wielkosc jak przy tanieniu)
+                    pct = inverted ? downPercent() : upPercent();
+                }
                 s.trendTarget = Math.max(1.0, s.exact * (1 + pct));
                 s.trendPct = (int) Math.round(pct * 100);
             }

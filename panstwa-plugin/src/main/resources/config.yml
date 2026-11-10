@@ -87,6 +87,12 @@ gielda:
   droga:
     szansa-wygasniecia: 15
     szansa-stanienia: 35
+  # Najpopularniejsza farma = rodzaj uprawy, ktorego akcje ma najwiecej roznych graczy.
+  # Dla niej szanse na stanienie i podrozenie sa zamienione miejscami, a wielkosci tez
+  # (tanieje tak jak normalnie drozeje: 5-16% / 17-60%, drozeje tak jak normalnie tanieje).
+  najpopularniejsza:
+    # Ile minimum roznych graczy musi miec akcje tej farmy
+    min-graczy: 2
   # O ile procent w sumie ma podrozec trend
   drozenie:
     czesto-szansa: 85

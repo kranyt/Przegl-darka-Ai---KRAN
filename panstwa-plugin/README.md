@@ -3,11 +3,11 @@
 Państwa, chunki, wojny z armią/dronami/samolotami/jetami oraz giełda akcji farm.
 
 ## Instalacja
-1. Wrzuć `Panstwa-1.2.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
+1. Wrzuć `Panstwa-1.3.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
 2. Uruchom serwer. Konfiguracja: `plugins/Panstwa/config.yml` (koszty, HP, prędkości, szanse giełdy).
 3. Dane zapisują się w `plugins/Panstwa/panstwa.yml` i `plugins/Panstwa/gielda.yml`.
 
-Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.2.0.jar`.
+Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.3.0.jar`.
 
 ## Komendy
 | Komenda | Opis |
@@ -80,6 +80,9 @@ Tylko właściciel może: zapraszać/wyrzucać, zmieniać nazwę, wystawiać akc
   - **tania** akcja (tańsza niż większość, czyli poniżej mediany): 5% wygasa, 20% tanieje, 75% drożeje,
   - **droga** akcja: 15% wygasa, 35% tanieje, 50% drożeje.
 - Wielkość trendu: drożenie najczęściej o 5–16%, rzadko o 17–60%; tanienie często o 5–15%, rzadko o 16–30%, bardzo rzadko o 31–80%.
+- **Najpopularniejsza farma** (rodzaj uprawy, którego akcje ma najwięcej różnych graczy, min. 2): szanse i wielkości są odwrócone –
+  tania: 5% wygasa, **75% tanieje**, 20% drożeje; droga: 15% wygasa, **50% tanieje**, 35% drożeje;
+  tanieje o 5–16% (rzadko 17–60%), a drożeje o 5–15% (rzadko 16–30%, bardzo rzadko 31–80%). W menu oznaczona ★.
 - Jeśli właściciel państwa wystawi akcję taniej niż większość akcji, akcja od razu zaczyna drożeć.
 - Akcja, której nikt nie kupi przez **24h**, wygasa.
 - Gdy twoja akcja wygaśnie, informacja czeka na ciebie, dopóki jej nie zobaczysz – pokazuje się w `/mojeakcje`, `/akcje` i `/sprzedajakcje` (czerwona bariera + wiadomość), a po wejściu na serwer dostajesz przypomnienie.
