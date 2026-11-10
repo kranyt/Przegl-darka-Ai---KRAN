@@ -65,6 +65,15 @@ wojna:
   max-czas-sekundy: 600
   # Zasieg w blokach w ktorym jednostki szukaja wrogow
   zasieg-wykrywania: 16
+  # Na jakiej wysokosci nad ziemia lataja drony / samoloty / jety
+  wysokosc-lotu: 5
+
+garnizon:
+  # Gdy nie ma wojny armia jest widoczna w bazie (krazy wokol fundamentu).
+  # Jednostki garnizonu sa niesmiertelne - to tylko pokaz armii.
+  wlaczony: true
+  # Max widocznych jednostek kazdego typu (zeby nie lagowalo)
+  max-na-typ: 6
 
 gielda:
   # Co ile sekund gracz dostaje plony z akcji

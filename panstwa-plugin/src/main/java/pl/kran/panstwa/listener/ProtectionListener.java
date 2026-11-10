@@ -41,7 +41,7 @@ public class ProtectionListener implements Listener {
         Nation n = plugin.nations().getAt(b.getLocation());
         if (n == null) return true;
         if (n.isMember(p.getUniqueId())) return true;
-        return p.hasPermission("panstwa.admin");
+        return plugin.isBypassing(p);
     }
 
     // ------------------------------------------------------------- stawianie fundamentu

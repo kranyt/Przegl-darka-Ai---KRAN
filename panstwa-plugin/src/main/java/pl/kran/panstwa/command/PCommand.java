@@ -90,6 +90,15 @@ public class PCommand implements TabExecutor {
                 if (args.length < 2) Msg.send(p, "&cUzycie: /p akcja <id>");
                 else info.share(p, args[1]);
             }
+            case "admin" -> {
+                if (!p.hasPermission("panstwa.admin")) {
+                    Msg.send(p, "&cNie masz uprawnien.");
+                    return true;
+                }
+                boolean on = plugin.toggleBypass(p);
+                Msg.send(p, on ? "&aTryb admina WLACZONY - mozesz niszczyc/budowac na terenie wszystkich panstw."
+                        : "&7Tryb admina wylaczony - ochrona panstw dziala tez na ciebie.");
+            }
             case "zapros" -> invite(p, n, args);
             case "akceptuj", "dolacz" -> accept(p, n);
             case "odrzuc" -> {

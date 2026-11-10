@@ -88,8 +88,18 @@ public class WarManager {
     public War startWar(Nation attacker, Nation defender, ChunkPos target) {
         War w = new War(attacker.getOwner(), defender.getOwner(), target);
         wars.add(w);
+        World tw = target.bukkitWorld();
+        if (tw != null && tw.getDifficulty() == org.bukkit.Difficulty.PEACEFUL) {
+            String warn = "&c&lUwaga: &cna poziomie trudnosci PEACEFUL serwer usuwa jednostki (zolnierzy, drony...)! "
+                    + "Ustaw: /difficulty easy";
+            for (Player p : attacker.online()) Msg.send(p, warn);
+            for (Player p : defender.online()) Msg.send(p, warn);
+            plugin.getLogger().warning("Swiat " + tw.getName() + " ma difficulty PEACEFUL - jednostki wojskowe beda znikac.");
+        }
         addTicket(target);
         w.bar = BossBar.bossBar(Msg.c("&cWojna"), 0f, BossBar.Color.RED, BossBar.Overlay.NOTCHED_10);
+        plugin.garrison().clear(attacker.getOwner());
+        plugin.garrison().clear(defender.getOwner());
         deploy(w, attacker, true);
         deploy(w, defender, false);
         plugin.nations().save();
@@ -136,8 +146,18 @@ public class WarManager {
     }
 
     private void spawnUnit(War w, UnitType t, Nation n, boolean attacker, Location loc) {
+        Mob mob = createMob(t, n, attacker ? "&c" : "&9", loc);
+        WarUnit u = new WarUnit(w, t, n.getOwner(), mob);
+        u.lastPos = mob.getLocation();
+        u.ticket = ChunkPos.of(mob.getLocation());
+        addTicket(u.ticket);
+        w.units.add(u);
+        unitsByEntity.put(mob.getUniqueId(), u);
+    }
+
+    /** Tworzy jednostke (zolnierz = zombie, dron = vex, samolot/jet = phantom). Uzywane tez przez garnizon. */
+    public Mob createMob(UnitType t, Nation n, String color, Location loc) {
         World world = loc.getWorld();
-        String color = attacker ? "&c" : "&9";
         double hp = t.hp(cfg());
         Mob mob;
         switch (t) {
@@ -154,33 +174,29 @@ public class WarManager {
                 // ~ predkosc chodzenia gracza
                 Attr.set(z, "movement_speed", 0.25 * t.speed(cfg()));
                 Attr.set(z, "follow_range", 48);
-                prepare(z, w, t, hp, color, n);
+                prepare(z, t, hp, color, n);
             });
             case DRONE -> mob = world.spawn(loc, Vex.class, v -> {
                 v.setLimitedLifetime(false);
-                prepare(v, w, t, hp, color, n);
+                prepare(v, t, hp, color, n);
             });
             default -> mob = world.spawn(loc, Phantom.class, ph -> {
                 ph.setSize(t == UnitType.JET ? 6 : 2);
                 ph.setShouldBurnInDay(false);
-                prepare(ph, w, t, hp, color, n);
+                prepare(ph, t, hp, color, n);
             });
         }
         if (t.flying()) {
             mob.setAI(false);
             mob.setGravity(false);
+            mob.setGlowing(true); // widoczne z daleka
         } else {
             Bukkit.getMobGoals().removeAllGoals(mob);
         }
-        WarUnit u = new WarUnit(w, t, n.getOwner(), mob);
-        u.lastPos = mob.getLocation();
-        u.ticket = ChunkPos.of(mob.getLocation());
-        addTicket(u.ticket);
-        w.units.add(u);
-        unitsByEntity.put(mob.getUniqueId(), u);
+        return mob;
     }
 
-    private void prepare(Mob m, War w, UnitType t, double hp, String color, Nation n) {
+    private void prepare(Mob m, UnitType t, double hp, String color, Nation n) {
         m.setPersistent(true);
         m.setRemoveWhenFarAway(false);
         m.setCanPickupItems(false);
@@ -212,6 +228,7 @@ public class WarManager {
                 WarUnit u = it.next();
                 if (!u.alive()) {
                     removeTicket(u.ticket);
+                    removeTicket(u.aheadTicket);
                     unitsByEntity.remove(u.entity.getUniqueId());
                     it.remove();
                     continue;
@@ -223,7 +240,14 @@ public class WarManager {
                     plugin.getLogger().warning("Blad jednostki: " + ex);
                 }
             }
-            if (tickCounter % 20 == 0) secondTick(w);
+            if (tickCounter % 20 == 0) {
+                try {
+                    secondTick(w);
+                } catch (Exception ex) {
+                    plugin.getLogger().log(java.util.logging.Level.SEVERE, "Blad wojny - wojna przerwana", ex);
+                    end(w, false, "Wojna przerwana z powodu bledu.");
+                }
+            }
         }
     }
 
@@ -282,6 +306,14 @@ public class WarManager {
         } else {
             wp = dest;
         }
+        // zaladuj chunk punktu docelowego, zeby pathfinding dzialal i zolnierz nie zniknal
+        ChunkPos ahead = ChunkPos.of(wp);
+        if (!ahead.equals(u.aheadTicket)) {
+            addTicket(ahead);
+            wp.getWorld().getChunkAt(ahead.x(), ahead.z());
+            removeTicket(u.aheadTicket);
+            u.aheadTicket = ahead;
+        }
         boolean ok = pf.moveTo(wp, 1.0);
         if ((!ok || u.stuckTicks >= 60) && len > 0.1) {
             // zablokowany - lekki skok w kierunku celu (nie teleport)
@@ -298,35 +330,46 @@ public class WarManager {
         World world = cur.getWorld();
         double speed = UnitType.PLAYER_WALK_BPS * u.type.speed(cfg()) / 20.0; // bloki na tick
         LivingEntity enemy = findEnemy(u, cfg().getDouble("wojna.zasieg-wykrywania", 16) + 8);
+        double cruise = cfg().getDouble("wojna.wysokosc-lotu", 5);
 
-        Location goal;
+        Location next;
+        Vector look;
         if (enemy != null) {
-            goal = enemy.getLocation().add(0, enemy.getHeight() * 0.6, 0);
+            // atak - leci prosto na wroga
+            Location goal = enemy.getLocation().add(0, enemy.getHeight() * 0.6, 0);
+            Vector delta = goal.toVector().subtract(cur.toVector());
+            double dist = delta.length();
+            next = dist <= speed ? goal.clone() : cur.clone().add(delta.clone().normalize().multiply(speed));
+            look = delta;
         } else {
             Location dest = destinationFor(u);
             if (dest == null) return;
-            if (u.war.target.contains(cur) || cur.distance(dest) < 12) {
-                // kraza nad celem
-                u.orbitAngle += speed / 8.0;
-                goal = dest.clone().add(Math.cos(u.orbitAngle) * 6, 6, Math.sin(u.orbitAngle) * 6);
+            Location goal;
+            if (u.war.target.contains(cur) || horizontal(cur, dest) < 10) {
+                // kraza nisko nad celem
+                u.orbitAngle += Math.min(0.15, speed / 6.0);
+                goal = dest.clone().add(Math.cos(u.orbitAngle) * 5, 0, Math.sin(u.orbitAngle) * 5);
             } else {
-                goal = dest.clone().add(0, 10, 0);
+                goal = dest.clone();
             }
+            // ruch tylko w poziomie, wysokosc trzymana nisko nad ziemia (zeby bylo je widac)
+            Vector delta = goal.toVector().subtract(cur.toVector()).setY(0);
+            double dist = delta.length();
+            next = dist <= speed ? goal.clone() : cur.clone().add(delta.clone().normalize().multiply(speed));
+            double want = world.getHighestBlockYAt(next.getBlockX(), next.getBlockZ()) + 1 + cruise;
+            double dy = want - cur.getY();
+            next.setY(cur.getY() + Math.max(-speed, Math.min(speed, dy)));
+            look = next.toVector().subtract(cur.toVector());
         }
-
-        Vector delta = goal.toVector().subtract(cur.toVector());
-        double dist = delta.length();
-        Location next;
-        if (dist <= speed || dist < 0.01) {
-            next = goal.clone();
-        } else {
-            next = cur.clone().add(delta.clone().normalize().multiply(speed));
-        }
-        // nie wlatuj w ziemie
+        // nigdy w ziemi i nigdy wysoko w chmurach
         int ground = world.getHighestBlockYAt(next.getBlockX(), next.getBlockZ());
-        double minY = ground + (enemy != null ? 1.0 : 4.0);
-        if (next.getY() < minY) next.setY(Math.min(minY, next.getY() + speed + 0.5));
-        if (dist > 0.01) next.setDirection(delta);
+        double maxY = ground + 1 + cruise + 6;
+        if (next.getY() < ground + 1) next.setY(ground + 1);
+        if (next.getY() > maxY) next.setY(maxY);
+        if (look.lengthSquared() > 0.0001) next.setDirection(look);
+
+        // zaladuj chunk do ktorego leci ZANIM tam wleci - inaczej jednostka znika
+        prepareChunk(u, next);
         m.teleport(next);
 
         if (enemy != null && next.distance(enemy.getLocation().add(0, enemy.getHeight() * 0.5, 0)) <= 2.5) {
@@ -335,6 +378,21 @@ public class WarManager {
         if (tickCounter % 4 == 0) {
             world.spawnParticle(Particle.SMOKE, next, 2, 0.1, 0.1, 0.1, 0.01);
         }
+    }
+
+    private static double horizontal(Location a, Location b) {
+        double dx = a.getX() - b.getX(), dz = a.getZ() - b.getZ();
+        return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    /** Dodaje ticket i laduje chunk zanim jednostka do niego wejdzie. */
+    private void prepareChunk(WarUnit u, Location next) {
+        ChunkPos np = ChunkPos.of(next);
+        if (np.equals(u.ticket)) return;
+        addTicket(np);
+        next.getWorld().getChunkAt(np.x(), np.z());
+        removeTicket(u.ticket);
+        u.ticket = np;
     }
 
     private void tryAttack(WarUnit u, LivingEntity enemy) {
@@ -373,7 +431,8 @@ public class WarManager {
     }
 
     private boolean validFighter(Player p) {
-        return !p.isDead() && (p.getGameMode() == GameMode.SURVIVAL || p.getGameMode() == GameMode.ADVENTURE);
+        // kreatywny tez sie liczy (wczesniej przez to nie dalo sie przejac chunka), obserwator nie
+        return !p.isDead() && p.isValid() && p.getGameMode() != GameMode.SPECTATOR;
     }
 
     // =====================================================================
@@ -442,11 +501,17 @@ public class WarManager {
     //  KONIEC WOJNY
     // =====================================================================
 
+    public boolean inWar(UUID nation) {
+        for (War w : wars) if (w.involves(nation)) return true;
+        return false;
+    }
+
     public void end(War w, boolean attackerWon, String reason) {
         if (!wars.remove(w)) return;
         for (WarUnit u : w.units) {
             unitsByEntity.remove(u.entity.getUniqueId());
             removeTicket(u.ticket);
+            removeTicket(u.aheadTicket);
             if (u.alive()) {
                 Nation n = plugin.nations().get(u.side);
                 if (n != null) n.addUnits(u.type, 1); // ocalale jednostki wracaja do armii

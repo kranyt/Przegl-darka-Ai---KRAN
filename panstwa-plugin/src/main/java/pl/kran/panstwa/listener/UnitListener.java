@@ -91,7 +91,8 @@ public class UnitListener implements Listener {
     @EventHandler
     public void onLoad(EntitiesLoadEvent e) {
         for (Entity en : e.getEntities()) {
-            if (plugin.wars().isTaggedUnit(en) && plugin.wars().getUnit(en) == null) en.remove();
+            if (plugin.wars().isTaggedUnit(en) && plugin.wars().getUnit(en) == null
+                    && !plugin.garrison().isGarrison(en)) en.remove();
         }
     }
 }

@@ -25,7 +25,7 @@ commands:
 
 permissions:
   panstwa.admin:
-    description: Omija ochrone chunkow
+    description: Pozwala wlaczyc tryb admina (/p admin), ktory omija ochrone chunkow
     default: op
   panstwa.trwalebloki:
     description: Bloki stawiane poza panstwem nie znikaja

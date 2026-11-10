@@ -25,11 +25,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class PanstwaPlugin extends JavaPlugin {
+public class PanstwaPlugin extends JavaPlugin {
     private NationManager nations;
     private WarManager wars;
     private MarketManager market;
     private Menus menus;
+    private pl.kran.panstwa.war.GarrisonManager garrison;
+    private final java.util.Set<java.util.UUID> bypass = new java.util.HashSet<>();
     private pl.kran.panstwa.model.UpkeepManager upkeep;
     private pl.kran.panstwa.listener.TempBlockManager tempBlocks;
     private NamespacedKey fundamentKey;
@@ -72,6 +74,8 @@ public final class PanstwaPlugin extends JavaPlugin {
         }
 
         wars.start();
+        garrison = new pl.kran.panstwa.war.GarrisonManager(this);
+        garrison.start();
         market.start();
         tempBlocks.start();
         upkeep.start();
@@ -81,6 +85,7 @@ public final class PanstwaPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (upkeep != null) upkeep.shutdown();
+        if (garrison != null) garrison.shutdown();
         if (wars != null) wars.shutdown();
         if (market != null) market.shutdown();
         if (tempBlocks != null) tempBlocks.shutdown();
@@ -92,6 +97,20 @@ public final class PanstwaPlugin extends JavaPlugin {
     public MarketManager market() { return market; }
     public Menus menus() { return menus; }
     public pl.kran.panstwa.model.UpkeepManager upkeep() { return upkeep; }
+    public pl.kran.panstwa.war.GarrisonManager garrison() { return garrison; }
+
+    /** Tryb admina (/p admin) - omija ochrone chunkow. Domyslnie wylaczony, nawet dla OP. */
+    public boolean isBypassing(org.bukkit.entity.Player p) {
+        return bypass.contains(p.getUniqueId()) && p.hasPermission("panstwa.admin");
+    }
+
+    public boolean toggleBypass(org.bukkit.entity.Player p) {
+        if (!bypass.remove(p.getUniqueId())) {
+            bypass.add(p.getUniqueId());
+            return true;
+        }
+        return false;
+    }
 
     public long upkeepPeriodMs() {
         return getConfig().getLong("oplata.co-ile-dni", 7) * 24L * 3600_000L;
@@ -103,6 +122,7 @@ public final class PanstwaPlugin extends JavaPlugin {
         org.bukkit.block.Block b = n.getFundamentBlock();
         if (b != null && b.getType() == Material.BEACON) b.setType(Material.AIR);
         nations.delete(n);
+        if (garrison != null) garrison.clear(n.getOwner());
         Bukkit.broadcast(Msg.c(Msg.PREFIX + broadcast));
     }
 

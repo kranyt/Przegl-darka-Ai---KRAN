@@ -17,6 +17,8 @@ public class WarUnit {
     Location lastPos;
     int stuckTicks;
     ChunkPos ticket;
+    /** Chunk do ktorego zolnierz zaraz wejdzie (ladowany z wyprzedzeniem). */
+    ChunkPos aheadTicket;
     double orbitAngle = Math.random() * Math.PI * 2;
 
     WarUnit(War war, UnitType type, UUID side, Mob entity) {

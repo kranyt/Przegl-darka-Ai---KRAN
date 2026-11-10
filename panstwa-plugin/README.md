@@ -3,11 +3,11 @@
 Państwa, chunki, wojny z armią/dronami/samolotami/jetami oraz giełda akcji farm.
 
 ## Instalacja
-1. Wrzuć `Panstwa-1.3.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
+1. Wrzuć `Panstwa-1.4.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
 2. Uruchom serwer. Konfiguracja: `plugins/Panstwa/config.yml` (koszty, HP, prędkości, szanse giełdy).
 3. Dane zapisują się w `plugins/Panstwa/panstwa.yml` i `plugins/Panstwa/gielda.yml`.
 
-Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.3.0.jar`.
+Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.4.0.jar`.
 
 ## Komendy
 | Komenda | Opis |
@@ -65,6 +65,7 @@ Tylko właściciel może: zapraszać/wyrzucać, zmieniać nazwę, wystawiać akc
 - Jednostki **nie teleportują się** – żołnierze idą (pathfinding), drony/samoloty/jety lecą nad terenem z prędkością = wielokrotność prędkości chodu gracza.
 - Jeśli cel jest dalej niż **16 chunków**, żołnierze nie dosięgają – lecą tylko drony, samoloty i jety.
 - Jednostki walczą z jednostkami przeciwnika i z wrogim graczem. Gracz nie musi mieć armii – może walczyć sam.
+- Drony, samoloty i jety lecą nisko (5 bloków nad ziemią, `wojna.wysokosc-lotu`) i świecą (glowing), żeby było je widać.
 - Chunk zostaje przejęty, gdy atakujący (gracz albo jego jednostki) jest na nim **10 sekund** bez żadnego obrońcy. Postęp widać na pasku bossbar.
 - Po zakończeniu wojny ocalałe jednostki wracają do armii, zabite przepadają. Wojna kończy się porażką atakującego po 10 minutach.
 
@@ -91,5 +92,11 @@ Tylko właściciel może: zapraszać/wyrzucać, zmieniać nazwę, wystawiać akc
 ## Znikające bloki
 Bloki postawione **poza państwem** znikają po **10 minutach**. Po postawieniu takiego bloku na action barze pojawia się informacja, że blok zniknie za 10 minut. Zawartość skrzyń wypada na ziemię. Jeśli teren w międzyczasie stanie się częścią państwa, blok zostaje. Uprawnienie `panstwa.trwalebloki` wyłącza znikanie dla danego gracza; czas i włączenie – `znikajace-bloki` w configu.
 
+## Garnizon
+Gdy państwo nie walczy, jego armia jest widoczna w bazie: żołnierze chodzą wokół fundamentu, a drony, samoloty i jety krążą nad nim (max 6 widocznych każdego typu). Jednostki garnizonu są nieśmiertelne – to tylko pokaz armii. Gdy zaczyna się wojna, znikają z bazy i wyruszają do walki, a po wojnie ocalałe wracają. Ustawienia: `garnizon` w configu.
+
 ## Ochrona
-Na chunkach państwa tylko właściciel może niszczyć i stawiać bloki, otwierać skrzynie itp. Wybuchy, ogień i tłoki nie niszczą chunków państw. Uprawnienie `panstwa.admin` (domyślnie OP) pozwala ominąć ochronę.
+Na chunkach państwa tylko właściciel i członkowie mogą niszczyć i stawiać bloki, otwierać skrzynie itp. Wybuchy, ogień i tłoki nie niszczą chunków państw.
+Admin (uprawnienie `panstwa.admin`, domyślnie OP) może włączyć tryb omijania ochrony komendą `/p admin` – domyślnie jest wyłączony, więc OP gra normalnie.
+
+**Uwaga:** na poziomie trudności *Peaceful* Minecraft usuwa jednostki (zombie/vex/phantom), więc wojsko nie działa – ustaw co najmniej `/difficulty easy`.
