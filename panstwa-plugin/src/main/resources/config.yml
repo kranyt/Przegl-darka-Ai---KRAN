@@ -20,6 +20,14 @@ czlonkowie:
   max: 10
   zaproszenie-wazne-sekundy: 120
 
+dom:
+  # /p dom - odliczanie przed teleportem (ruch albo obrazenia je przerywaja)
+  odliczanie-sekundy: 3
+  # Co ile sekund mozna uzyc /p dom
+  cooldown-sekundy: 30
+  # Po smierci gracz odradza sie w swoim panstwie (chyba ze ma lozko / kotwice)
+  odradzanie-w-panstwie: true
+
 chunk:
   # Koszt kolejnego chunka (/p chunk) w diamentach
   koszt-diamenty: 32

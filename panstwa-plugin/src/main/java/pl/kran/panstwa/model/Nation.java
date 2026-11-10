@@ -83,6 +83,23 @@ public class Nation {
         return new ChunkPos(fundWorld, fundX >> 4, fundZ >> 4);
     }
 
+    /** Ustawiony dom (/p ustawdom) albo null. */
+    private Location home;
+
+    public Location getRawHome() { return home == null ? null : home.clone(); }
+    public void setHome(Location loc) { this.home = loc == null ? null : loc.clone(); }
+
+    /**
+     * Miejsce do ktorego teleportuje /p dom: ustawiony dom, a jesli go nie ma
+     * albo jego chunk nie nalezy juz do panstwa - na fundament.
+     */
+    public Location getHome() {
+        if (home != null && home.getWorld() != null && chunks.contains(ChunkPos.of(home))) return home.clone();
+        World w = Bukkit.getWorld(fundWorld);
+        if (w == null) return null;
+        return new Location(w, fundX + 0.5, fundY + 1, fundZ + 0.5);
+    }
+
     public Block getFundamentBlock() {
         World w = Bukkit.getWorld(fundWorld);
         return w == null ? null : w.getBlockAt(fundX, fundY, fundZ);

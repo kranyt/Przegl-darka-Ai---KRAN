@@ -21,7 +21,7 @@ import java.util.UUID;
 public class PCommand implements TabExecutor {
     private static final List<String> SUBS = List.of("fundament", "chunk", "wojna", "pokoj", "armia", "drony",
             "samolot", "jet", "gielda", "info", "tutaj", "chunki", "mapa", "wojny", "ranking", "gracz", "akcja",
-            "nazwa", "lista", "pomoc", "zapros", "akceptuj", "odrzuc", "wyrzuc", "opusc", "czlonkowie", "oplata");
+            "nazwa", "lista", "pomoc", "zapros", "akceptuj", "odrzuc", "wyrzuc", "opusc", "czlonkowie", "oplata", "dom", "ustawdom");
     private final PanstwaPlugin plugin;
     private final InfoCommands info;
     /** Zaproszony gracz -> (wlasciciel panstwa, czas wygasniecia). */
@@ -99,6 +99,8 @@ public class PCommand implements TabExecutor {
                 Msg.send(p, on ? "&aTryb admina WLACZONY - mozesz niszczyc/budowac na terenie wszystkich panstw."
                         : "&7Tryb admina wylaczony - ochrona panstw dziala tez na ciebie.");
             }
+            case "dom", "home" -> plugin.homes().teleportHome(p);
+            case "ustawdom", "sethome" -> plugin.homes().setHome(p);
             case "zapros" -> invite(p, n, args);
             case "akceptuj", "dolacz" -> accept(p, n);
             case "odrzuc" -> {
@@ -346,6 +348,8 @@ public class PCommand implements TabExecutor {
         Msg.raw(p, "&e/p drony &7| &e/p samolot &7| &e/p jet &7- lotnictwo");
         Msg.raw(p, "&e/p gielda &7- wystaw akcje farmy");
         Msg.raw(p, "&e/akcje &7| &e/sprzedajakcje &7| &e/mojeakcje &7- gielda akcji");
+        Msg.raw(p, "&e/p dom &7- teleport do swojego panstwa");
+        Msg.raw(p, "&e/p ustawdom &7- ustaw dom panstwa (wlasciciel, na swoim terenie)");
         Msg.raw(p, "&6&l--- Czlonkowie i oplata ---");
         Msg.raw(p, "&e/p zapros <gracz> &7- zapros gracza (wlasciciel)");
         Msg.raw(p, "&e/p akceptuj &7| &e/p odrzuc &7- odpowiedz na zaproszenie");

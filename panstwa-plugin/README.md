@@ -3,11 +3,11 @@
 Państwa, chunki, wojny z armią/dronami/samolotami/jetami oraz giełda akcji farm.
 
 ## Instalacja
-1. Wrzuć `Panstwa-1.5.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
+1. Wrzuć `Panstwa-1.6.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
 2. Uruchom serwer. Konfiguracja: `plugins/Panstwa/config.yml` (koszty, HP, prędkości, szanse giełdy).
 3. Dane zapisują się w `plugins/Panstwa/panstwa.yml` i `plugins/Panstwa/gielda.yml`.
 
-Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.5.0.jar`.
+Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.6.0.jar`.
 
 ## Komendy
 | Komenda | Opis |
@@ -25,6 +25,9 @@ Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.5.0.jar`.
 | `/akcje` | Rynek – kupowanie akcji. |
 | `/sprzedajakcje [id]` | Sprzedaj akcję serwerowi po aktualnej cenie (bez id otwiera menu). |
 | `/mojeakcje` | Lista twoich akcji z cenami. |
+| `/p dom` | Teleport do swojego państwa (po 3 s odliczania – ruch lub obrażenia przerywają; cooldown 30 s). Domyślnie na fundament. |
+| `/p ustawdom` | Właściciel ustawia dom państwa w miejscu, w którym stoi (tylko na swoim terenie). Jeśli chunk z domem zostanie podbity, `/p dom` wraca na fundament. |
+| *(śmierć)* | Gracz z państwem odradza się w swoim państwie (chyba że ma łóżko lub kotwicę odrodzenia). Wyłączenie: `dom.odradzanie-w-panstwie: false`. |
 | `/p nazwa <nazwa>`, `/p pomoc` | Zmiana nazwy państwa, pomoc. |
 
 ### Komendy informacyjne

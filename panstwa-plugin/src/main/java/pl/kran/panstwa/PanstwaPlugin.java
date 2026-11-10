@@ -30,6 +30,7 @@ public class PanstwaPlugin extends JavaPlugin {
     private WarManager wars;
     private MarketManager market;
     private Menus menus;
+    private pl.kran.panstwa.listener.HomeManager homes;
     private pl.kran.panstwa.war.GarrisonManager garrison;
     private final java.util.Set<java.util.UUID> bypass = new java.util.HashSet<>();
     private pl.kran.panstwa.model.UpkeepManager upkeep;
@@ -54,6 +55,8 @@ public class PanstwaPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new MenuListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ProtectionListener(this), this);
         Bukkit.getPluginManager().registerEvents(new UnitListener(this), this);
+        homes = new pl.kran.panstwa.listener.HomeManager(this);
+        Bukkit.getPluginManager().registerEvents(homes, this);
         tempBlocks = new pl.kran.panstwa.listener.TempBlockManager(this);
         Bukkit.getPluginManager().registerEvents(tempBlocks, this);
 
@@ -96,6 +99,7 @@ public class PanstwaPlugin extends JavaPlugin {
     public WarManager wars() { return wars; }
     public MarketManager market() { return market; }
     public Menus menus() { return menus; }
+    public pl.kran.panstwa.listener.HomeManager homes() { return homes; }
     public pl.kran.panstwa.model.UpkeepManager upkeep() { return upkeep; }
     public pl.kran.panstwa.war.GarrisonManager garrison() { return garrison; }
 

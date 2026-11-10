@@ -134,6 +134,13 @@ public class NationManager {
                     Nation n = new Nation(owner, s.getString("nazwa"), s.getString("fundament.swiat"),
                             s.getInt("fundament.x"), s.getInt("fundament.y"), s.getInt("fundament.z"));
                     n.setStarterPackBought(s.getBoolean("pierwszy-pakiet"));
+                    if (s.isConfigurationSection("dom")) {
+                        org.bukkit.World hw = org.bukkit.Bukkit.getWorld(s.getString("dom.swiat", ""));
+                        if (hw != null) {
+                            n.setHome(new Location(hw, s.getDouble("dom.x"), s.getDouble("dom.y"), s.getDouble("dom.z"),
+                                    (float) s.getDouble("dom.yaw"), (float) s.getDouble("dom.pitch")));
+                        }
+                    }
                     for (UnitType t : UnitType.values()) n.setUnits(t, s.getInt("armia." + t.key()));
                     n.setPaidUntil(s.getLong("oplacone-do", System.currentTimeMillis() + plugin.upkeepPeriodMs()));
                     for (String m : s.getStringList("czlonkowie")) {
@@ -168,6 +175,15 @@ public class NationManager {
             y.set(p + "fundament.y", n.getFundY());
             y.set(p + "fundament.z", n.getFundZ());
             y.set(p + "pierwszy-pakiet", n.isStarterPackBought());
+            Location h = n.getRawHome();
+            if (h != null && h.getWorld() != null) {
+                y.set(p + "dom.swiat", h.getWorld().getName());
+                y.set(p + "dom.x", h.getX());
+                y.set(p + "dom.y", h.getY());
+                y.set(p + "dom.z", h.getZ());
+                y.set(p + "dom.yaw", h.getYaw());
+                y.set(p + "dom.pitch", h.getPitch());
+            }
             y.set(p + "oplacone-do", n.getPaidUntil());
             List<String> mem = new ArrayList<>();
             for (UUID m : n.getMembers()) mem.add(m.toString());

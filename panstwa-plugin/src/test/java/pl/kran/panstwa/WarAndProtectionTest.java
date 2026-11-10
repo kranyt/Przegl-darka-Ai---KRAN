@@ -135,4 +135,38 @@ class WarAndProtectionTest {
         assertSame(d, plugin.nations().getAt(target));
         assertNotNull(plugin.wars().warAt(target));
     }
+
+    @Test
+    void homeTeleportsMemberToNation() {
+        PlayerMock owner = server.addPlayer("Wlasciciel");
+        PlayerMock member = server.addPlayer("Czlonek");
+        Nation n = nation(owner, 0, 0);
+        plugin.nations().addMember(n, member.getUniqueId());
+        member.teleport(new Location(world, 500, 5, 500));
+
+        member.performCommand("p dom");
+        server.getScheduler().performTicks(20 * 4);
+        assertEquals(new ChunkPos("world", 0, 0), ChunkPos.of(member.getLocation()), "gracz powinien byc w panstwie");
+
+        // ruch przerywa odliczanie
+        member.teleport(new Location(world, 500, 5, 500));
+        server.getScheduler().performTicks(20 * 31); // cooldown
+        member.performCommand("p dom");
+        member.simulatePlayerMove(new Location(world, 505, 5, 500));
+        server.getScheduler().performTicks(20 * 4);
+        assertNotEquals(new ChunkPos("world", 0, 0), ChunkPos.of(member.getLocation()));
+    }
+
+    @Test
+    void setHomeOnlyInOwnTerritory() {
+        PlayerMock owner = server.addPlayer("Wlasciciel");
+        Nation n = nation(owner, 0, 0);
+        owner.teleport(new Location(world, 200, 5, 200));
+        owner.performCommand("p ustawdom");
+        assertNull(n.getRawHome());
+        owner.teleport(new Location(world, 3, 5, 3));
+        owner.performCommand("p ustawdom");
+        assertNotNull(n.getRawHome());
+        assertEquals(3, n.getHome().getBlockX());
+    }
 }
