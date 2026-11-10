@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Skok na Floride – #floridebykaluch</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;display:flex;align-items:center;justify-content:center}
+  canvas{height:100vh;max-width:100vw;aspect-ratio:9/16;background:#000}
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+const W = 1080, H = 1920, DUR = 22;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const can = new Image(); can.src = 'puszka.png';
+
+// ---------- helpers ----------
+const clamp = (v, a=0, b=1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+function rnd(i){ const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+
+function text(str, x, y, size, color, opts = {}) {
+  ctx.save();
+  ctx.font = `${opts.italic ? 'italic ' : ''}900 ${size}px Impact, "Arial Black", sans-serif`;
+  ctx.textAlign = opts.align || 'center';
+  ctx.textBaseline = 'middle';
+  const mw = ctx.measureText(str).width, maxW = opts.maxW || 1000;
+  if (mw > maxW) { ctx.translate(x, y); ctx.scale(maxW / mw, maxW / mw); x = 0; y = 0; }
+  if (opts.glow) { ctx.shadowColor = opts.glow; ctx.shadowBlur = 40; }
+  if (opts.stroke) { ctx.lineWidth = opts.strokeW || 14; ctx.strokeStyle = opts.stroke; ctx.lineJoin = 'round'; ctx.strokeText(str, x, y); }
+  ctx.fillStyle = color; ctx.fillText(str, x, y);
+  ctx.restore();
+}
+
+function drawCan(x, y, h, rot = 0, glow = 0) {
+  if (!can.complete || !can.naturalWidth) return;
+  const w = h * can.naturalWidth / can.naturalHeight;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  if (glow > 0) { ctx.shadowColor = `rgba(200,120,255,${glow})`; ctx.shadowBlur = 80 * glow; }
+  ctx.drawImage(can, -w/2, -h/2, w, h);
+  ctx.restore();
+}
+
+// stylized crew member (original design: hoodie + bandana mask)
+function crew(x, y, s, color, t, run = 0, face = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * face, s);
+  const sw = Math.sin(t * 14) * run;
+  ctx.lineCap = 'round';
+  // legs
+  ctx.strokeStyle = '#1b1b24'; ctx.lineWidth = 26;
+  ctx.beginPath(); ctx.moveTo(-14, 60); ctx.lineTo(-14 + sw * 30, 150); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(14, 60); ctx.lineTo(14 - sw * 30, 150); ctx.stroke();
+  // body
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.roundRect(-45, -50, 90, 120, 30); ctx.fill();
+  // arms
+  ctx.strokeStyle = color; ctx.lineWidth = 24;
+  ctx.beginPath(); ctx.moveTo(-38, -30); ctx.lineTo(-50 - sw * 25, 40); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(38, -30); ctx.lineTo(50 + sw * 25, 40); ctx.stroke();
+  // head
+  ctx.fillStyle = '#f1c9a5';
+  ctx.beginPath(); ctx.arc(0, -95, 42, 0, Math.PI * 2); ctx.fill();
+  // hood
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(0, -100, 48, Math.PI * 0.95, Math.PI * 2.05); ctx.fill();
+  // bandana mask
+  ctx.fillStyle = '#7a2bd6';
+  ctx.beginPath(); ctx.moveTo(-42, -92); ctx.lineTo(42, -92); ctx.lineTo(30, -58); ctx.lineTo(0, -48); ctx.lineTo(-30, -58); ctx.closePath(); ctx.fill();
+  // sunglasses
+  ctx.fillStyle = '#111';
+  ctx.beginPath(); ctx.ellipse(-16, -110, 14, 10, 0, 0, Math.PI*2); ctx.ellipse(16, -110, 14, 10, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillRect(-4, -113, 8, 4);
+  ctx.restore();
+}
+
+function city(t, tint = '#1a0b3a', speed = 0) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#05010f'); g.addColorStop(.6, tint); g.addColorStop(1, '#ff3d8b');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // stars
+  for (let i = 0; i < 80; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${.3 + .7 * Math.abs(Math.sin(t * 2 + i))})`;
+    ctx.fillRect(rnd(i) * W, rnd(i + 99) * H * .5, 3, 3);
+  }
+  // buildings, two parallax layers
+  [[.35, '#120626', 1300, 0.2], [.7, '#0b0318', 1450, 1]].forEach(([dep, col, base, par], L) => {
+    for (let i = 0; i < 14; i++) {
+      const bw = 110 + rnd(i + L * 50) * 120;
+      let bx = (i * 150 - (t * speed * par * 400) % 2100);
+      if (bx < -250) bx += 2100;
+      const bh = 300 + rnd(i * 3 + L) * 600 * dep;
+      ctx.fillStyle = col; ctx.fillRect(bx, base - bh, bw, bh + 600);
+      for (let wy = base - bh + 30; wy < base - 20; wy += 50)
+        for (let wx = bx + 18; wx < bx + bw - 20; wx += 36)
+          if (rnd(wx * .7 + wy) > .55) { ctx.fillStyle = rnd(wx + wy) > .5 ? '#ffd36b' : '#b07cff'; ctx.fillRect(wx, wy, 14, 20); }
+    }
+  });
+}
+
+function wipe(t, a) { // flash transition
+  const k = 1 - Math.abs(seg(t, a - .25, a + .25) * 2 - 1);
+  if (k > 0) { ctx.fillStyle = `rgba(255,255,255,${k})`; ctx.fillRect(0, 0, W, H); }
+}
+
+function caption(str, t, a, b, y = 1650, col = '#fff') {
+  const k = Math.min(seg(t, a, a + .3), 1 - seg(t, b - .3, b));
+  if (k <= 0) return;
+  ctx.save(); ctx.globalAlpha = k;
+  ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0, y - 70, W, 140);
+  text(str, W / 2, y, 72, col, { stroke: '#000', strokeW: 8 });
+  ctx.restore();
+}
+
+// ---------- scenes ----------
+function sceneIntro(t) { // 0-3.5
+  city(t, '#2a0b4a', .2);
+  const k = easeOut(seg(t, .3, 1.4));
+  text('SKOK', W/2, lerp(-200, 560, k), 230, '#fff', { stroke: '#7a2bd6', strokeW: 20, glow: '#c77dff', italic: true });
+  text('NA FLORIDE', W/2, lerp(H + 200, 780, k), 150, '#ffd23f', { stroke: '#4a0e8f', strokeW: 18, glow: '#ff7ad9', italic: true });
+  const k2 = seg(t, 1.6, 2.4);
+  ctx.globalAlpha = k2; text('ODCINEK SPECJALNY', W/2, 940, 56, '#fff'); ctx.globalAlpha = 1;
+  drawCan(W/2, lerp(2500, 1380, easeOut(seg(t, 1.2, 2.4))), 640, Math.sin(t * 2) * .05, .8);
+}
+
+function sceneVan(t, s) { // 3.5-7.5
+  const lt = t - s;
+  city(t, '#1a0b3a', 1.5);
+  // road
+  ctx.fillStyle = '#16121f'; ctx.fillRect(0, 1450, W, 470);
+  ctx.fillStyle = '#ffd23f';
+  for (let i = 0; i < 8; i++) { const x = (i * 220 - lt * 1200) % 1760; ctx.fillRect(x < -200 ? x + 1760 : x, 1660, 120, 16); }
+  // van
+  const vx = 540 + Math.sin(lt * 3) * 6, vy = 1340 + Math.abs(Math.sin(lt * 9)) * 6;
+  ctx.save(); ctx.translate(vx, vy);
+  ctx.fillStyle = '#2b2b38'; ctx.beginPath(); ctx.roundRect(-420, -260, 840, 300, 40); ctx.fill();
+  ctx.fillStyle = '#7a2bd6'; ctx.fillRect(-420, -60, 840, 30);
+  ctx.fillStyle = '#9fd3ff55'; ctx.beginPath(); ctx.roundRect(-380, -230, 720, 140, 20); ctx.fill();
+  ctx.restore();
+  // crew in window
+  ctx.save(); ctx.beginPath(); ctx.roundRect(vx - 380, vy - 230, 720, 140, 20); ctx.clip();
+  crew(vx - 230, vy - 60, .9, '#3c3c4e', t); crew(vx, vy - 60, .9, '#a02c5a', t); crew(vx + 230, vy - 60, .9, '#256d7b', t);
+  ctx.restore();
+  // wheels
+  [-260, 260].forEach(dx => {
+    ctx.save(); ctx.translate(vx + dx, vy + 50); ctx.rotate(lt * 12);
+    ctx.fillStyle = '#0a0a0a'; ctx.beginPath(); ctx.arc(0, 0, 70, 0, 7); ctx.fill();
+    ctx.fillStyle = '#888'; ctx.fillRect(-40, -6, 80, 12); ctx.fillRect(-6, -40, 12, 80);
+    ctx.restore();
+  });
+  // can held up
+  drawCan(W/2, lerp(1100, 620, easeOut(seg(lt, .4, 1.4))), 520, Math.sin(t * 3) * .08, .7);
+  caption('Ekipa gotowa. Paliwo na misję gotowe!', t, s + .3, s + 3.9, 250);
+}
+
+function sceneBank(t, s) { // 7.5-11
+  const lt = t - s;
+  city(t, '#120a2a', 0);
+  // bank facade
+  ctx.fillStyle = '#d8d2c4'; ctx.fillRect(140, 600, 800, 900);
+  ctx.fillStyle = '#bfb7a6'; ctx.beginPath(); ctx.moveTo(100, 600); ctx.lineTo(540, 380); ctx.lineTo(980, 600); ctx.fill();
+  for (let i = 0; i < 5; i++) { ctx.fillStyle = '#e9e4d8'; ctx.fillRect(190 + i * 160, 680, 60, 700); }
+  text('BANK CENTRALNY', 540, 540, 52, '#5a5240');
+  ctx.fillStyle = '#2a1d10'; ctx.fillRect(440, 1150, 200, 350);
+  ctx.fillStyle = '#16121f'; ctx.fillRect(0, 1500, W, 420);
+  // alarm lights
+  const blink = Math.floor(lt * 6) % 2;
+  ctx.fillStyle = blink ? 'rgba(255,0,60,.25)' : 'rgba(0,90,255,.25)'; ctx.fillRect(0, 0, W, H);
+  // crew running to door
+  const k = seg(lt, .2, 2.6);
+  [0, 1, 2].forEach(i => {
+    const x = lerp(-150 - i * 170, 540 + (i - 1) * 40, ease(clamp(k * 1.2 - i * .1)));
+    crew(x, 1560, 1.1, ['#3c3c4e', '#a02c5a', '#256d7b'][i], t, 1);
+  });
+  caption('Cel: skarbiec. Czas: 60 sekund.', t, s + .3, s + 3.4, 250, '#ffd23f');
+}
+
+function sceneVault(t, s) { // 11-15.5
+  const lt = t - s;
+  ctx.fillStyle = '#1b1b22'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#26262f';
+  for (let i = 0; i < 12; i++) ctx.fillRect(0, i * 170, W, 6);
+  const open = ease(seg(lt, .8, 2.6));
+  const cx = 540, cy = 860, R = 420;
+  // inside the vault: glowing stack of cans
+  const g = ctx.createRadialGradient(cx, cy, 20, cx, cy, R);
+  g.addColorStop(0, `rgba(255,230,160,${open})`); g.addColorStop(1, `rgba(170,90,255,${open * .6})`);
+  ctx.fillStyle = '#0d0716'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill();
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R - 10, 0, 7); ctx.clip();
+  for (let row = 0; row < 3; row++)
+    for (let i = -2; i <= 2; i++)
+      drawCan(cx + i * 150 + (row % 2) * 75, cy + 250 - row * 230, 260, 0, open * .4);
+  ctx.restore();
+  // door swinging open
+  ctx.save(); ctx.translate(cx - R, cy); ctx.scale(lerp(1, .12, open), 1);
+  ctx.fillStyle = '#8a8f9c'; ctx.beginPath(); ctx.arc(R, 0, R, 0, 7); ctx.fill();
+  ctx.fillStyle = '#6a6f7c'; ctx.beginPath(); ctx.arc(R, 0, R - 50, 0, 7); ctx.fill();
+  ctx.save(); ctx.translate(R, 0); ctx.rotate(lt * 2 * (1 - open) + open * 4);
+  ctx.strokeStyle = '#c9ccd4'; ctx.lineWidth = 26;
+  for (let a = 0; a < 3; a++) { ctx.rotate(Math.PI / 3); ctx.beginPath(); ctx.moveTo(-150, 0); ctx.lineTo(150, 0); ctx.stroke(); }
+  ctx.fillStyle = '#c9ccd4'; ctx.beginPath(); ctx.arc(0, 0, 50, 0, 7); ctx.fill();
+  ctx.restore(); ctx.restore();
+  // crew silhouettes in front
+  crew(240, 1550, 1.3, '#3c3c4e', t, 0, 1); crew(540, 1600, 1.4, '#a02c5a', t); crew(840, 1550, 1.3, '#256d7b', t, 0, -1);
+  caption('Zero kasy...', t, s + 1.2, s + 2.7, 250);
+  caption('...prawdziwy skarb to FLORIDE!', t, s + 2.7, s + 4.5, 250, '#ffd23f');
+}
+
+function sceneEscape(t, s) { // 15.5-18.5
+  const lt = t - s;
+  city(t, '#3a0b3a', 4);
+  ctx.fillStyle = '#16121f'; ctx.fillRect(0, 1450, W, 470);
+  // speed lines
+  ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 4;
+  for (let i = 0; i < 30; i++) { const y = rnd(i) * H, x = (W - ((lt * 3000 + rnd(i + 7) * W) % (W + 400))); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 300, y); ctx.stroke(); }
+  // police lights chasing (left edge)
+  const blink = Math.floor(lt * 8) % 2;
+  ctx.fillStyle = blink ? 'rgba(255,0,60,.5)' : 'rgba(0,90,255,.5)';
+  ctx.beginPath(); ctx.arc(-40 - lt * 120, 1500, 260, 0, 7); ctx.fill();
+  // getaway car
+  const boost = seg(lt, 1.2, 1.6);
+  const x = lerp(420, 1500, Math.pow(seg(lt, 1.6, 3), 2));
+  const y = 1420 + Math.sin(lt * 30) * 4;
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = '#7a2bd6'; ctx.beginPath(); ctx.roundRect(-300, -100, 600, 140, 50); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(-170, -210, 320, 130, 50); ctx.fill();
+  ctx.fillStyle = '#9fd3ff88'; ctx.beginPath(); ctx.roundRect(-150, -190, 280, 95, 30); ctx.fill();
+  ctx.fillStyle = '#0a0a0a'; [-190, 190].forEach(d => { ctx.beginPath(); ctx.arc(d, 50, 60, 0, 7); ctx.fill(); });
+  if (boost > 0) { // nitro flame
+    const fl = ctx.createLinearGradient(-300, 0, -600, 0); fl.addColorStop(0, '#fff'); fl.addColorStop(.3, '#ff7ad9'); fl.addColorStop(1, 'rgba(122,43,214,0)');
+    ctx.fillStyle = fl; ctx.beginPath(); ctx.moveTo(-300, -40); ctx.lineTo(-300 - 300 * boost - Math.sin(lt * 50) * 40, 0); ctx.lineTo(-300, 30); ctx.fill();
+  }
+  ctx.restore();
+  // can "power-up"
+  const pk = seg(lt, .2, 1.2);
+  if (pk < 1) drawCan(lerp(540, x, ease(pk)), lerp(600, y - 150, ease(pk)), lerp(560, 120, ease(pk)), pk * 6, 1);
+  if (boost > 0 && lt < 2.4) text('+ FLORIDE BOOST', W/2, 700, 110, '#ffd23f', { stroke: '#4a0e8f', strokeW: 16, glow: '#ff7ad9', italic: true });
+}
+
+function sceneFinal(t, s) { // 18.5-22
+  const lt = t - s;
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#6a1bb8'); g.addColorStop(.45, '#ff6fa8'); g.addColorStop(.75, '#ffd23f'); g.addColorStop(1, '#ff9a3c');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#ffe9a0'; ctx.beginPath(); ctx.arc(W/2, 1250, 260, 0, 7); ctx.fill();
+  ctx.fillStyle = '#4a1d7a'; ctx.fillRect(0, 1450, W, 470);
+  // palms
+  [[120, 1, 1], [960, -1, .9]].forEach(([px, f, sc]) => {
+    ctx.save(); ctx.translate(px, 1460); ctx.scale(f * sc, sc);
+    ctx.strokeStyle = '#3a0f63'; ctx.lineWidth = 34; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(60, -400, 20, -800); ctx.stroke();
+    ctx.fillStyle = '#3a0f63';
+    for (let i = 0; i < 7; i++) { ctx.save(); ctx.translate(20, -800); ctx.rotate(-2.6 + i * .6 + Math.sin(t * 1.5 + i) * .05);
+      ctx.beginPath(); ctx.ellipse(150, 0, 170, 32, 0, 0, 7); ctx.fill(); ctx.restore(); }
+    ctx.restore();
+  });
+  // crew chilling with cans
+  [[300, '#3c3c4e'], [540, '#a02c5a'], [780, '#256d7b']].forEach(([x, c], i) => {
+    crew(x, 1560, 1, c, t); drawCan(x + 55, 1530 + Math.sin(t * 3 + i) * 6, 110, .2, .3);
+  });
+  drawCan(W/2, lerp(-600, 820, easeOut(seg(lt, .1, 1))), 700, Math.sin(t * 2) * .04, 1);
+  const k = seg(lt, .8, 1.3);
+  ctx.save(); ctx.globalAlpha = k;
+  ctx.translate(W/2, 230); ctx.scale(lerp(2, 1, easeOut(k)), lerp(2, 1, easeOut(k)));
+  text('SKOK UDANY!', 0, 0, 140, '#ffd23f', { stroke: '#2a0650', strokeW: 20, italic: true });
+  ctx.restore();
+  ctx.globalAlpha = seg(lt, 1.4, 1.9);
+  text('#floridebykaluch', W/2, 1820, 88, '#fff', { stroke: '#4a0e8f', strokeW: 14, glow: '#c77dff' });
+  ctx.globalAlpha = 1;
+}
+
+const SCENES = [[0, sceneIntro], [3.5, sceneVan], [7.5, sceneBank], [11, sceneVault], [15.5, sceneEscape], [18.5, sceneFinal]];
+
+function render(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  let cur = SCENES[0];
+  for (const s of SCENES) if (t >= s[0]) cur = s;
+  cur[1](t, cur[0]);
+  SCENES.slice(1).forEach(([a]) => wipe(t, a));
+  // cinematic letterbox + vignette
+  const v = ctx.createRadialGradient(W/2, H/2, H * .3, W/2, H/2, H * .75);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  // fade out at end
+  const fo = seg(t, DUR - .5, DUR); if (fo > 0) { ctx.fillStyle = `rgba(0,0,0,${fo})`; ctx.fillRect(0, 0, W, H); }
+}
+window.render = render; window.DUR = DUR;
+
+// live playback (loops); recorder calls render(t) directly with ?record
+if (!location.search.includes('record')) {
+  const t0 = performance.now();
+  const loop = now => { render(((now - t0) / 1000) % DUR); requestAnimationFrame(loop); };
+  can.onload = () => requestAnimationFrame(loop);
+  if (can.complete) requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
