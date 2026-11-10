@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>FLORIDE by Kaluch – EDIT</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;display:flex;align-items:center;justify-content:center}
+  canvas{height:100vh;max-width:100vw;aspect-ratio:9/16}
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// ===== FLORIDE by Kaluch — beat-synced edit (128 BPM) =====
+const W = 1080, H = 1920, BPM = 128, B = 60 / BPM, BEATS = 36, DUR = BEATS * B;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const can = new Image(); can.src = 'puszka.png';
+const PURPLE = '#8a3ffc', YELLOW = '#ffd23f', PINK = '#ff5fa2';
+
+// close-up regions of the can art (in puszka.png pixels)
+const CROPS = {
+  logo:   [0, 170, 756, 620],
+  face:   [150, 640, 440, 820],
+  eyes:   [150, 880, 420, 200],
+  palm:   [280, 300, 200, 360],
+  kaluch: [0, 700, 300, 180],
+  ml:     [170, 1840, 320, 140],
+  chain:  [180, 1220, 420, 300],
+};
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const easeIn = t => t * t * t;
+function rnd(i) { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+
+// offscreen tinted copies of the can for RGB-split
+function tinted(color) {
+  const o = document.createElement('canvas'); o.width = can.naturalWidth; o.height = can.naturalHeight;
+  const c = o.getContext('2d'); c.drawImage(can, 0, 0);
+  c.globalCompositeOperation = 'multiply'; c.fillStyle = color; c.fillRect(0, 0, o.width, o.height);
+  c.globalCompositeOperation = 'destination-in'; c.drawImage(can, 0, 0);
+  return o;
+}
+let RED, CYAN;
+const _tmp = document.createElement('canvas');
+function tmp(w, h) { _tmp.width = w; _tmp.height = h; return _tmp; }
+function prep() { RED = tinted('#ff0000'); CYAN = tinted('#00ffff'); }
+
+function txt(str, x, y, size, fill, o = {}) {
+  ctx.save();
+  ctx.font = `${o.italic === false ? '' : 'italic '}900 ${size}px Impact, "Arial Black", sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const mw = ctx.measureText(str).width, maxW = o.maxW || 1000;
+  ctx.translate(x, y); if (o.rot) ctx.rotate(o.rot);
+  if (mw > maxW) ctx.scale(maxW / mw, maxW / mw);
+  if (o.glow) { ctx.shadowColor = o.glow; ctx.shadowBlur = 50; }
+  if (o.stroke) { ctx.lineJoin = 'round'; ctx.lineWidth = o.sw || 16; ctx.strokeStyle = o.stroke; ctx.strokeText(str, 0, 0); }
+  if (fill) { ctx.fillStyle = fill; ctx.fillText(str, 0, 0); }
+  ctx.restore();
+}
+
+// whole can, with optional RGB split and fake 3D spin (sx = cos)
+function drawCan(x, y, h, rot = 0, split = 0, sx = 1, glow = 0) {
+  const w = h * can.naturalWidth / can.naturalHeight;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(sx, 1);
+  if (split > 1) {               // true RGB split: red + cyan copies add up to the original
+    const o = tmp(Math.ceil(w + split * 2 + 4), Math.ceil(h)), c = o.getContext('2d');
+    c.globalCompositeOperation = 'lighter';
+    c.drawImage(RED, 0, 0, w, h); c.drawImage(CYAN, split * 2, 0, w, h);
+    if (glow) { ctx.shadowColor = PURPLE; ctx.shadowBlur = 90 * glow; }
+    ctx.drawImage(o, -w / 2 - split, -h / 2); ctx.restore(); return;
+  }
+  if (glow) { ctx.shadowColor = PURPLE; ctx.shadowBlur = 90 * glow; }
+  ctx.drawImage(can, -w / 2, -h / 2, w, h);
+  ctx.restore();
+}
+
+// full-screen close-up of a region, zoom z, with RGB split
+function closeUp(name, z = 1, dx = 0, dy = 0, split = 0) {
+  const [rx, ry, rw, rh] = CROPS[name];
+  let sw = Math.max(rw, rh * W / H); let sh = sw * H / W;
+  sw /= z; sh /= z;
+  const sxp = rx + rw / 2 - sw / 2 + dx;
+  const syp = clamp(ry + rh / 2 - sh / 2 + dy, 0, Math.max(0, can.naturalHeight - sh));
+  if (split > 1) {
+    ctx.fillStyle = '#000'; ctx.fillRect(-60, -60, W + 120, H + 120);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.drawImage(RED, sxp, syp, sw, sh, -split, 0, W, H);
+    ctx.drawImage(CYAN, sxp, syp, sw, sh, split, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over'; return;
+  }
+  ctx.drawImage(can, sxp, syp, sw, sh, 0, 0, W, H);
+  ctx.globalAlpha = 1;
+}
+
+function bgRays(t, c1 = '#2a0650', c2 = PURPLE, speed = .4) {
+  ctx.fillStyle = c1; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(t * speed);
+  ctx.fillStyle = c2;
+  for (let i = 0; i < 16; i++) { ctx.rotate(Math.PI / 8); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(1500, -160); ctx.lineTo(1500, 160); ctx.fill(); i++; ctx.rotate(Math.PI / 8); }
+  ctx.restore();
+  const g = ctx.createRadialGradient(W / 2, H / 2, 100, W / 2, H / 2, 1100);
+  g.addColorStop(0, 'rgba(255,210,63,.55)'); g.addColorStop(1, 'rgba(0,0,0,.6)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+
+function sunset() {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#5b16a8'); g.addColorStop(.5, PINK); g.addColorStop(.8, YELLOW); g.addColorStop(1, '#ff8a3c');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+
+function palm(x, y, s, flip, t) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * flip, s);
+  ctx.strokeStyle = '#3a0f63'; ctx.lineWidth = 34; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(70, -400, 20, -800); ctx.stroke();
+  ctx.fillStyle = '#3a0f63';
+  for (let i = 0; i < 7; i++) { ctx.save(); ctx.translate(20, -800); ctx.rotate(-2.6 + i * .6 + Math.sin(t * 2 + i) * .06); ctx.beginPath(); ctx.ellipse(150, 0, 170, 30, 0, 0, 7); ctx.fill(); ctx.restore(); }
+  ctx.restore();
+}
+
+function particles(t, n = 60, col = '255,255,255') {
+  for (let i = 0; i < n; i++) {
+    const y = H - ((t * (200 + rnd(i) * 500) + rnd(i + 3) * H) % (H + 100));
+    const x = rnd(i + 9) * W + Math.sin(t * 2 + i) * 30;
+    ctx.fillStyle = `rgba(${col},${.3 + rnd(i + 5) * .7})`;
+    ctx.beginPath(); ctx.arc(x, y, 3 + rnd(i + 1) * 7, 0, 7); ctx.fill();
+  }
+}
+
+function glitch(amount, seed) { // horizontal slice displacement
+  const n = 7;
+  for (let i = 0; i < n; i++) {
+    const y = rnd(seed * 13 + i) * H, h = 30 + rnd(seed + i * 7) * 140, dx = (rnd(seed * 3 + i) - .5) * 160 * amount;
+    ctx.drawImage(cv, 0, y, W, h, dx, y, W, h);
+  }
+}
+
+// ===== timeline =====
+function render(t) {
+  if (!RED) prep();
+  const beat = t / B, bi = Math.floor(beat), bp = beat - bi;  // beat index + phase
+  const punch = Math.pow(1 - bp, 3);                           // 1 on the hit, decays
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+
+  // camera shake on every hit after the intro
+  const shake = beat >= 4 ? punch * (beat >= 16 && beat < 24 ? 28 : 14) : 0;
+  ctx.translate((rnd(bi) - .5) * shake, (rnd(bi + 50) - .5) * shake);
+
+  if (beat < 4) {                                   // ---- INTRO: letters slam on half-beats
+    particles(t, 30, '138,63,252');
+    const L = 'FLORIDE', shown = Math.min(7, Math.floor(beat * 2) + 1);
+    for (let i = 0; i < shown; i++) {
+      const age = beat * 2 - i, k = easeOut(clamp(age * 2));
+      txt(L[i], 130 + i * 137, 960, lerp(420, 230, k), i === shown - 1 && age < .5 ? YELLOW : '#fff', { stroke: PURPLE, sw: 14, glow: PINK });
+    }
+    if (beat > 3) txt('by Kaluch', W / 2, 1180, 110, YELLOW, { glow: PURPLE });
+  }
+  else if (beat < 8) {                              // ---- REVEAL: can punches on each beat, spin on beat 7
+    bgRays(t, '#2a0650', PURPLE, .5);
+    particles(t);
+    const spin = beat >= 7 ? Math.cos(bp * Math.PI * 2) : 1;
+    const z = 1 + punch * .18 + (beat - 4) * .05;
+    drawCan(W / 2, H / 2 + 40, 1350 * z, Math.sin(t * 3) * .05, punch * 30, spin, .8);
+    txt(['ZIMNA', 'LILA', 'FLORIDE', 'ENERGIA'][bi - 4], W / 2, 210, 160, '#fff', { stroke: '#000', sw: 18, rot: -.06 });
+  }
+  else if (beat < 16) {                             // ---- CLOSE-UP CUTS, one per beat
+    const order = ['logo', 'eyes', 'palm', 'kaluch', 'face', 'chain', 'logo', 'ml'];
+    const words = ['FLORIDE', 'STYL', 'VIBE', 'KALUCH', 'TEN', 'KLIMAT', 'SMAK', '500 ML'];
+    sunset();
+    closeUp(order[bi - 8], 1 + bp * .25 + punch * .15, (bp - .5) * 40, 0, punch * 26);
+    txt(words[bi - 8], W / 2, order[bi - 8] === 'ml' ? 330 : H - 330, 200, YELLOW, { stroke: '#1a0033', sw: 22, rot: (rnd(bi) - .5) * .2 });
+    if (beat > 15) { const r = (beat - 15) ; ctx.fillStyle = `rgba(255,255,255,${easeIn(r)})`; ctx.fillRect(-50, -50, W + 100, H + 100); } // riser flash
+  }
+  else if (beat < 24) {                             // ---- DROP: can grid, strobe, glitch, half-beat cuts
+    const hb = Math.floor(beat * 2) % 2;
+    bgRays(t, hb ? '#1a0033' : '#ff5fa2', hb ? PURPLE : YELLOW, 1.6);
+    if (bi % 2 === 0) {
+      const n = bi % 4 === 0 ? 3 : 2;                // grid of cans
+      for (let r = 0; r < n + 1; r++) for (let c = 0; c < n; c++) {
+        const cw = W / n, ch = H / (n + 1);
+        drawCan(cw * (c + .5), ch * (r + .5) + Math.sin(t * 8 + c + r) * 10, ch * .9 * (1 + punch * .15), (c - (n - 1) / 2) * .1, punch * 12);
+      }
+    } else {
+      drawCan(W / 2, H / 2, 1500 * (1 + punch * .25), (rnd(bi) - .5) * .4, punch * 45, 1, 1);
+    }
+    txt(hb ? 'FLORIDE' : 'BY KALUCH', W / 2, H / 2 + (hb ? -650 : 650), 190, hb ? YELLOW : '#fff', { stroke: '#000', sw: 20 });
+    if (punch > .35) glitch(punch, bi * 7 + hb);
+  }
+  else if (beat < 32) {                             // ---- FLOW: sunset + orbiting spin, slower
+    sunset();
+    ctx.fillStyle = '#ffe9a0'; ctx.beginPath(); ctx.arc(W / 2, 1300, 300 + punch * 20, 0, 7); ctx.fill();
+    ctx.fillStyle = '#4a1d7a'; ctx.fillRect(-50, 1500, W + 100, 500);
+    palm(110, 1520, 1.05, 1, t); palm(980, 1520, .95, -1, t);
+    particles(t, 50, '255,233,160');
+    const lb = beat - 24;
+    const spin = Math.cos(lb * Math.PI / 2);
+    drawCan(W / 2 + Math.sin(lb * .8) * 60, 880 + Math.sin(t * 2) * 25, 1150 * (1 + punch * .08), Math.sin(lb) * .08, punch * 14, spin >= 0 ? Math.max(.08, spin) : Math.min(-.08, spin), .6);
+    const lines = ['LATO', 'W PUSZCE', 'BY', 'KALUCH'];
+    const li = Math.floor(lb / 2);
+    txt(lines[li], W / 2, 230, 180, '#fff', { stroke: PURPLE, sw: 20, glow: PINK, rot: -.05 });
+  }
+  else {                                            // ---- OUTRO
+    bgRays(t, '#2a0650', PURPLE, .2);
+    particles(t, 80, '255,210,63');
+    const k = easeOut(clamp((beat - 32) / 1.2));
+    drawCan(W / 2, lerp(H + 900, 900, k), 1100, Math.sin(t * 2) * .04, 0, 1, 1);
+    txt('FLORIDE', W / 2, 1600, 230, YELLOW, { stroke: '#1a0033', sw: 24, glow: PINK });
+    txt('#floridebykaluch', W / 2, 1780, 92, '#fff', { stroke: PURPLE, sw: 12 });
+  }
+
+  // global hit flash on section changes
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  for (const s of [4, 8, 16, 24, 32]) {
+    const d = beat - s;
+    if (d >= 0 && d < .5) { ctx.fillStyle = `rgba(255,255,255,${1 - d * 2})`; ctx.fillRect(0, 0, W, H); }
+  }
+  // vignette + film grain-ish scanlines
+  const v = ctx.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, H * .8);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(0,0,0,.08)'; for (let y = 0; y < H; y += 6) ctx.fillRect(0, y, W, 2);
+  if (t > DUR - .4) { ctx.fillStyle = `rgba(0,0,0,${(t - DUR + .4) / .4})`; ctx.fillRect(0, 0, W, H); }
+}
+window.render = render; window.DUR = DUR;
+
+if (!location.search.includes('record')) {
+  const go = () => { const a = new Audio('muzyka.wav'); a.loop = true; let t0 = performance.now();
+    const loop = now => { const t = a.currentTime || ((now - t0) / 1000) % DUR; render(t % DUR); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop); document.body.onclick = () => a.play(); };
+  if (can.complete) go(); else can.onload = go;
+}
+</script>
+</body>
+</html>
