@@ -12,6 +12,20 @@ public class War {
     final UUID defender;
     final ChunkPos target;
     final List<WarUnit> units = new ArrayList<>();
+    /** Jednostki czekajace na odrodzenie: [typ, strona, ile tickow zostalo]. */
+    final List<Respawn> respawns = new ArrayList<>();
+
+    static class Respawn {
+        final UnitType type;
+        final UUID side;
+        int ticks;
+
+        Respawn(UnitType type, UUID side, int ticks) {
+            this.type = type;
+            this.side = side;
+            this.ticks = ticks;
+        }
+    }
     final long startMillis = System.currentTimeMillis();
     int captureSeconds;
     BossBar bar;

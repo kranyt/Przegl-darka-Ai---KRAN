@@ -146,54 +146,85 @@ public class WarManager {
     }
 
     private void spawnUnit(War w, UnitType t, Nation n, boolean attacker, Location loc) {
-        Mob mob = createMob(t, n, attacker ? "&c" : "&9", loc);
-        WarUnit u = new WarUnit(w, t, n.getOwner(), mob);
-        u.lastPos = mob.getLocation();
-        u.ticket = ChunkPos.of(mob.getLocation());
+        UnitBody body = createUnit(t, n, attacker ? "&c" : "&9", loc);
+        WarUnit u = new WarUnit(w, t, n.getOwner(), body);
+        u.lastPos = body.loc();
+        u.ticket = ChunkPos.of(body.loc());
         addTicket(u.ticket);
         w.units.add(u);
-        unitsByEntity.put(mob.getUniqueId(), u);
+        unitsByEntity.put(body.body.getUniqueId(), u);
+        if (body.carrier != null) unitsByEntity.put(body.carrier.getUniqueId(), u);
     }
 
-    /** Tworzy jednostke (zolnierz = zombie, dron = vex, samolot/jet = phantom). Uzywane tez przez garnizon. */
-    public Mob createMob(UnitType t, Nation n, String color, Location loc) {
+    /**
+     * Tworzy jednostke: zolnierz = zombie, dron = vex,
+     * samolot / jet = phantom niesiony przez niewidzialnego vexa. Uzywane tez przez garnizon.
+     * Latajace jednostki maja wlaczone AI (bez celow), zeby dzialala predkosc (velocity).
+     */
+    public UnitBody createUnit(UnitType t, Nation n, String color, Location loc) {
         World world = loc.getWorld();
         double hp = t.hp(cfg());
-        Mob mob;
         switch (t) {
-            case SOLDIER -> mob = world.spawn(loc, Zombie.class, z -> {
-                z.setAdult();
-                z.setShouldBurnInDay(false);
-                EntityEquipment eq = z.getEquipment();
-                eq.setHelmet(new ItemStack(Material.IRON_HELMET));
-                eq.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-                eq.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
-                eq.setBoots(new ItemStack(Material.IRON_BOOTS));
-                eq.setItemInMainHand(new ItemStack(Material.IRON_SWORD));
-                Attr.set(z, "spawn_reinforcements", 0);
-                // ~ predkosc chodzenia gracza
-                Attr.set(z, "movement_speed", 0.25 * t.speed(cfg()));
-                Attr.set(z, "follow_range", 48);
-                prepare(z, t, hp, color, n);
-            });
-            case DRONE -> mob = world.spawn(loc, Vex.class, v -> {
-                v.setLimitedLifetime(false);
-                prepare(v, t, hp, color, n);
-            });
-            default -> mob = world.spawn(loc, Phantom.class, ph -> {
-                ph.setSize(t == UnitType.JET ? 6 : 2);
-                ph.setShouldBurnInDay(false);
-                prepare(ph, t, hp, color, n);
-            });
+            case SOLDIER -> {
+                Zombie z = world.spawn(loc, Zombie.class, e -> {
+                    e.setAdult();
+                    e.setShouldBurnInDay(false);
+                    EntityEquipment eq = e.getEquipment();
+                    eq.setHelmet(new ItemStack(Material.IRON_HELMET));
+                    eq.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
+                    eq.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
+                    eq.setBoots(new ItemStack(Material.IRON_BOOTS));
+                    eq.setItemInMainHand(new ItemStack(Material.IRON_SWORD));
+                    Attr.set(e, "spawn_reinforcements", 0);
+                    // ~ predkosc chodzenia gracza
+                    Attr.set(e, "movement_speed", 0.25 * t.speed(cfg()));
+                    Attr.set(e, "follow_range", 48);
+                    prepare(e, t, hp, color, n);
+                });
+                Bukkit.getMobGoals().removeAllGoals(z);
+                return new UnitBody(t, z, null);
+            }
+            case DRONE -> {
+                Vex v = world.spawn(loc, Vex.class, e -> {
+                    e.setLimitedLifetime(false);
+                    prepare(e, t, hp, color, n);
+                });
+                flyerSetup(v);
+                v.setGlowing(true);
+                return new UnitBody(t, v, null);
+            }
+            default -> {
+                Vex carrier = world.spawn(loc, Vex.class, e -> {
+                    e.setLimitedLifetime(false);
+                    e.setInvisible(true);
+                    e.setInvulnerable(true);
+                    e.setSilent(true);
+                    e.setPersistent(true);
+                    e.setRemoveWhenFarAway(false);
+                    e.setCanPickupItems(false);
+                    e.getEquipment().clear();
+                    e.getPersistentDataContainer().set(unitKey, PersistentDataType.STRING, n.getOwner().toString());
+                });
+                flyerSetup(carrier);
+                Phantom ph = world.spawn(loc, Phantom.class, e -> {
+                    e.setSize(t == UnitType.JET ? 6 : 2);
+                    e.setShouldBurnInDay(false);
+                    prepare(e, t, hp, color, n);
+                });
+                ph.setAI(false);
+                ph.setGravity(false);
+                ph.setGlowing(true);
+                carrier.addPassenger(ph);
+                return new UnitBody(t, ph, carrier);
+            }
         }
-        if (t.flying()) {
-            mob.setAI(false);
-            mob.setGravity(false);
-            mob.setGlowing(true); // widoczne z daleka
-        } else {
-            Bukkit.getMobGoals().removeAllGoals(mob);
-        }
-        return mob;
+    }
+
+    private void flyerSetup(Mob m) {
+        Bukkit.getMobGoals().removeAllGoals(m);
+        m.setAI(true);
+        m.setGravity(false);
+        m.setSilent(true);
     }
 
     private void prepare(Mob m, UnitType t, double hp, String color, Nation n) {
@@ -229,8 +260,17 @@ public class WarManager {
                 if (!u.alive()) {
                     removeTicket(u.ticket);
                     removeTicket(u.aheadTicket);
-                    unitsByEntity.remove(u.entity.getUniqueId());
+                    unitsByEntity.remove(u.unit.body.getUniqueId());
+                    if (u.unit.carrier != null) unitsByEntity.remove(u.unit.carrier.getUniqueId());
+                    u.unit.remove();
                     it.remove();
+                    // zginela - odrodzi sie po chwili w bazie
+                    if (cfg().getBoolean("wojna.odradzanie", true)) {
+                        int ticks = cfg().getInt("wojna.odradzanie-sekundy", 20) * 20;
+                        w.respawns.add(new War.Respawn(u.type, u.side, ticks));
+                    } else {
+                        // bez odradzania jednostka przepada
+                    }
                     continue;
                 }
                 try {
@@ -240,6 +280,7 @@ public class WarManager {
                     plugin.getLogger().warning("Blad jednostki: " + ex);
                 }
             }
+            tickRespawns(w);
             if (tickCounter % 20 == 0) {
                 try {
                     secondTick(w);
@@ -249,6 +290,38 @@ public class WarManager {
                 }
             }
         }
+    }
+
+    private void tickRespawns(War w) {
+        if (w.respawns.isEmpty() || !wars.contains(w)) return;
+        Iterator<War.Respawn> it = w.respawns.iterator();
+        while (it.hasNext()) {
+            War.Respawn r = it.next();
+            if (--r.ticks > 0) continue;
+            it.remove();
+            Nation n = plugin.nations().get(r.side);
+            if (n == null) continue;
+            Location loc = respawnPoint(w, n, r.type);
+            if (loc == null) continue;
+            spawnUnit(w, r.type, n, r.side.equals(w.attacker), loc);
+        }
+    }
+
+    /** Atakujacy odradzaja sie na swoim najblizszym chunku, obroncy przy fundamencie. */
+    private Location respawnPoint(War w, Nation n, UnitType t) {
+        ChunkPos from = respawnChunk(w, n);
+        if (from == null) return null;
+        Location base = from.surfaceCenter(0);
+        if (base == null) return null;
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        Location loc = base.add(r.nextDouble(-5, 5), 0, r.nextDouble(-5, 5));
+        loc.setY(loc.getWorld().getHighestBlockYAt(loc) + 1 + (t.flying() ? cfg().getDouble("wojna.wysokosc-lotu", 5) : 0));
+        return loc;
+    }
+
+    private ChunkPos respawnChunk(War w, Nation n) {
+        if (n.getOwner().equals(w.defender)) return n.getCapital();
+        return n.nearestChunk(w.target);
     }
 
     private void updateTicket(WarUnit u) {
@@ -281,8 +354,12 @@ public class WarManager {
         if (u.pathCooldown > 0) return;
         u.pathCooldown = 20;
 
-        // stuck detection
         Location cur = m.getLocation();
+        if (!UnitBody.watched(cur)) {
+            walkUnseen(u, cur);
+            return;
+        }
+        // stuck detection
         if (u.lastPos != null && u.lastPos.getWorld() == cur.getWorld() && u.lastPos.distanceSquared(cur) < 1) {
             u.stuckTicks += 20;
         } else {
@@ -292,7 +369,9 @@ public class WarManager {
 
         Location dest = destinationFor(u);
         if (dest == null) return;
-        if (u.war.target.contains(cur) && cur.distance(dest) < 6) {
+        dest.add(u.formation); // kazdy zolnierz ma swoje miejsce - nie wchodza w siebie
+        dest.setY(dest.getWorld().getHighestBlockYAt(dest) + 1);
+        if (u.war.target.contains(cur) && cur.distance(dest) < 1.5) {
             pf.stopPathfinding();
             return;
         }
@@ -323,61 +402,113 @@ public class WarManager {
         }
     }
 
+    /** Zolnierz daleko od graczy (serwer go uspil) - przesuwa sie po ziemi tempem chodu. */
+    private void walkUnseen(WarUnit u, Location cur) {
+        Location dest = destinationFor(u);
+        if (dest == null) return;
+        dest.add(u.formation);
+        Vector dir = dest.toVector().subtract(cur.toVector()).setY(0);
+        double len = dir.length();
+        if (len < 1) return;
+        double step = UnitType.PLAYER_WALK_BPS * u.type.speed(cfg()); // co 20 tickow = 1 sekunda chodu
+        Location next = cur.clone().add(dir.normalize().multiply(Math.min(step, len)));
+        next.setY(next.getWorld().getHighestBlockYAt(next) + 1);
+        next.setDirection(dir);
+        prepareChunk(u, next);
+        u.unit.stepUnseen(next);
+    }
+
     private void tickFlyer(WarUnit u) {
-        Mob m = u.entity;
         if (u.attackCooldown > 0) u.attackCooldown--;
-        Location cur = m.getLocation();
+        Location cur = u.unit.loc();
         World world = cur.getWorld();
         double speed = UnitType.PLAYER_WALK_BPS * u.type.speed(cfg()) / 20.0; // bloki na tick
         LivingEntity enemy = findEnemy(u, cfg().getDouble("wojna.zasieg-wykrywania", 16) + 8);
         double cruise = cfg().getDouble("wojna.wysokosc-lotu", 5);
 
-        Location next;
-        Vector look;
+        Location goal;
         if (enemy != null) {
-            // atak - leci prosto na wroga
-            Location goal = enemy.getLocation().add(0, enemy.getHeight() * 0.6, 0);
-            Vector delta = goal.toVector().subtract(cur.toVector());
-            double dist = delta.length();
-            next = dist <= speed ? goal.clone() : cur.clone().add(delta.clone().normalize().multiply(speed));
-            look = delta;
+            // atak - leci na wroga
+            goal = enemy.getLocation().add(0, enemy.getHeight() * 0.6, 0);
         } else {
             Location dest = destinationFor(u);
             if (dest == null) return;
-            Location goal;
             if (u.war.target.contains(cur) || horizontal(cur, dest) < 10) {
-                // kraza nisko nad celem
-                u.orbitAngle += Math.min(0.15, speed / 6.0);
-                goal = dest.clone().add(Math.cos(u.orbitAngle) * 5, 0, Math.sin(u.orbitAngle) * 5);
+                // kraza nisko nad celem, kazda jednostka po swoim okregu
+                double radius = 4 + u.formation.length();
+                u.orbitAngle += Math.min(0.12, speed / radius);
+                goal = dest.clone().add(Math.cos(u.orbitAngle) * radius, 0, Math.sin(u.orbitAngle) * radius);
             } else {
-                goal = dest.clone();
+                goal = dest.clone().add(u.formation);
             }
-            // ruch tylko w poziomie, wysokosc trzymana nisko nad ziemia (zeby bylo je widac)
-            Vector delta = goal.toVector().subtract(cur.toVector()).setY(0);
-            double dist = delta.length();
-            next = dist <= speed ? goal.clone() : cur.clone().add(delta.clone().normalize().multiply(speed));
-            double want = world.getHighestBlockYAt(next.getBlockX(), next.getBlockZ()) + 1 + cruise;
-            double dy = want - cur.getY();
-            next.setY(cur.getY() + Math.max(-speed, Math.min(speed, dy)));
-            look = next.toVector().subtract(cur.toVector());
+            // wysokosc trzymana nisko nad ziemia (zeby bylo je widac)
+            Location ahead = cur.clone().add(goal.toVector().subtract(cur.toVector()).setY(0).normalize().multiply(Math.max(speed * 4, 2)));
+            if (!Double.isFinite(ahead.getX())) ahead = cur.clone();
+            double groundAhead = Math.max(world.getHighestBlockYAt(ahead.getBlockX(), ahead.getBlockZ()),
+                    world.getHighestBlockYAt(cur.getBlockX(), cur.getBlockZ()));
+            goal.setY(groundAhead + 1 + cruise);
         }
-        // nigdy w ziemi i nigdy wysoko w chmurach
-        int ground = world.getHighestBlockYAt(next.getBlockX(), next.getBlockZ());
-        double maxY = ground + 1 + cruise + 6;
-        if (next.getY() < ground + 1) next.setY(ground + 1);
-        if (next.getY() > maxY) next.setY(maxY);
-        if (look.lengthSquared() > 0.0001) next.setDirection(look);
+
+        // nie wchodza w siebie - odpychanie od innych jednostek
+        Vector push = separation(u, speed);
+        Location next;
+        if (UnitBody.watched(cur)) {
+            next = u.unit.flyTowards(goal, speed, push); // prawdziwa predkosc - bez teleportu
+        } else {
+            Vector v = goal.toVector().subtract(cur.toVector());
+            if (v.length() > speed) v.normalize().multiply(speed);
+            next = cur.clone().add(v);
+            int g = world.getHighestBlockYAt(next.getBlockX(), next.getBlockZ());
+            if (next.getY() < g + 1.2) next.setY(g + 1.2);
+            next.setDirection(v.lengthSquared() > 1e-6 ? v : cur.getDirection());
+            prepareChunk(u, next);
+            u.unit.stepUnseen(next);
+        }
 
         // zaladuj chunk do ktorego leci ZANIM tam wleci - inaczej jednostka znika
         prepareChunk(u, next);
-        m.teleport(next);
 
-        if (enemy != null && next.distance(enemy.getLocation().add(0, enemy.getHeight() * 0.5, 0)) <= 2.5) {
+        if (enemy != null && u.unit.loc().distance(enemy.getLocation().add(0, enemy.getHeight() * 0.5, 0)) <= attackRange(u.type)) {
             tryAttack(u, enemy);
         }
         if (tickCounter % 4 == 0) {
-            world.spawnParticle(Particle.SMOKE, next, 2, 0.1, 0.1, 0.1, 0.01);
+            world.spawnParticle(Particle.SMOKE, cur, 2, 0.1, 0.1, 0.1, 0.01);
         }
+    }
+
+    private double attackRange(UnitType t) {
+        return switch (t) {
+            case PLANE -> 3.5;
+            case JET -> 5.5;
+            default -> 2.5;
+        };
+    }
+
+    /** Minimalny odstep miedzy jednostkami (zalezy od wielkosci). */
+    static double spacing(UnitType t) {
+        return switch (t) {
+            case SOLDIER -> 1.2;
+            case DRONE -> 2.0;
+            case PLANE -> 3.5;
+            case JET -> 6.0;
+        };
+    }
+
+    /** Wektor odpychania od jednostek tej samej strony, ktore sa za blisko. */
+    private Vector separation(WarUnit u, double speed) {
+        Location me = u.unit.loc();
+        Vector push = new Vector();
+        for (WarUnit o : u.war.units) {
+            if (o == u || !o.side.equals(u.side) || !o.alive() || o.entity.getWorld() != me.getWorld()) continue;
+            double min = (spacing(u.type) + spacing(o.type)) / 2.0;
+            Vector diff = me.toVector().subtract(o.unit.loc().toVector());
+            double d = diff.length();
+            if (d >= min) continue;
+            if (d < 0.01) diff = new Vector(Math.random() - 0.5, 0, Math.random() - 0.5);
+            push.add(diff.normalize().multiply((min - d) / min));
+        }
+        if (push.lengthSquared() < 1e-6) return null;
+        return push.multiply(speed);
     }
 
     private static double horizontal(Location a, Location b) {
@@ -509,15 +640,22 @@ public class WarManager {
     public void end(War w, boolean attackerWon, String reason) {
         if (!wars.remove(w)) return;
         for (WarUnit u : w.units) {
-            unitsByEntity.remove(u.entity.getUniqueId());
+            unitsByEntity.remove(u.unit.body.getUniqueId());
+            if (u.unit.carrier != null) unitsByEntity.remove(u.unit.carrier.getUniqueId());
             removeTicket(u.ticket);
             removeTicket(u.aheadTicket);
             if (u.alive()) {
                 Nation n = plugin.nations().get(u.side);
                 if (n != null) n.addUnits(u.type, 1); // ocalale jednostki wracaja do armii
-                u.entity.remove();
             }
+            u.unit.remove();
         }
+        // jednostki czekajace na odrodzenie tez wracaja
+        for (War.Respawn r : w.respawns) {
+            Nation n = plugin.nations().get(r.side);
+            if (n != null) n.addUnits(r.type, 1);
+        }
+        w.respawns.clear();
         w.units.clear();
         removeTicket(w.target);
         for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(w.bar);

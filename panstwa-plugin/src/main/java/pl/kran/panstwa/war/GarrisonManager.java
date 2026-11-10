@@ -26,16 +26,18 @@ import java.util.concurrent.ThreadLocalRandom;
 public class GarrisonManager {
     private static class GUnit {
         final UnitType type;
+        final UnitBody unit;
         final Mob mob;
         double angle = ThreadLocalRandom.current().nextDouble(Math.PI * 2);
         int pathCooldown;
 
-        GUnit(UnitType type, Mob mob) {
+        GUnit(UnitType type, UnitBody unit) {
             this.type = type;
-            this.mob = mob;
+            this.unit = unit;
+            this.mob = unit.body;
         }
 
-        boolean alive() { return mob.isValid() && !mob.isDead(); }
+        boolean alive() { return unit.alive(); }
     }
 
     private final PanstwaPlugin plugin;
@@ -71,10 +73,13 @@ public class GarrisonManager {
     public void clear(UUID nation) {
         List<GUnit> list = garrisons.remove(nation);
         if (list == null) return;
-        for (GUnit g : list) {
-            byEntity.remove(g.mob.getUniqueId());
-            if (g.mob.isValid()) g.mob.remove();
-        }
+        for (GUnit g : list) forget(g);
+    }
+
+    private void forget(GUnit g) {
+        byEntity.remove(g.mob.getUniqueId());
+        if (g.unit.carrier != null) byEntity.remove(g.unit.carrier.getUniqueId());
+        g.unit.remove();
     }
 
     // ------------------------------------------------------------------ dopasowanie liczby jednostek
@@ -100,7 +105,7 @@ public class GarrisonManager {
             List<GUnit> list = garrisons.computeIfAbsent(n.getOwner(), k -> new ArrayList<>());
             list.removeIf(g -> {
                 if (g.alive()) return false;
-                byEntity.remove(g.mob.getUniqueId());
+                forget(g);
                 return true;
             });
             Map<UnitType, Integer> have = new EnumMap<>(UnitType.class);
@@ -115,8 +120,7 @@ public class GarrisonManager {
                     while (it.hasNext() && toRemove > 0) {
                         GUnit g = it.next();
                         if (g.type != t) continue;
-                        byEntity.remove(g.mob.getUniqueId());
-                        g.mob.remove();
+                        forget(g);
                         it.remove();
                         toRemove--;
                     }
@@ -131,11 +135,12 @@ public class GarrisonManager {
         double x = fund.getX() + 0.5 + r.nextDouble(-4, 4);
         double z = fund.getZ() + 0.5 + r.nextDouble(-4, 4);
         double y = w.getHighestBlockYAt((int) Math.floor(x), (int) Math.floor(z)) + 1 + (t.flying() ? height(t) : 0);
-        Mob mob = plugin.wars().createMob(t, n, "&a", new Location(w, x, y, z));
-        mob.setInvulnerable(true);
-        GUnit g = new GUnit(t, mob);
+        UnitBody body = plugin.wars().createUnit(t, n, "&a", new Location(w, x, y, z));
+        body.body.setInvulnerable(true);
+        GUnit g = new GUnit(t, body);
         list.add(g);
-        byEntity.put(mob.getUniqueId(), mob);
+        byEntity.put(body.body.getUniqueId(), body.body);
+        if (body.carrier != null) byEntity.put(body.carrier.getUniqueId(), body.carrier);
     }
 
     private double height(UnitType t) {
@@ -164,28 +169,41 @@ public class GarrisonManager {
             Block fund = n.getFundamentBlock();
             if (fund == null) continue;
             Location center = fund.getLocation().add(0.5, 0, 0.5);
-            for (GUnit g : e.getValue()) {
+            List<GUnit> list = e.getValue();
+            for (GUnit g : list) {
                 if (!g.alive()) continue;
-                if (g.type.flying()) moveFlyer(g, center); else moveSoldier(g, center);
+                if (g.type.flying()) moveFlyer(g, center, list); else moveSoldier(g, center);
             }
         }
     }
 
-    private void moveFlyer(GUnit g, Location center) {
+    /** Krazenie nad baza - predkoscia (velocity), bez teleportu, z odstepami miedzy jednostkami. */
+    private void moveFlyer(GUnit g, Location center, List<GUnit> all) {
         World w = center.getWorld();
         double r = radius(g.type);
-        // powolne krazenie - ok. 40% normalnej predkosci jednostki
+        // spokojne krazenie - ok. 40% normalnej predkosci jednostki
         double bpt = UnitType.PLAYER_WALK_BPS * g.type.speed(plugin.getConfig()) / 20.0 * 0.4;
         g.angle += bpt / r;
         double x = center.getX() + Math.cos(g.angle) * r;
         double z = center.getZ() + Math.sin(g.angle) * r;
+        if (!w.isChunkLoaded(((int) Math.floor(x)) >> 4, ((int) Math.floor(z)) >> 4)) {
+            g.unit.mover().setVelocity(new org.bukkit.util.Vector());
+            return;
+        }
         double y = Math.max(center.getY() + height(g.type),
                 w.getHighestBlockYAt((int) Math.floor(x), (int) Math.floor(z)) + 2);
-        Location next = new Location(w, x, y, z);
-        // kierunek lotu = styczna do okregu
-        next.setDirection(new org.bukkit.util.Vector(-Math.sin(g.angle), 0, Math.cos(g.angle)));
-        if (!w.isChunkLoaded(next.getBlockX() >> 4, next.getBlockZ() >> 4)) return;
-        g.mob.teleport(next);
+        Location me = g.unit.loc();
+        org.bukkit.util.Vector push = new org.bukkit.util.Vector();
+        for (GUnit o : all) {
+            if (o == g || !o.alive() || !o.type.flying()) continue;
+            double min = (WarManager.spacing(g.type) + WarManager.spacing(o.type)) / 2.0;
+            org.bukkit.util.Vector diff = me.toVector().subtract(o.unit.loc().toVector());
+            double d = diff.length();
+            if (d >= min || d < 0.001) continue;
+            push.add(diff.normalize().multiply((min - d) / min * bpt * 2));
+        }
+        // troche szybciej niz krazenie, zeby dogonic swoj punkt na okregu
+        g.unit.flyTowards(new Location(w, x, y, z), bpt * 2.5, push.lengthSquared() > 0 ? push : null);
     }
 
     private void moveSoldier(GUnit g, Location center) {

@@ -67,6 +67,10 @@ wojna:
   zasieg-wykrywania: 16
   # Na jakiej wysokosci nad ziemia lataja drony / samoloty / jety
   wysokosc-lotu: 5
+  # Zabite jednostki odradzaja sie po tylu sekundach w bazie i wracaja do walki
+  # (atakujacy - na najblizszym chunku, obroncy - przy fundamencie)
+  odradzanie: true
+  odradzanie-sekundy: 20
 
 garnizon:
   # Gdy nie ma wojny armia jest widoczna w bazie (krazy wokol fundamentu).

@@ -3,11 +3,11 @@
 Państwa, chunki, wojny z armią/dronami/samolotami/jetami oraz giełda akcji farm.
 
 ## Instalacja
-1. Wrzuć `Panstwa-1.4.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
+1. Wrzuć `Panstwa-1.5.0.jar` do folderu `plugins/` serwera Paper 1.21 – 1.21.x (Java 21).
 2. Uruchom serwer. Konfiguracja: `plugins/Panstwa/config.yml` (koszty, HP, prędkości, szanse giełdy).
 3. Dane zapisują się w `plugins/Panstwa/panstwa.yml` i `plugins/Panstwa/gielda.yml`.
 
-Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.4.0.jar`.
+Budowanie ze źródeł: `mvn package` → `target/Panstwa-1.5.0.jar`.
 
 ## Komendy
 | Komenda | Opis |
@@ -65,6 +65,8 @@ Tylko właściciel może: zapraszać/wyrzucać, zmieniać nazwę, wystawiać akc
 - Jednostki **nie teleportują się** – żołnierze idą (pathfinding), drony/samoloty/jety lecą nad terenem z prędkością = wielokrotność prędkości chodu gracza.
 - Jeśli cel jest dalej niż **16 chunków**, żołnierze nie dosięgają – lecą tylko drony, samoloty i jety.
 - Jednostki walczą z jednostkami przeciwnika i z wrogim graczem. Gracz nie musi mieć armii – może walczyć sam.
+- Jednostki **nie teleportują się** – drony, samoloty i jety lecą z prawdziwą prędkością (velocity), żołnierze chodzą. Każda jednostka ma swoje miejsce w szyku i odpycha się od sąsiadów, więc nie wchodzą w siebie.
+- **Zabite jednostki odradzają się** po 20 sekundach (atakujący na swoim najbliższym chunku, obrońcy przy fundamencie) i wracają do walki. Po wojnie wszystkie wracają do armii. Ustawienia: `wojna.odradzanie`, `wojna.odradzanie-sekundy`.
 - Drony, samoloty i jety lecą nisko (5 bloków nad ziemią, `wojna.wysokosc-lotu`) i świecą (glowing), żeby było je widać.
 - Chunk zostaje przejęty, gdy atakujący (gracz albo jego jednostki) jest na nim **10 sekund** bez żadnego obrońcy. Postęp widać na pasku bossbar.
 - Po zakończeniu wojny ocalałe jednostki wracają do armii, zabite przepadają. Wojna kończy się porażką atakującego po 10 minutach.
