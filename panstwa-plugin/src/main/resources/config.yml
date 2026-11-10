@@ -1,0 +1,139 @@
+# ==========================================
+#  Panstwa - konfiguracja
+# ==========================================
+
+fundament:
+  # Koszt fundamentu (/p fundament)
+  koszt:
+    DIRT: 64
+    OAK_LOG: 64
+
+oplata:
+  # Panstwo trzeba oplacac co tyle dni, inaczej wygasa (zostaje usuniete)
+  co-ile-dni: 7
+  koszt-diamenty: 64
+  # Ile okresow mozna oplacic z gory
+  max-okresow-z-gory: 4
+
+czlonkowie:
+  # Max czlonkow (bez wlasciciela)
+  max: 10
+  zaproszenie-wazne-sekundy: 120
+
+dom:
+  # /p dom - odliczanie przed teleportem (ruch albo obrazenia je przerywaja)
+  odliczanie-sekundy: 3
+  # Co ile sekund mozna uzyc /p dom
+  cooldown-sekundy: 30
+  # Po smierci gracz odradza sie w swoim panstwie (chyba ze ma lozko / kotwice)
+  odradzanie-w-panstwie: true
+
+chunk:
+  # Koszt kolejnego chunka (/p chunk) w diamentach
+  koszt-diamenty: 32
+
+armia:
+  # Pierwszy zakup: 5 diamentow = 5 zolnierzy, potem 5 diamentow = 1 zolnierz
+  pierwszy-pakiet-koszt: 5
+  pierwszy-pakiet-ilosc: 5
+  zolnierz-koszt: 5
+  # Max ile chunkow moze byc cel, zeby zwykli zolnierze dosiegli
+  zasieg-zolnierzy-chunki: 16
+  # Max ile jednostek danego typu wychodzi na jedna wojne (ochrona przed lagami)
+  max-jednostek-na-wojne: 30
+
+# Jednostki: hp = punkty zycia (2 hp = 1 serce)
+# predkosc = wielokrotnosc predkosci chodzenia gracza (1.0 = jak gracz)
+# obrazenia = ile hp zabiera jeden atak (atak co 1 sekunde)
+jednostki:
+  zolnierz:
+    hp: 24
+    predkosc: 1.0
+    obrazenia: 4
+  dron:
+    hp: 68
+    predkosc: 3.0
+    obrazenia: 5
+    koszt-diamenty: 128
+  samolot:
+    hp: 120
+    predkosc: 4.0
+    obrazenia: 7
+    koszt-diamenty: 256
+  jet:
+    hp: 256
+    predkosc: 8.0
+    obrazenia: 10
+    koszt-diamenty: 512
+
+wojna:
+  # Ile sekund trzeba stac na chunku bez obroncow zeby go przejac
+  czas-przejecia-sekundy: 10
+  # Po ilu sekundach wojna konczy sie porazka atakujacego
+  max-czas-sekundy: 600
+  # Zasieg w blokach w ktorym jednostki szukaja wrogow
+  zasieg-wykrywania: 16
+  # Na jakiej wysokosci nad ziemia lataja drony / samoloty / jety
+  wysokosc-lotu: 5
+  # Zabite jednostki odradzaja sie po tylu sekundach w bazie i wracaja do walki
+  # (atakujacy - na najblizszym chunku, obroncy - przy fundamencie)
+  odradzanie: true
+  odradzanie-sekundy: 20
+
+garnizon:
+  # Gdy nie ma wojny armia jest widoczna w bazie (krazy wokol fundamentu).
+  # Jednostki garnizonu sa niesmiertelne - to tylko pokaz armii.
+  wlaczony: true
+  # Max widocznych jednostek kazdego typu (zeby nie lagowalo)
+  max-na-typ: 6
+
+gielda:
+  # Co ile sekund gracz dostaje plony z akcji
+  zbior-co-sekund: 180
+  # Po ilu sekundach od zbioru sadzi sie nowe rosliny
+  sadzenie-po-sekundach: 120
+  # Co ile sekund cena robi jeden maly krok (albo akcja wygasa)
+  krok-cen-co-sekund: 180
+  # Jeden krok zmienia cene o min-max procent (cena dazy stopniowo do celu trendu)
+  min-krok-procent: 1
+  max-krok-procent: 3
+  # Niesprzedana akcja wygasa po tylu godzinach
+  wygasanie-niesprzedanej-godziny: 24
+  # Akcja jest "tania" gdy kosztuje mniej niz wiekszosc akcji (ponizej mediany).
+  # Wystawienie akcji taniej niz wiekszosc sprawia, ze od razu zaczyna drozec.
+  # Szanse w procentach przy losowaniu nowego trendu (reszta = podrozenie)
+  tania:
+    szansa-wygasniecia: 5
+    szansa-stanienia: 20
+  droga:
+    szansa-wygasniecia: 15
+    szansa-stanienia: 35
+  # Najpopularniejsza farma = rodzaj uprawy, ktorego akcje ma najwiecej roznych graczy.
+  # Dla niej szanse na stanienie i podrozenie sa zamienione miejscami, a wielkosci tez
+  # (tanieje tak jak normalnie drozeje: 5-16% / 17-60%, drozeje tak jak normalnie tanieje).
+  najpopularniejsza:
+    # Ile minimum roznych graczy musi miec akcje tej farmy
+    min-graczy: 2
+  # O ile procent w sumie ma podrozec trend
+  drozenie:
+    czesto-szansa: 85
+    czesto-min: 5
+    czesto-max: 16
+    rzadko-min: 17
+    rzadko-max: 60
+  # O ile procent w sumie ma stanic trend
+  tanienie:
+    czesto-szansa: 80
+    czesto-min: 5
+    czesto-max: 15
+    rzadko-szansa: 18
+    rzadko-min: 16
+    rzadko-max: 30
+    bardzo-rzadko-min: 31
+    bardzo-rzadko-max: 80
+
+znikajace-bloki:
+  # Bloki postawione poza panstwem znikaja po czasie
+  # (uprawnienie panstwa.trwalebloki wylacza to dla gracza)
+  wlaczone: true
+  czas-minuty: 10

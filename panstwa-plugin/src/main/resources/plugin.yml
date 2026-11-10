@@ -1,0 +1,32 @@
+name: Panstwa
+version: '${project.version}'
+main: pl.kran.panstwa.PanstwaPlugin
+api-version: '1.21'
+author: KRAN
+description: Panstwa, chunki, wojny, armie i gielda akcji.
+
+commands:
+  p:
+    description: Glowna komenda panstw
+    usage: /p <fundament|chunk|wojna|pokoj|armia|drony|samolot|jet|gielda|info|tutaj|chunki|mapa|wojny|ranking|gracz|akcja|nazwa|lista|pomoc>
+    aliases: [panstwo]
+  kraj:
+    description: Informacje o panstwie
+    usage: /kraj [panstwo|gracz]
+  akcje:
+    description: Rynek akcji - kup akcje
+    usage: /akcje
+  sprzedajakcje:
+    description: Sprzedaj swoje akcje serwerowi
+    usage: /sprzedajakcje [id]
+  mojeakcje:
+    description: Pokazuje twoje akcje
+    usage: /mojeakcje
+
+permissions:
+  panstwa.admin:
+    description: Pozwala wlaczyc tryb admina (/p admin), ktory omija ochrone chunkow
+    default: op
+  panstwa.trwalebloki:
+    description: Bloki stawiane poza panstwem nie znikaja
+    default: false
