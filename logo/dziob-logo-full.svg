@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 512" width="1200" height="512">
+  <rect width="1200" height="512" fill="#000"/>
+  <g fill="#E8202A" fill-rule="evenodd" transform="translate(30,0) skewX(-8) translate(36,0)">
+    <polygon points="150,100 195,100 195,355 120,420 120,130"/>
+    <path d="M228,100 L325,100 L410,185 L410,325 L315,420 L160,420 L228,362 Z
+             M282,165 L300,165 L343,208 L343,300 L290,353 L282,353 Z"/>
+  </g>
+  <text x="510" y="315" font-family="Impact, 'Arial Black', sans-serif" font-size="170" font-style="italic"
+        font-weight="900" fill="#fff" letter-spacing="6">DZIOB</text>
+  <rect x="512" y="345" width="560" height="14" fill="#E8202A" transform="skewX(-20) translate(125,0)"/>
+</svg>

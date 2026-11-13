@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <circle cx="256" cy="256" r="256" fill="#000"/>
+  <g fill="#E8202A" fill-rule="evenodd" transform="translate(-14,0) skewX(-8) translate(36,0)">
+    <!-- trzon -->
+    <polygon points="150,100 195,100 195,355 120,420 120,130"/>
+    <!-- brzuszek D -->
+    <path d="M228,100 L325,100 L410,185 L410,325 L315,420 L160,420 L228,362 Z
+             M282,165 L300,165 L343,208 L343,300 L290,353 L282,353 Z"/>
+  </g>
+</svg>
